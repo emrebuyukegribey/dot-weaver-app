@@ -6,6 +6,7 @@ import '../models/game_level_model.dart'; // Ensure DotColor is imported
 import '../models/island_model.dart';
 import '../services/game_data_manager.dart';
 import 'game_screen.dart';
+import '../services/level_generator.dart';
 
 class LevelSelectionScreen extends StatefulWidget {
   final IslandModel island;
@@ -24,37 +25,14 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   late List<AnimationController> _floatingControllers;
   late AnimationController _pathAnimationController;
   
-  // STATIC CONFIG: Define Colors for each Level explicitly
-  // This ensures the Icon matches the Game.
-  final Map<int, List<DotColor>> _levelConfig = {
-      1: [DotColor.red, DotColor.blue],
-      2: [DotColor.red, DotColor.blue, DotColor.yellow], // Level 2: 3 Colors
-      3: [DotColor.purple, DotColor.orange],
-      4: [DotColor.red, DotColor.green],
-      5: [DotColor.blue, DotColor.yellow],
-      6: [DotColor.purple, DotColor.red], 
-      7: [DotColor.orange, DotColor.blue],
-      8: [DotColor.green, DotColor.purple],
-      9: [DotColor.yellow, DotColor.orange],
-      // Repeating pattern for 10-20 with variations
-      10: [DotColor.red, DotColor.blue],
-      11: [DotColor.green, DotColor.yellow],
-      12: [DotColor.purple, DotColor.orange],
-      13: [DotColor.red, DotColor.green],
-      14: [DotColor.blue, DotColor.yellow],
-      15: [DotColor.purple, DotColor.red],
-      16: [DotColor.orange, DotColor.blue],
-      17: [DotColor.green, DotColor.purple],
-      18: [DotColor.yellow, DotColor.orange],
-      19: [DotColor.red, DotColor.yellow],
-      20: [DotColor.blue, DotColor.green],
-  };
+
 
   @override
   void initState() {
     super.initState();
     _levels = widget.island.levels;
     _initAnimations();
+    _refreshLevels(); // Load latest stars/unlocks immediately
   }
 
   void _initAnimations() {
@@ -275,7 +253,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       const double size = 80.0;
       
       // Look up colors for this level
-      final List<DotColor> dotColors = _levelConfig[level.id] ?? [DotColor.red, DotColor.blue];
+      final List<DotColor> dotColors = LevelGenerator.levelConfigs[level.id] ?? [DotColor.red, DotColor.blue];
       
       // COLOR SELECTION LOGIC:
       // Choose a background color that CONSTRASTS with the dots inside.
@@ -434,40 +412,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   }
 
   Future<void> _handleLevelTap(LevelModel level, TapUpDetails details) async {
-       // Generate Level based on Config
-       final List<DotColor> colors = _levelConfig[level.id] ?? [DotColor.red, DotColor.blue];
-       
-       final Map<DotColor, List<GridPoint>> positions = {};
-       
-       if (level.id == 1) {
-           // LEVEL 1: 4x4
-           positions[DotColor.red] = [const GridPoint(0, 0), const GridPoint(2, 2)];
-           positions[DotColor.blue] = [const GridPoint(0, 3), const GridPoint(3, 0)];
-       } else if (level.id == 2) {
-           // LEVEL 2: 5x5 (Colors Island - Simplified)
-           // Red (Top Block): (0,0) -> (1,0)
-           // Blue (Middle Strip): (2,0) -> (2,4)
-           // Yellow (Bottom Block): (3,4) -> (4,4)
-           positions[DotColor.red] = [const GridPoint(0, 0), const GridPoint(1, 0)];
-           positions[DotColor.blue] = [const GridPoint(2, 0), const GridPoint(2, 4)];
-           positions[DotColor.yellow] = [const GridPoint(3, 4), const GridPoint(4, 4)];
-       } else {
-           // Generic Mock for others
-           for (var c in colors) {
-               if (c == colors[0]) {
-                  positions[c] = [const GridPoint(0,0), const GridPoint(3,3)];
-               } else {
-                  positions[c] = [const GridPoint(0,3), const GridPoint(3,0)];
-               }
-           }
-       }
-
-       GameLevel gameLevel = GameLevel(
-           id: level.id,
-           rows: level.id == 2 ? 5 : 4, 
-           cols: level.id == 2 ? 5 : 4,
-           dotPositions: positions,
-       );
+       // Generate Level using Generator
+       GameLevel gameLevel = LevelGenerator.generate(level.id);
 
        // Calculate Zoom Origin
        final Size screenSize = MediaQuery.of(context).size;
@@ -475,12 +421,17 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
        final double relativeY = (details.globalPosition.dy / screenSize.height) * 2 - 1;
        final Alignment tapAlignment = Alignment(relativeX, relativeY);
 
-       final result = await Navigator.push(
+       await Navigator.push(
          context, 
          PageRouteBuilder(
             transitionDuration: const Duration(milliseconds: 800),
             reverseTransitionDuration: const Duration(milliseconds: 600),
-            pageBuilder: (_, __, ___) => GameScreen(level: gameLevel, dotAssetPath: widget.island.dotAssetPath),
+            pageBuilder: (_, __, ___) => GameScreen(
+                level: gameLevel, 
+                dotAssetPath: widget.island.dotAssetPath,
+                islandId: widget.island.id,
+                levelId: level.id,
+            ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
                 var curve = CurvedAnimation(parent: animation, curve: Curves.easeInOutQuart);
                 return ScaleTransition(
@@ -495,16 +446,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
          )
        );
        
-       if (result != null && result is int && result > 0) {
-           await GameDataManager().saveStars(widget.island.id, level.id, result);
-           if (level.id == 20) {
-               try {
-                   int currentId = int.parse(widget.island.id);
-                   await GameDataManager().unlockIsland("${currentId + 1}");
-               } catch (_) {}
-           }
-           _refreshLevels();
-       }
+       _refreshLevels();
   }
 }
 
@@ -531,6 +473,47 @@ class _ColorConnectionPainter extends CustomPainter {
             _drawDot(canvas, p1, colors[0]);
             _drawDot(canvas, p2, colors[1]);
             _drawDot(canvas, p3, colors[2]);
+
+        } else if (colors.length == 4) {
+            // Square/Spiral Layout for 4 Colors
+            final Offset p1 = Offset(size.width * 0.25, size.height * 0.25);
+            final Offset p2 = Offset(size.width * 0.75, size.height * 0.25);
+            final Offset p3 = Offset(size.width * 0.75, size.height * 0.75);
+            final Offset p4 = Offset(size.width * 0.25, size.height * 0.75);
+            
+            // Draw Connections (Square)
+            _drawLine(canvas, p1, p2);
+            _drawLine(canvas, p2, p3);
+            _drawLine(canvas, p3, p4);
+            _drawLine(canvas, p4, p1);
+            
+            // Draw Dots
+            _drawDot(canvas, p1, colors[0]);
+            _drawDot(canvas, p2, colors[1]);
+            _drawDot(canvas, p3, colors[2]);
+            _drawDot(canvas, p4, colors[3]);
+
+        } else if (colors.length == 5) {
+            // Pentagon Layout for 5 Colors
+            final double radius = size.width * 0.35;
+            final Offset center = Offset(size.width * 0.5, size.height * 0.5);
+            final List<Offset> points = List.generate(5, (i) {
+                double angle = (i * 2 * math.pi / 5) - (math.pi / 2); // Start from top
+                return Offset(
+                    center.dx + radius * math.cos(angle),
+                    center.dy + radius * math.sin(angle)
+                );
+            });
+            
+            // Draw Connections (Pentagon / Star)
+            for (int i = 0; i < 5; i++) {
+                _drawLine(canvas, points[i], points[(i + 1) % 5]);
+            }
+            
+            // Draw Dots
+            for (int i = 0; i < 5; i++) {
+                _drawDot(canvas, points[i], colors[i]);
+            }
 
         } else {
              // Default Line Layout (2 Colors)

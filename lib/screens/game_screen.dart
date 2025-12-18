@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
 import 'dart:async'; // For Timer
 import 'dart:math' as math;
-import 'dart:ui' as ui; 
+import 'dart:ui' as ui;
+import 'dart:collection';
 import '../models/game_level_model.dart';
+import '../services/game_data_manager.dart';
+import '../services/level_generator.dart';
 
 class GameScreen extends StatefulWidget {
   final GameLevel level;
   final String? dotAssetPath;
+  final String islandId;
+  final int levelId;
 
   const GameScreen({
     super.key, 
     required this.level,
     this.dotAssetPath,
+    required this.islandId,
+    required this.levelId,
   });
 
   @override
@@ -53,6 +60,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       GridPoint(3, 4), GridPoint(3, 3), GridPoint(3, 2), GridPoint(3, 1), GridPoint(3, 0),
       GridPoint(4, 0), GridPoint(4, 1), GridPoint(4, 2), GridPoint(4, 3), GridPoint(4, 4)
   ];
+  
+  // Path Locking & Game State
+  final Set<DotColor> _lockedPaths = {};
+  bool _showAdOverlay = false;
+  bool _showLevelAnnouncement = false;
+  bool _showBoardNotFullWarning = false;
+  int _targetLevelId = 0;
+  
+  // Hint System
+  bool _hintUsed = false;
+  bool _isHintAnimating = false;
 
   @override
   void initState() {
@@ -82,7 +100,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     _handController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     // Hand animation starts ONLY when game starts
+    
+    // Load hint status
+    _loadGameState();
   }
+  
+  Future<void> _loadGameState() async {
+    final hintUsed = GameDataManager().isHintUsed(widget.islandId, widget.levelId);
+    setState(() {
+      _hintUsed = hintUsed;
+    });
+  }
+
+
 
   void _startGame() {
       _hasStarted = true;
@@ -149,52 +179,115 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       backgroundColor: Colors.black, 
       extendBodyBehindAppBar: true,
       appBar: AppBar(
+        toolbarHeight: 80, // Increased height for larger buttons
         // NEW: Timer Display in Title
-        title: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(30),
-                border: Border.all(color: Colors.white.withOpacity(0.1)),
-                boxShadow: [BoxShadow(color: Colors.cyanAccent.withOpacity(0.1), blurRadius: 10)]
-            ),
+        title: FittedBox(
+            fit: BoxFit.scaleDown,
             child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                    const Icon(Icons.timer_outlined, color: Colors.cyanAccent, size: 22),
-                    const SizedBox(width: 10),
+                    const Icon(Icons.timer_outlined, color: Colors.white, size: 22),
+                    const SizedBox(width: 4),
                     Text(
                         _formatTime(), 
-                        style: TextStyle(
+                        style: const TextStyle(
                             fontFamily: 'monospace', 
-                            fontWeight: FontWeight.w700,
-                            color: Colors.cyanAccent.shade100,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
                             fontSize: 22,
-                            letterSpacing: 1.5,
-                            shadows: [Shadow(color: Colors.cyanAccent.withOpacity(0.5), blurRadius: 5)]
+                            letterSpacing: 1.0,
+                            shadows: [Shadow(color: Colors.black54, blurRadius: 10)]
                         )
                     ),
+                    const SizedBox(width: 8), // Replaced pOnly with SizedBox
                 ],
             ),
         ),
         centerTitle: true,
-        backgroundColor: Colors.white.withOpacity(0.05),
+        backgroundColor: Colors.transparent, // Removed background color
         elevation: 0,
-        flexibleSpace: ClipRect(
-            child: BackdropFilter(
-                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                child: Container(color: Colors.transparent),
+        leadingWidth: 100, // accommodate larger back button
+        leading: Center(
+            child: _BouncingButton(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                    width: 70, height: 45, // Oval shape matching LevelSelection
+                    decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [Color(0xFFFFAB40), Color(0xFFFF6D00)], // Vivid Orange
+                        ),
+                        borderRadius: BorderRadius.circular(22.5),
+                        border: Border.all(color: Colors.black, width: 2.5),
+                        boxShadow: [
+                            BoxShadow(color: Colors.black, offset: const Offset(0, 3), blurRadius: 0),
+                        ]
+                    ),
+                    child: const Center(
+                        child: Icon(Icons.arrow_back_rounded, color: Colors.black, size: 28)
+                    ),
+                ),
             ),
         ),
-        leading: IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => Navigator.pop(context),
-        ),
         actions: [
-            IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                onPressed: _resetGame,
-            )
+            // Redesigned Hint Button (Larger, Amber, Circular)
+            Center(
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: _BouncingButton(
+                        onTap: (_hintUsed || _isHintAnimating || !_isGameActive) ? () {} : _useHint,
+                        child: Container(
+                            width: 58, height: 58,
+                            decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFF2A2A1A),
+                                border: Border.all(
+                                    color: _hintUsed ? Colors.grey : Colors.amberAccent, 
+                                    width: 3
+                                ),
+                                boxShadow: [
+                                    if (!_hintUsed) BoxShadow(
+                                        color: Colors.amberAccent.withOpacity(0.4), 
+                                        blurRadius: 12, 
+                                        spreadRadius: 2
+                                    )
+                                ]
+                            ),
+                            child: Icon(
+                                Icons.lightbulb_rounded,
+                                color: _hintUsed ? Colors.grey : Colors.amberAccent,
+                                size: 32,
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            // Custom Larger Restart Button (Magenta, New Shape)
+            Center(
+                child: Padding(
+                    padding: const EdgeInsets.only(right: 16, left: 4),
+                    child: _BouncingButton(
+                        onTap: _resetGame,
+                        child: Container(
+                            width: 58, height: 58,
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF2A1A2A),
+                                borderRadius: BorderRadius.circular(18),
+                                border: Border.all(color: Colors.pinkAccent, width: 3),
+                                boxShadow: [
+                                    BoxShadow(
+                                        color: Colors.pinkAccent.withOpacity(0.4), 
+                                        blurRadius: 12, 
+                                        spreadRadius: 2
+                                    )
+                                ]
+                            ),
+                            child: const Icon(Icons.refresh_rounded, color: Colors.pinkAccent, size: 36),
+                        ),
+                    ),
+                ),
+            ),
         ],
       ),
       body: Stack(
@@ -231,7 +324,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                         child: Stack(
                                             children: [
                                                 CustomPaint(size: Size(gridSize, gridSize), painter: _NeonGridPainter(rows: widget.level.rows, cols: widget.level.cols)),
-                                                AnimatedBuilder(animation: _flowController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonPathPainter(level: widget.level, paths: _paths, cellSize: gridSize / widget.level.cols, flowPhase: _flowController.value))),
+                                                AnimatedBuilder(animation: _flowController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonPathPainter(level: widget.level, paths: _paths, cellSize: gridSize / widget.level.cols, flowPhase: _flowController.value, lockedPaths: _lockedPaths))),
                                                 AnimatedBuilder(animation: _pulseController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonNodePainter(level: widget.level, cellSize: gridSize / widget.level.cols, pulseValue: _pulseController.value))),
                                                 
                                                 // Input
@@ -275,8 +368,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             // 4. Start Overlay (New)
             if (!_hasStarted) _buildStartOverlay(),
 
-            // 5. Win Dialog Overlay
+            // 6. Win Dialog Overlay
             if (_showWinUI) _buildWinOverlay(),
+            
+            // 7. Ad Overlay
+            if (_showAdOverlay) _buildAdOverlay(),
+
+            // 8. Level Announcement Overlay
+            if (_showLevelAnnouncement) _buildLevelAnnouncementOverlay(),
+
+            // 9. Board Not Full Warning (New)
+            if (_showBoardNotFullWarning) _buildBoardNotFullOverlay(),
         ],
       ),
     );
@@ -334,7 +436,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           if (path.isEmpty) { allConnected = false; return; }
           bool startOk = (path.first == nodes[0] && path.last == nodes[1]);
           bool reverseOk = (path.first == nodes[1] && path.last == nodes[0]);
-          if (!(startOk || reverseOk)) { allConnected = false; }
+          
+          // Check if path is complete and lock it
+          if (startOk || reverseOk) {
+              if (!_lockedPaths.contains(color)) {
+                  setState(() {
+                      _lockedPaths.add(color);
+                  });
+              }
+          } else {
+              allConnected = false;
+          }
+          
           filled.addAll(path);
       });
 
@@ -346,15 +459,43 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           _stopGame();
           // Score Calculation
           int seconds = (_elapsedMilliseconds / 1000).floor();
-          if (seconds < 5) _earnedStars = 3;
-          else if (seconds < 10) _earnedStars = 2;
+          // Dynamic Star Thresholds
+          final thresholds = _getStarThresholds(widget.levelId);
+          if (seconds < thresholds[0]) _earnedStars = 3;
+          else if (seconds < thresholds[1]) _earnedStars = 2;
           else _earnedStars = 1;
 
           setState(() {
               _showWinUI = true;
           });
           _triggerConfetti();
+      } else {
+          // All connected but board NOT full -> Show warning then Ad
+          _stopGame();
+          setState(() {
+              _showBoardNotFullWarning = true;
+          });
+          
+          Future.delayed(const Duration(milliseconds: 1500), () {
+              if (mounted) {
+                  setState(() {
+                      _showBoardNotFullWarning = false;
+                  });
+                  _watchAdToRestart();
+              }
+          });
       }
+  }
+
+  List<int> _getStarThresholds(int levelId) {
+    if (levelId <= 1) return [5, 10];
+    if (levelId <= 3) return [10, 20];
+    if (levelId <= 6) return [15, 25];
+    if (levelId <= 10) return [30, 50];  // 6x6
+    if (levelId <= 13) return [50, 90];  // 7x7
+    if (levelId <= 16) return [80, 150]; // 8x8
+    if (levelId <= 18) return [130, 240]; // 9x9
+    return [200, 400]; // 10x10 (L19-20)
   }
 
   Widget _buildWinOverlay() {
@@ -412,21 +553,79 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                               children: [
                                                   IconButton(
-                                                      icon: const Icon(Icons.replay, color: Colors.white),
+                                                      icon: const Icon(Icons.replay_rounded, color: Colors.redAccent),
                                                       onPressed: _resetGame,
-                                                      iconSize: 30,
+                                                      iconSize: 60, // Larger red icon
+                                                      padding: EdgeInsets.zero,
+                                                      constraints: const BoxConstraints(),
                                                   ),
-                                                  ElevatedButton(
-                                                      onPressed: () {
-                                                          Navigator.pop(context, _earnedStars);
+                                                  _BouncingButton(
+                                                      onTap: () async {
+                                                          // 1. Save progress
+                                                          await GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
+                                                          
+                                                          // 2. Load next level if exists
+                                                          if (widget.levelId < 20 && mounted) {
+                                                              final nextLevelId = widget.levelId + 1;
+                                                              
+                                                              // NEW: Show Level Announcement First
+                                                              setState(() {
+                                                                  _targetLevelId = nextLevelId;
+                                                                  _showLevelAnnouncement = true;
+                                                              });
+                                                              
+                                                              await Future.delayed(const Duration(milliseconds: 2000));
+                                                              
+                                                              if (!mounted) return;
+
+                                                              final nextGameLevel = LevelGenerator.generate(nextLevelId);
+                                                              
+                                                              Navigator.pushReplacement(
+                                                                  context,
+                                                                  PageRouteBuilder(
+                                                                      transitionDuration: const Duration(milliseconds: 600),
+                                                                      pageBuilder: (_, __, ___) => GameScreen(
+                                                                          level: nextGameLevel,
+                                                                          dotAssetPath: widget.dotAssetPath,
+                                                                          islandId: widget.islandId,
+                                                                          levelId: nextLevelId,
+                                                                      ),
+                                                                      transitionsBuilder: (ctx, anim, _, child) {
+                                                                          return FadeTransition(
+                                                                              opacity: anim,
+                                                                              child: ScaleTransition(
+                                                                                  scale: Tween<double>(begin: 0.8, end: 1.0).animate(
+                                                                                      CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+                                                                                  ),
+                                                                                  child: child,
+                                                                              ),
+                                                                          );
+                                                                      },
+                                                                  ),
+                                                              );
+                                                          } else {
+                                                              Navigator.pop(context, _earnedStars);
+                                                          }
                                                       },
-                                                      style: ElevatedButton.styleFrom(
-                                                          backgroundColor: Colors.cyanAccent,
-                                                          foregroundColor: Colors.black,
+                                                      child: Container(
                                                           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30))
+                                                          decoration: BoxDecoration(
+                                                              gradient: const LinearGradient(
+                                                                  begin: Alignment.topLeft,
+                                                                  end: Alignment.bottomRight,
+                                                                  colors: [Color(0xFFFFAB40), Color(0xFFFF6D00)],
+                                                              ),
+                                                              borderRadius: BorderRadius.circular(30),
+                                                              border: Border.all(color: Colors.black, width: 2),
+                                                              boxShadow: [
+                                                                  BoxShadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 4)
+                                                              ]
+                                                          ),
+                                                          child: const Text(
+                                                              "CONTINUE", 
+                                                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)
+                                                          ),
                                                       ),
-                                                      child: const Text("CONTINUE", style: TextStyle(fontWeight: FontWeight.bold)),
                                                   )
                                               ],
                                           )
@@ -441,6 +640,57 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       );
   }
 
+  Widget _buildLevelAnnouncementOverlay() {
+      return Stack(
+          children: [
+              Positioned.fill(
+                  child: Container(
+                      color: Colors.black.withOpacity(0.9),
+                      child: Center(
+                          child: TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 800),
+                              curve: Curves.elasticOut,
+                              builder: (context, value, child) {
+                                  return Transform.scale(
+                                      scale: value,
+                                      child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                              Text(
+                                                  "LEVEL",
+                                                  style: TextStyle(
+                                                      color: Colors.white.withOpacity(0.7),
+                                                      fontSize: 32,
+                                                      fontWeight: FontWeight.w300,
+                                                      letterSpacing: 10,
+                                                  ),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              Text(
+                                                  "$_targetLevelId",
+                                                  style: TextStyle(
+                                                      color: Colors.cyanAccent,
+                                                      fontSize: 120,
+                                                      fontWeight: FontWeight.w900,
+                                                      shadows: [
+                                                          Shadow(color: Colors.cyanAccent.withOpacity(0.8), blurRadius: 40),
+                                                          Shadow(color: Colors.cyanAccent.withOpacity(0.5), blurRadius: 80),
+                                                      ]
+                                                  ),
+                                              ),
+                                          ],
+                                      ),
+                                  );
+                              },
+                          ),
+                      ),
+                  ),
+              ),
+          ],
+      );
+  }
+
   Widget _buildStartOverlay() {
       return Stack(
           children: [
@@ -448,7 +698,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                Positioned.fill(
                    child: BackdropFilter(
                        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                       child: Container(color: Colors.black.withOpacity(0.6)),
+                       child: Container(color: const Color(0xFF001A04).withOpacity(0.75)), // Deep Green/Black tint
                    ),
                ),
                Center(
@@ -469,21 +719,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                        width: 220, height: 220,
                                        decoration: BoxDecoration(
                                            shape: BoxShape.circle,
-                                           // Rich Orange Gradient
+                                           // Ultra Neon Green Gradient
                                            gradient: const LinearGradient(
                                               begin: Alignment.topLeft,
                                               end: Alignment.bottomRight,
-                                              colors: [Color(0xFFFFA726), Color(0xFFFF5722)], // Orange to Deep Orange
+                                              colors: [Color(0xFFB2FF59), Color(0xFF76FF03)], // Lime to Neon Green
                                            ),
                                            boxShadow: [
                                                // Intense inner glow
-                                               BoxShadow(color: Colors.orangeAccent.withOpacity(0.6), blurRadius: 20, spreadRadius: 0),
+                                               BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.8), blurRadius: 25, spreadRadius: 2),
                                                // Outer Ambient Glow
-                                               BoxShadow(color: Colors.deepOrange.withOpacity(0.4), blurRadius: 40, spreadRadius: 10),
+                                               BoxShadow(color: Colors.greenAccent.withOpacity(0.5), blurRadius: 50, spreadRadius: 10),
                                                // Bottom Shadow for depth
-                                               BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, offset: const Offset(5, 5)),
+                                               BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 20, offset: const Offset(5, 8)),
                                            ],
-                                           border: Border.all(color: Colors.white.withOpacity(0.2), width: 1),
+                                           border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
                                        ),
                                        child: Container(
                                            margin: const EdgeInsets.all(4), // Inner rim
@@ -510,16 +760,212 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           ],
       );
   }
+  
+
+  
+
+  
+  Future<void> _watchAdToRestart() async {
+    setState(() {
+        _showAdOverlay = true;
+    });
+    
+    // Mock ad delay
+    await Future.delayed(const Duration(seconds: 2));
+    
+    if (mounted) {
+        setState(() {
+            _showAdOverlay = false;
+        });
+        _resetGame();
+    }
+  }
+
+  Widget _buildAdOverlay() {
+      return Stack(
+          children: [
+              Positioned.fill(
+                  child: Container(
+                      color: Colors.black,
+                      child: Center(
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                  const Icon(Icons.play_circle_fill, color: Colors.orangeAccent, size: 80),
+                                  const SizedBox(height: 20),
+                                  const Text(
+                                      "REKLAM İZLENİYOR...",
+                                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  const SizedBox(
+                                      width: 200,
+                                      child: LinearProgressIndicator(color: Colors.orangeAccent, backgroundColor: Colors.white10),
+                                  )
+                              ],
+                          ),
+                      ),
+                  ),
+              ),
+          ],
+      );
+  }
+
+  // Removed legacy _buildGameOverOverlay 
+
+  Widget _buildBoardNotFullOverlay() {
+      return Center(
+          child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
+              decoration: BoxDecoration(
+                  color: Colors.red.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                      BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20)
+                  ],
+              ),
+              child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                      Icon(Icons.warning_amber_rounded, color: Colors.white, size: 50),
+                      SizedBox(height: 10),
+                      Text(
+                          "MASA TAMAMLANMADI!",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+                      ),
+                      Text(
+                          "Tüm kareleri doldurmalısın!",
+                          style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                  ],
+              ),
+          ),
+      );
+  }
+  
 
   void _resetGame() {
       _stopGame();
       setState(() {
           _paths.clear();
           _showWinUI = false;
+          _hasStarted = false; // SHOW START BUTTON
           _confettiParticles.clear();
+          _lockedPaths.clear();
           if (widget.level.id == 1) _handController.repeat();
       });
-      _startGame();
+      _loadGameState(); 
+  }
+  
+
+  
+  void _handlePathBreak(DotColor color) {
+      // Path break logic: now we don't have lives/penalty overlay.
+      // We could optionally reset the path or just let it be.
+      // For now, let's keep it empty to fulfill "removing lives system".
+  }
+  
+  // Hint System - BFS Pathfinding
+  Future<void> _useHint() async {
+      if (_hintUsed || _isHintAnimating) return;
+      
+      // Find first incomplete color
+      DotColor? targetColor;
+      widget.level.dotPositions.forEach((color, nodes) {
+          if (targetColor == null && !_lockedPaths.contains(color)) {
+              targetColor = color;
+          }
+      });
+      
+      if (targetColor == null) return;
+      
+      final nodes = widget.level.dotPositions[targetColor]!;
+      final path = _findPath(nodes[0], nodes[1], targetColor!);
+      
+      if (path == null || path.isEmpty) return;
+      
+      // Mark hint as used
+      await GameDataManager().markHintUsed(widget.islandId, widget.levelId);
+      setState(() {
+          _hintUsed = true;
+          _isHintAnimating = true;
+      });
+      
+      // Animate path drawing
+      _paths[targetColor!] = [path.first];
+      for (int i = 1; i < path.length; i++) {
+          await Future.delayed(const Duration(milliseconds: 100));
+          if (!mounted) return;
+          setState(() {
+              _paths[targetColor!]!.add(path[i]);
+          });
+      }
+      
+      setState(() {
+          _isHintAnimating = false;
+      });
+      
+      // Check win after hint completes
+      _checkWin();
+  }
+  
+  List<GridPoint>? _findPath(GridPoint start, GridPoint end, DotColor color) {
+      // BFS pathfinding
+      final queue = Queue<List<GridPoint>>();
+      final visited = <GridPoint>{};
+      
+      queue.add([start]);
+      visited.add(start);
+      
+      while (queue.isNotEmpty) {
+          final path = queue.removeFirst();
+          final current = path.last;
+          
+          if (current == end) {
+              return path;
+          }
+          
+          // Check all 4 orthogonal neighbors
+          final neighbors = [
+              GridPoint(current.row - 1, current.col), // Up
+              GridPoint(current.row + 1, current.col), // Down
+              GridPoint(current.row, current.col - 1), // Left
+              GridPoint(current.row, current.col + 1), // Right
+          ];
+          
+          for (final neighbor in neighbors) {
+              // Check bounds
+              if (neighbor.row < 0 || neighbor.row >= widget.level.rows ||
+                  neighbor.col < 0 || neighbor.col >= widget.level.cols) {
+                  continue;
+              }
+              
+              if (visited.contains(neighbor)) continue;
+              
+              // Check if cell is occupied by another color's node (not our endpoints)
+              bool blockedByNode = false;
+              widget.level.dotPositions.forEach((c, nodes) {
+                  if (c != color && nodes.contains(neighbor)) {
+                      blockedByNode = true;
+                  }
+              });
+              if (blockedByNode) continue;
+              
+              // Check if cell is occupied by a locked path
+              bool blockedByLockedPath = false;
+              _paths.forEach((c, p) {
+                  if (c != color && _lockedPaths.contains(c) && p.contains(neighbor)) {
+                      blockedByLockedPath = true;
+                  }
+              });
+              if (blockedByLockedPath) continue;
+              
+              visited.add(neighbor);
+              queue.add([...path, neighbor]);
+          }
+      }
+      
+      return null; // No path found
   }
   
   // ... Keep Tutorial & Input Logic same as previous artifact ...
@@ -577,6 +1023,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     GridPoint p = _getGridPoint(details.localPosition, size);
     widget.level.dotPositions.forEach((color, locations) {
         if (locations.contains(p)) {
+            // Check if trying to modify a locked path
+            if (_lockedPaths.contains(color)) {
+                _handlePathBreak(color);
+                return;
+            }
             setState(() {
                 _activeColor = color;
                 _paths[color] = [p]; 
@@ -587,6 +1038,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (_activeColor == null) {
         _paths.forEach((color, path) {
             if (path.isNotEmpty && path.last == p) {
+                // Check if trying to continue a locked path
+                if (_lockedPaths.contains(color)) {
+                    _handlePathBreak(color);
+                    return;
+                }
                 setState(() {
                     _activeColor = color;
                     if (widget.level.id == 1) _handController.stop();
@@ -603,6 +1059,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       List<GridPoint> currentPath = _paths[_activeColor!]!;
       GridPoint last = currentPath.last;
       if (p == last) return; 
+
+      // Stop if we've already reached the destination dot (and aren't backtracking)
+      final endpoints = widget.level.dotPositions[_activeColor!]!;
+      if (currentPath.length > 1 && endpoints.contains(last)) {
+          if (currentPath[currentPath.length - 2] == p) {
+              setState(() { currentPath.removeLast(); });
+          }
+          return;
+      }
+
       bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || (p.col == last.col && (p.row - last.row).abs() == 1);
       if (!isOrthogonal) return; 
       if (currentPath.length > 1 && currentPath[currentPath.length - 2] == p) {
@@ -614,6 +1080,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           setState(() { _paths[_activeColor!] = currentPath.sublist(0, idx + 1); });
           return;
       }
+      
+      // Check if trying to cross a locked path
+      bool hitLockedPath = false;
+      _paths.forEach((c, path) {
+          if (c != _activeColor && _lockedPaths.contains(c) && path.contains(p)) {
+              hitLockedPath = true;
+          }
+      });
+      if (hitLockedPath) return; // Stop drawing if hitting a locked path
+      
       bool hitWrongNode = false;
       widget.level.dotPositions.forEach((c, locs) {
           if (c != _activeColor && locs.contains(p)) hitWrongNode = true;
@@ -703,7 +1179,8 @@ class _NeonPathPainter extends CustomPainter {
     final Map<DotColor, List<GridPoint>> paths;
     final double cellSize;
     final double flowPhase;
-    final List<GridPoint>? hintPath; // NEW
+    final List<GridPoint>? hintPath;
+    final Set<DotColor> lockedPaths;
 
     _NeonPathPainter({
         required this.level, 
@@ -711,6 +1188,7 @@ class _NeonPathPainter extends CustomPainter {
         required this.cellSize, 
         required this.flowPhase,
         this.hintPath,
+        this.lockedPaths = const {},
     });
 
     @override
@@ -739,9 +1217,27 @@ class _NeonPathPainter extends CustomPainter {
                 final Offset center = Offset((points[i].col * cellSize) + (cellSize/2), (points[i].row * cellSize) + (cellSize/2));
                 if (i==0) path.moveTo(center.dx, center.dy); else path.lineTo(center.dx, center.dy);
             }
-            canvas.drawPath(path, Paint()..color = color.color.withOpacity(0.5)..strokeWidth = cellSize * 0.6..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12));
-            canvas.drawPath(path, Paint()..color=color.color..strokeWidth=cellSize*0.3..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
-            canvas.drawPath(path, Paint()..color=Colors.white.withOpacity(0.5)..strokeWidth=cellSize*0.1..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
+            
+            // Check if this path is locked
+            bool isLocked = lockedPaths.contains(color);
+            
+            // Enhanced glow for locked paths
+            if (isLocked) {
+                // Extra bright outer glow - Reduced from 0.9 and 20 blur
+                canvas.drawPath(path, Paint()..color = color.color.withOpacity(0.8)..strokeWidth = cellSize * 0.5..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+                // Solid core - Reduced from 0.4
+                canvas.drawPath(path, Paint()..color = color.color..strokeWidth = cellSize * 0.25..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
+                // Bright highlight - Reduced from 0.15
+                canvas.drawPath(path, Paint()..color = Colors.white.withOpacity(0.7)..strokeWidth = cellSize * 0.1..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
+            } else {
+                // Normal path rendering
+                // Reduced from 0.6 and 12 blur
+                canvas.drawPath(path, Paint()..color = color.color.withOpacity(0.5)..strokeWidth = cellSize * 0.4..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+                // Core - Reduced from 0.3
+                canvas.drawPath(path, Paint()..color=color.color..strokeWidth=cellSize*0.2..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
+                // Highlight - Reduced from 0.1
+                canvas.drawPath(path, Paint()..color=Colors.white.withOpacity(0.5)..strokeWidth=cellSize*0.06..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
+            }
         });
     }
     Path _createDashedPath(Path source, double dashWidth, double dashSpace) {
@@ -778,4 +1274,53 @@ class _NeonNodePainter extends CustomPainter {
         });
     }
     @override bool shouldRepaint(_NeonNodePainter old) => old.pulseValue != pulseValue;
+}
+class _BouncingButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _BouncingButton({required this.child, required this.onTap});
+
+  @override
+  State<_BouncingButton> createState() => _BouncingButtonState();
+}
+
+class _BouncingButtonState extends State<_BouncingButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+      reverseDuration: const Duration(milliseconds: 100),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.9).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => _controller.forward(),
+      onTapUp: (_) {
+         _controller.reverse();
+         widget.onTap();
+      },
+      onTapCancel: () => _controller.reverse(),
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: widget.child,
+      ),
+    );
+  }
 }

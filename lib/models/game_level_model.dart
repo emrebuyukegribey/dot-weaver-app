@@ -7,6 +7,11 @@ enum DotColor {
   yellow,
   purple,
   orange,
+  pink,
+  teal,
+  amber,
+  indigo,
+  cyan,
 }
 
 extension DotColorExtension on DotColor {
@@ -18,6 +23,11 @@ extension DotColorExtension on DotColor {
       case DotColor.yellow: return Colors.yellowAccent;
       case DotColor.purple: return Colors.purpleAccent;
       case DotColor.orange: return Colors.orangeAccent;
+      case DotColor.pink: return Colors.pinkAccent;
+      case DotColor.teal: return Colors.tealAccent;
+      case DotColor.amber: return Colors.amberAccent;
+      case DotColor.indigo: return Colors.indigoAccent;
+      case DotColor.cyan: return Colors.cyanAccent;
     }
   }
 }

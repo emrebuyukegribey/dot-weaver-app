@@ -17,6 +17,7 @@ class GameDataManager {
   // --- Keys ---
   String _getStarKey(String islandId, int levelId) => 'stars_${islandId}_$levelId';
   String _getIslandUnlockKey(String islandId) => 'island_unlocked_$islandId';
+  String _getHintKey(String islandId, int levelId) => 'hint_used_${islandId}_$levelId';
 
   // --- Stars ---
   int getStars(String islandId, int levelId) {
@@ -40,5 +41,14 @@ class GameDataManager {
 
   Future<void> unlockIsland(String islandId) async {
     await _prefs.setBool(_getIslandUnlockKey(islandId), true);
+  }
+  
+  // --- Hints ---
+  bool isHintUsed(String islandId, int levelId) {
+    return _prefs.getBool(_getHintKey(islandId, levelId)) ?? false;
+  }
+  
+  Future<void> markHintUsed(String islandId, int levelId) async {
+    await _prefs.setBool(_getHintKey(islandId, levelId), true);
   }
 }

@@ -63,7 +63,6 @@ flutter:
     - assets/images/
     - assets/images/levels/
     - assets/images/islands/
-    - assets/images/dots/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
