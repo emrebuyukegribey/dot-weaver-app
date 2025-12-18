@@ -51,4 +51,23 @@ class GameDataManager {
   Future<void> markHintUsed(String islandId, int levelId) async {
     await _prefs.setBool(_getHintKey(islandId, levelId), true);
   }
+
+  // --- Helpers ---
+  int getLastUnlockedLevelIndex(String islandId, int totalLevels) {
+    // Iterate to find the highest unlocked level index (0-based)
+    for (int i = totalLevels - 1; i >= 0; i--) {
+       int levelId = i + 1;
+       // A level is unlocked if it's Level 1 OR previous level has stars
+       bool unlocked = false;
+       if (levelId == 1) {
+         unlocked = true;
+       } else {
+         int prevStars = getStars(islandId, levelId - 1);
+         unlocked = prevStars > 0;
+       }
+       
+       if (unlocked) return i;
+    }
+    return 0;
+  }
 }

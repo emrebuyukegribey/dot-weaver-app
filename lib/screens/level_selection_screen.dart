@@ -24,6 +24,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   late List<LevelModel> _levels;
   late List<AnimationController> _floatingControllers;
   late AnimationController _pathAnimationController;
+  final ScrollController _scrollController = ScrollController();
   
 
 
@@ -33,6 +34,34 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     _levels = widget.island.levels;
     _initAnimations();
     _refreshLevels(); // Load latest stars/unlocks immediately
+    
+    // Auto-Scroll to latest level after frame build
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
+  }
+  
+  void _scrollToCurrentLevel() {
+      // Find the last unlocked level index
+      int targetIndex = GameDataManager().getLastUnlockedLevelIndex(widget.island.id, _levels.length);
+      
+      // Calculate offset to center the level
+      // Level Y position is roughly: 100 + (index * 120)
+      // We want this Y to be in the middle of screen if possible.
+      double levelY = 100.0 + (targetIndex * 120.0);
+      double screenH = MediaQuery.of(context).size.height;
+      double offset = levelY - (screenH / 2) + 60; // +60 for half item height approx
+      
+      // Clamp
+      if (offset < 0) offset = 0;
+      if (_scrollController.hasClients) { // minimal check
+         double maxScroll = _scrollController.position.maxScrollExtent;
+         if (offset > maxScroll) offset = maxScroll;
+         
+         _scrollController.animateTo(
+             offset, 
+             duration: const Duration(milliseconds: 1000), 
+             curve: Curves.easeInOutCubic
+         );
+      }
   }
 
   void _initAnimations() {
@@ -55,6 +84,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _pathAnimationController.dispose();
     for (var c in _floatingControllers) {
       c.dispose();
@@ -68,7 +98,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               id: i + 1,
               assetPath: widget.island.levels[i].assetPath,
               starsEarned: GameDataManager().getStars(widget.island.id, i+1),
-              isLocked: i == 0 ? false : (GameDataManager().getStars(widget.island.id, i) == 0),
+              isLocked: false, // TEMPORARY: Unlock all levels for testing
           ));
       });
   }
@@ -163,6 +193,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                     // Level Map
                     Expanded(
                       child: SingleChildScrollView(
+                        controller: _scrollController,
                         physics: const BouncingScrollPhysics(),
                         child: SizedBox(
                           height: totalHeight,
@@ -267,16 +298,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
           DotColor.yellow
       ];
       
-      // Find first candidate NOT in the level's dots
-      DotColor distinct = candidates.firstWhere(
-          (c) => !dotColors.contains(c),
-          orElse: () => DotColor.purple // Fallback
-      );
-      
-      final Color themeColor = _getNeonColor(distinct);
-      
-      final Color color1 = dotColors[0].color;
-      final Color color2 = dotColors.length > 1 ? dotColors[1].color : dotColors[0].color; 
+      // Uniform Color for all levels (Cyan/Blue feel)
+      final Color themeColor = const Color(0xFF00E5FF); // Cyan Accent
       
       final bool isLocked = level.isLocked;
 
@@ -286,7 +309,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               shape: BoxShape.circle,
               // Subtle Border
               border: Border.all(
-                  color: isLocked ? const Color(0xFF455A64) : Colors.white.withOpacity(0.2), 
+                  color: isLocked ? const Color(0xFF455A64) : Colors.white.withOpacity(0.5), 
                   width: 2
               ),
               boxShadow: [
@@ -335,18 +358,22 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                       ),
                   ),
                   
-                  // Content
-                  ClipOval(
-                    child: isLocked 
-                      ? const Center(child: Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 32))
-                      : Center(
-                          child: CustomPaint(
-                              size: const Size(60, 60),
-                              painter: _ColorConnectionPainter(
-                                  colors: dotColors.map((d) => d.color).toList()
-                              ),
+                  // Content (Level Number)
+                  Center(
+                    child: isLocked
+                      ? const Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 28)
+                      : Text(
+                          "${level.id}",
+                          style: const TextStyle(
+                            fontFamily: 'Orbitron',
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            shadows: [
+                              Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))
+                            ]
                           ),
-                      ), 
+                        ),
                   ),
               ],
           ),

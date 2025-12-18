@@ -494,7 +494,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (levelId <= 10) return [30, 50];  // 6x6
     if (levelId <= 13) return [50, 90];  // 7x7
     if (levelId <= 16) return [80, 150]; // 8x8
-    if (levelId <= 18) return [130, 240]; // 9x9
+    if (levelId <= 17) return [130, 240]; // 9x9
     return [200, 400]; // 10x10 (L19-20)
   }
 
@@ -1166,8 +1166,8 @@ class _NeonGridPainter extends CustomPainter {
         final double cellW = size.width / cols;
         final double cellH = size.height / rows;
         final Paint linePaint = Paint()
-            ..color = Colors.white.withOpacity(0.25) // Increased from 0.08
-            ..strokeWidth = 2.0 // Thicker lines
+            ..color = Colors.white.withOpacity(0.4) // Increased visibility for larger grids
+            ..strokeWidth = 3.0 // Thicker lines
             ..style = PaintingStyle.stroke;
         for(int i=0; i<=cols; i++) canvas.drawLine(Offset(i * cellW, 0), Offset(i * cellW, size.height), linePaint);
         for(int i=0; i<=rows; i++) canvas.drawLine(Offset(0, i * cellH), Offset(size.width, i * cellH), linePaint);
