@@ -7,6 +7,7 @@ import '../models/island_model.dart';
 import '../services/game_data_manager.dart';
 import 'game_screen.dart';
 import '../services/level_generator.dart';
+import '../../main.dart'; // for routeObserver
 
 class LevelSelectionScreen extends StatefulWidget {
   final IslandModel island;
@@ -20,7 +21,7 @@ class LevelSelectionScreen extends StatefulWidget {
   State<LevelSelectionScreen> createState() => _LevelSelectionScreenState();
 }
 
-class _LevelSelectionScreenState extends State<LevelSelectionScreen> with TickerProviderStateMixin {
+class _LevelSelectionScreenState extends State<LevelSelectionScreen> with TickerProviderStateMixin, RouteAware {
   late List<LevelModel> _levels;
   late List<AnimationController> _floatingControllers;
   late AnimationController _pathAnimationController;
@@ -37,6 +38,18 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     
     // Auto-Scroll to latest level after frame build
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void didPopNext() {
+    // Called when the top route has been popped off, and the current route shows up.
+    _refreshLevels();
   }
   
   void _scrollToCurrentLevel() {
@@ -84,6 +97,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     _scrollController.dispose();
     _pathAnimationController.dispose();
     for (var c in _floatingControllers) {
@@ -214,6 +228,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                                           positions: currentPositions,
                                           color: widget.island.primaryColor,
                                           dashPhase: _pathAnimationController.value,
+                                          levels: _levels,
                                        ),
                                      ),
                                      ...List.generate(_levels.length, (index) {
@@ -583,31 +598,68 @@ class LevelPathPainter extends CustomPainter {
     final List<Offset> positions;
     final Color color;
     final double dashPhase;
+    final List<LevelModel> levels;
     
-    LevelPathPainter({required this.positions, required this.color, required this.dashPhase});
+    LevelPathPainter({
+      required this.positions, 
+      required this.color, 
+      required this.dashPhase,
+      required this.levels,
+    });
 
     @override
     void paint(Canvas canvas, Size size) {
         if (positions.isEmpty) return;
         
-        final paint = Paint()
-           ..color = color.withOpacity(0.5)
+        // Base paint for active path
+        final activePaint = Paint()
+           ..color = color.withOpacity(1.0)
            ..style = PaintingStyle.stroke
-           ..strokeWidth = 6
+           ..strokeWidth = 6.0
+           ..strokeCap = StrokeCap.round
+           ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3); // Glow effect
+
+        final activeCorePaint = Paint()
+           ..color = Colors.white.withOpacity(0.8)
+           ..style = PaintingStyle.stroke
+           ..strokeWidth = 2.0
            ..strokeCap = StrokeCap.round;
 
-        final path = Path();
-        path.moveTo(positions[0].dx, positions[0].dy);
+        // Base paint for inactive path
+        final inactivePaint = Paint()
+           ..color = color.withOpacity(0.3)
+           ..style = PaintingStyle.stroke
+           ..strokeWidth = 4.0
+           ..strokeCap = StrokeCap.round;
+
         
         for (int i = 0; i < positions.length - 1; i++) {
             final p1 = positions[i];
             final p2 = positions[i+1];
+            
+            // Logic: Is this segment "active"?
+            // A segment from Level i to Level i+1 is active if Level i is COMPLETED (stars > 0).
+            bool isActive = false;
+            if (i < levels.length) {
+                isActive = levels[i].starsEarned > 0;
+            }
+
+            final path = Path();
+            path.moveTo(p1.dx, p1.dy);
+            
             final cp1 = Offset(p1.dx, (p1.dy + p2.dy) / 2);
             final cp2 = Offset(p2.dx, (p1.dy + p2.dy) / 2);
             path.cubicTo(cp1.dx, cp1.dy, cp2.dx, cp2.dy, p2.dx, p2.dy);
+            
+            if (isActive) {
+                // Draw Solid + Glow
+                canvas.drawPath(path, activePaint); // Glow/Main color
+                canvas.drawPath(path, activeCorePaint); // White core
+            } else {
+                // Draw Dashed + Dim
+                _drawDashedPath(canvas, path, 15, 12, inactivePaint, dashPhase * 27.0);
+            }
         }
-        
-        _drawDashedPath(canvas, path, 15, 12, paint, dashPhase * 27.0);
     }
     
     void _drawDashedPath(Canvas canvas, Path path, double dashWidth, double dashSpace, Paint paint, double phaseOffset) {

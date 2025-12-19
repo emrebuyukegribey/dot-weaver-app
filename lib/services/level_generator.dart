@@ -78,9 +78,9 @@ class LevelGenerator {
       positions[DotColor.blue] = [const GridPoint(0, 0), const GridPoint(0, 2)];
       positions[DotColor.yellow] = [const GridPoint(1, 0), const GridPoint(2, 2)];
     } else if (levelId == 6) {
-      positions[DotColor.purple] = [const GridPoint(0, 0), const GridPoint(2, 0)];
-      positions[DotColor.red] = [const GridPoint(0, 1), const GridPoint(2, 1)];
-      positions[DotColor.teal] = [const GridPoint(0, 2), const GridPoint(2, 2)];
+      positions[DotColor.purple] = [const GridPoint(0, 0), const GridPoint(3, 0)];
+      positions[DotColor.red] = [const GridPoint(0, 1), const GridPoint(3, 1)];
+      positions[DotColor.teal] = [const GridPoint(0, 2), const GridPoint(3, 2)];
     } else if (levelId == 7) {
       positions[DotColor.orange] = [const GridPoint(0, 0), const GridPoint(1, 2)];
       positions[DotColor.blue] = [const GridPoint(1, 1), const GridPoint(2, 3)];
