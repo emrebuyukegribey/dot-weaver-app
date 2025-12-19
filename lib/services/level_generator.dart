@@ -143,25 +143,25 @@ class LevelGenerator {
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(3, 2)];
       positions[DotColor.pink]   = [const GridPoint(4, 0), const GridPoint(4, 4)];
       positions[DotColor.yellow] = [const GridPoint(0, 2), const GridPoint(0, 3)];
-    } else if (levelId == 22) {
+    }else if (levelId == 22) {
       positions[DotColor.red]    = [const GridPoint(0, 4), const GridPoint(3, 4)];
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(3, 2)];
       positions[DotColor.pink]   = [const GridPoint(4, 0), const GridPoint(4, 4)];
       positions[DotColor.yellow] = [const GridPoint(0, 2), const GridPoint(2, 1)];
-    } else if (levelId == 23) {
+    }else if (levelId == 23) {
       positions[DotColor.red]    = [const GridPoint(0, 5), const GridPoint(4, 5)];
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(4, 2)];
       positions[DotColor.pink]   = [const GridPoint(5, 0), const GridPoint(5, 5)];
       positions[DotColor.yellow] = [const GridPoint(0, 2), const GridPoint(2, 1)];
       positions[DotColor.orange] = [const GridPoint(0, 3), const GridPoint(3, 3)];
-    } else if (levelId == 24) {
+    }else if (levelId == 24) {
       positions[DotColor.red]    = [const GridPoint(0, 5), const GridPoint(4, 5)];
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(4, 2)];
       positions[DotColor.pink]   = [const GridPoint(5, 0), const GridPoint(5, 5)];
       positions[DotColor.yellow] = [const GridPoint(0, 2), const GridPoint(2, 1)];
       positions[DotColor.orange] = [const GridPoint(0, 3), const GridPoint(2, 4)];
       positions[DotColor.green]  = [const GridPoint(3, 3), const GridPoint(4, 3)];
-    } else if (levelId == 25) {
+    }else if (levelId == 25) {
       positions[DotColor.red]    = [const GridPoint(0, 5), const GridPoint(4, 5)];
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(4, 2)];
       positions[DotColor.pink]   = [const GridPoint(5, 0), const GridPoint(5, 5)];
@@ -180,28 +180,28 @@ class LevelGenerator {
       positions[DotColor.orange] = [const GridPoint(0, 3), const GridPoint(2, 4)];
       positions[DotColor.green]  = [const GridPoint(0, 2), const GridPoint(4, 3)];
       positions[DotColor.yellow] = [const GridPoint(0, 1), const GridPoint(4, 1)];
-} else if (levelId == 28) {
+    }else if (levelId == 28) {
       positions[DotColor.red]    = [const GridPoint(0, 5), const GridPoint(5, 5)];
       positions[DotColor.blue]   = [const GridPoint(0, 0), const GridPoint(4, 2)];
       positions[DotColor.orange] = [const GridPoint(0, 3), const GridPoint(2, 4)];
       positions[DotColor.green]  = [const GridPoint(0, 2), const GridPoint(4, 3)];
       positions[DotColor.yellow] = [const GridPoint(1, 0), const GridPoint(4, 0)];
       positions[DotColor.pink]   = [const GridPoint(5, 0), const GridPoint(5, 4)];
-}else if (levelId == 29) {
+    }else if (levelId == 29) {
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(0, 5)];
       positions[DotColor.blue]   = [const GridPoint(1, 0), const GridPoint(5, 0)];
       positions[DotColor.yellow] = [const GridPoint(5, 2), const GridPoint(5, 5)];
       positions[DotColor.green]  = [const GridPoint(1, 5), const GridPoint(4, 5)]; 
       positions[DotColor.pink]   = [const GridPoint(1, 1), const GridPoint(3, 2)]; 
       positions[DotColor.orange] = [const GridPoint(3, 3), const GridPoint(4, 4)];
-}else if(levelId == 30){
+    }else if(levelId == 30){
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(5, 0)];
       positions[DotColor.blue]   = [const GridPoint(0, 5), const GridPoint(5, 5)];
       positions[DotColor.yellow] = [const GridPoint(0, 1), const GridPoint(0, 4)];
       positions[DotColor.green]  = [const GridPoint(5, 1), const GridPoint(5, 4)];
       positions[DotColor.pink]   = [const GridPoint(1, 1), const GridPoint(1, 2)]; 
       positions[DotColor.orange] = [const GridPoint(4, 3), const GridPoint(4, 4)];
-}else if(levelId == 31){
+    }else if(levelId == 31){
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(6, 0)];
       positions[DotColor.blue]   = [const GridPoint(0, 6), const GridPoint(6, 6)];
       positions[DotColor.yellow] = [const GridPoint(0, 1), const GridPoint(0, 5)];
@@ -209,7 +209,7 @@ class LevelGenerator {
       positions[DotColor.pink]   = [const GridPoint(1, 1), const GridPoint(5, 1)];
       positions[DotColor.orange] = [const GridPoint(1, 5), const GridPoint(5, 5)];
       positions[DotColor.purple] = [const GridPoint(1, 2), const GridPoint(5, 4)];
-}else if(levelId == 32){
+    }else if(levelId == 32){
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(0, 6)];
       positions[DotColor.blue]   = [const GridPoint(6, 0), const GridPoint(6, 6)];
       positions[DotColor.purple] = [const GridPoint(4, 1), const GridPoint(3, 5)];
@@ -217,14 +217,14 @@ class LevelGenerator {
       positions[DotColor.green]  = [const GridPoint(1, 6), const GridPoint(5, 6)];
       positions[DotColor.pink]   = [const GridPoint(2, 1), const GridPoint(1, 5)];
       positions[DotColor.orange] = [const GridPoint(5, 1), const GridPoint(5, 5)];
-}else if(levelId == 33) {
+    }else if(levelId == 33) {
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(6, 0)];
       positions[DotColor.blue]   = [const GridPoint(0, 6), const GridPoint(6, 6)];
       positions[DotColor.yellow] = [const GridPoint(0, 1), const GridPoint(0, 5)];
       positions[DotColor.green]  = [const GridPoint(6, 1), const GridPoint(6, 5)];
       positions[DotColor.pink]   = [const GridPoint(2, 1), const GridPoint(5, 1)];
       positions[DotColor.orange] = [const GridPoint(1, 5), const GridPoint(5, 5)];
-  }else if (levelId == 34) {
+    }else if (levelId == 34) {
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(0, 6)];
       positions[DotColor.yellow] = [const GridPoint(1, 0), const GridPoint(1, 6)];
       positions[DotColor.green]  = [const GridPoint(5, 0), const GridPoint(5, 6)];
@@ -232,7 +232,7 @@ class LevelGenerator {
       positions[DotColor.pink]   = [const GridPoint(2, 0), const GridPoint(4, 2)];
       positions[DotColor.orange] = [const GridPoint(2, 3), const GridPoint(4, 3)];
       positions[DotColor.purple] = [const GridPoint(4, 4), const GridPoint(2, 6)];
-  }else if (levelId == 35) {
+    }else if (levelId == 35) {
       positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(6, 0)];
       positions[DotColor.blue]   = [const GridPoint(0, 6), const GridPoint(6, 6)];
       positions[DotColor.yellow] = [const GridPoint(0, 1), const GridPoint(0, 5)];
@@ -281,48 +281,82 @@ class LevelGenerator {
       positions[DotColor.orange] = [const GridPoint(5, 1), const GridPoint(5, 5)];
       positions[DotColor.purple] = [const GridPoint(2, 1), const GridPoint(4, 3)];
       positions[DotColor.white]   = [const GridPoint(2, 4), const GridPoint(4, 5)];
-    }else if (levelId >= 40 && levelId <= 50) {
-      // Procedural fallback for 26-50 to ensure solvability without manually writing 25 more cases
-      // We place dots in pairs using a deterministic pattern based on levelId
-      // Pattern: Perimeter Walk + Crosses
-      final int size = (levelId <= 30) ? 6 : (levelId <= 40) ? 7 : 8;
-      
-      for (int i = 0; i < colors.length; i++) {
-        GridPoint p1, p2;
-        int mode = (levelId + i) % 4;
-        
-        if (mode == 0) {
-          // Vertical columns
-          p1 = GridPoint(i % size, 0); 
-          p2 = GridPoint(i % size, size - 1);
-        } else if (mode == 1) {
-          // Horizontal rows
-          p1 = GridPoint(0, i % size);
-          p2 = GridPoint(size - 1, i % size);
-        } else if (mode == 2) {
-          // Diagonal TL-BR offset
-          int offset = i % (size - 1);
-          p1 = GridPoint(0, offset);
-          p2 = GridPoint(size - 1 - offset, size - 1);
-        } else {
-          // Scattered
-          p1 = GridPoint((i * 2) % size, (i * 3) % size);
-          p2 = GridPoint(size - 1 - ((i * 2) % size), size - 1 - ((i * 3) % size));
-        }
-
-        // Safety check to ensure distinct points - simplified
-        if (p1 == p2) p2 = GridPoint(p1.row, (p1.col + 1) % size);
-        
-        positions[colors[i]] = [p1, p2];
-      }
-    } else {
-      // Generic Fallback
-      for (int i = 0; i < colors.length; i++) {
-        positions[colors[i]] = [GridPoint(i, 0), GridPoint(i, 1)];
-      }
+    }else if (levelId == 41) {
+      positions[DotColor.purple] = [const GridPoint(3, 0), const GridPoint(3, 7)];
+      positions[DotColor.orange] = [const GridPoint(4, 0), const GridPoint(4, 7)];
+      positions[DotColor.yellow] = [const GridPoint(0, 3), const GridPoint(2, 3)];
+      positions[DotColor.white]   = [const GridPoint(5, 4), const GridPoint(7, 4)];
+      positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(0, 2)];
+      positions[DotColor.blue]   = [const GridPoint(0, 4), const GridPoint(0, 7)];
+      positions[DotColor.green]  = [const GridPoint(7, 0), const GridPoint(7, 3)];
+      positions[DotColor.pink]   = [const GridPoint(7, 5), const GridPoint(7, 7)];
+    }else if (levelId == 42) {
+      positions[DotColor.red] = [const GridPoint(7, 0), const GridPoint(0, 7)];
+      positions[DotColor.green] = [const GridPoint(3, 0), const GridPoint(4, 0)];
+      positions[DotColor.pink] = [const GridPoint(0, 3), const GridPoint(0, 4)];
+      positions[DotColor.yellow] = [const GridPoint(3, 7), const GridPoint(4, 7)];
+      positions[DotColor.orange] = [const GridPoint(2, 2), const GridPoint(4, 4)];
+    } else if (levelId == 43) {
+      positions[DotColor.red] = [const GridPoint(0, 0), const GridPoint(3, 3)];
+      positions[DotColor.blue] = [const GridPoint(7, 0), const GridPoint(4, 3)];
+      positions[DotColor.green] = [const GridPoint(7, 7), const GridPoint(4, 4)];
+      positions[DotColor.yellow] = [const GridPoint(0, 7), const GridPoint(3, 4)];
+      positions[DotColor.purple] = [const GridPoint(3, 0), const GridPoint(4, 0)];
+      positions[DotColor.orange] = [const GridPoint(7, 3), const GridPoint(7, 4)];
+      positions[DotColor.pink] = [const GridPoint(3, 7), const GridPoint(4, 7)];
+      positions[DotColor.indigo] = [const GridPoint(0, 3), const GridPoint(0, 4)];
+    } else if (levelId == 44) {
+      positions[DotColor.teal] = [const GridPoint(1, 1), const GridPoint(7, 1)];
+      positions[DotColor.yellow] = [const GridPoint(3, 2), const GridPoint(5, 2)];
+      positions[DotColor.orange] = [const GridPoint(2, 6), const GridPoint(6, 5)];
+      positions[DotColor.red] = [const GridPoint(4, 2), const GridPoint(4, 6)];
+      positions[DotColor.blue] = [const GridPoint(3, 4), const GridPoint(4, 5)];
+    } else if (levelId == 45) {
+      positions[DotColor.teal] = [const GridPoint(1, 1), const GridPoint(7, 0)];
+      positions[DotColor.red]  = [const GridPoint(1, 7), const GridPoint(7, 7)];
+      positions[DotColor.blue]   = [const GridPoint(0, 3), const GridPoint(0, 5)]; 
+      positions[DotColor.pink] = [const GridPoint(5, 3), const GridPoint(5, 5)];
+      positions[DotColor.yellow] = [const GridPoint(6, 3), const GridPoint(6, 5)];
+    } else if (levelId == 46) {
+      positions[DotColor.teal] = [const GridPoint(0, 0), const GridPoint(6, 0)];
+      positions[DotColor.red]  = [const GridPoint(0, 8), const GridPoint(6, 8)];
+      positions[DotColor.orange] = [const GridPoint(0, 2), const GridPoint(6, 2)];
+      positions[DotColor.purple] = [const GridPoint(0, 6), const GridPoint(6, 6)];
+      positions[DotColor.blue]   = [const GridPoint(1, 3), const GridPoint(1, 5)];
+      positions[DotColor.yellow] = [const GridPoint(5, 3), const GridPoint(5, 5)];
+      positions[DotColor.pink] = [const GridPoint(3, 1), const GridPoint(3, 7)];
+    } else if (levelId == 47) {
+      positions[DotColor.blue] = [const GridPoint(0, 0), const GridPoint(1, 1)];
+      positions[DotColor.purple] = [const GridPoint(4, 0), const GridPoint(5, 0)];
+      positions[DotColor.orange] = [const GridPoint(0, 3), const GridPoint(0, 4)];
+      positions[DotColor.amber] = [const GridPoint(3, 3), const GridPoint(6, 6)];
+      positions[DotColor.white] = [const GridPoint(6, 3), const GridPoint(3, 6)];
+    }else if (levelId == 48) {
+      positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(8, 0)];
+      positions[DotColor.blue]   = [const GridPoint(0, 7), const GridPoint(7, 7)];
+      positions[DotColor.green]  = [const GridPoint(0, 1), const GridPoint(0, 6)];
+      positions[DotColor.yellow] = [const GridPoint(7, 1), const GridPoint(7, 6)];
+      positions[DotColor.purple] = [const GridPoint(1, 1), const GridPoint(3, 3)];
+      positions[DotColor.orange] = [const GridPoint(4, 1), const GridPoint(6, 3)];
+      positions[DotColor.pink]   = [const GridPoint(1, 4), const GridPoint(3, 6)];
+      positions[DotColor.teal]   = [const GridPoint(4, 4), const GridPoint(6, 6)];
+    }else if (levelId == 49) {
+      positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(0, 8)];
+      positions[DotColor.blue]   = [const GridPoint(7, 0), const GridPoint(7, 7)];
+      positions[DotColor.green]  = [const GridPoint(1, 0), const GridPoint(2, 7)];
+      positions[DotColor.yellow] = [const GridPoint(3, 7), const GridPoint(4, 0)];
+      positions[DotColor.purple] = [const GridPoint(6, 0), const GridPoint(6, 7)];
+    }else {
+      positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(3, 3)];
+      positions[DotColor.blue]   = [const GridPoint(7, 0), const GridPoint(4, 3)];
+      positions[DotColor.green]  = [const GridPoint(0, 7), const GridPoint(3, 4)];
+      positions[DotColor.yellow] = [const GridPoint(7, 7), const GridPoint(4, 4)];
+      positions[DotColor.purple] = [const GridPoint(1, 2), const GridPoint(2, 1)];
+      positions[DotColor.orange] = [const GridPoint(5, 1), const GridPoint(6, 2)];
+      positions[DotColor.pink]   = [const GridPoint(1, 5), const GridPoint(2, 6)];
+      positions[DotColor.white]   = [const GridPoint(5, 6), const GridPoint(7, 5)];
     }
 
-    // Grid Size Scaling Logic
     // Grid Size Scaling Logic
     int size = 2;
     if (levelId >= 2 && levelId <= 5) size = 3;
@@ -330,9 +364,8 @@ class LevelGenerator {
     else if (levelId >= 13 && levelId <= 22) size = 5;
     else if (levelId >= 22 && levelId <= 30) size = 6;
     else if (levelId >= 31 && levelId <= 40) size = 7;
-    else if (levelId >= 41 && levelId <= 50) size = 8;
-    else if (levelId > 50) size = 8; // Cap at 8x8 for now
-
+    else if (levelId >= 41 && levelId <= 45) size = 8;
+    else if (levelId > 45) size = 9;
     return GameLevel(
       id: levelId,
       rows: size,

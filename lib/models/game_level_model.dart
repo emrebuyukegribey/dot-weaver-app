@@ -12,6 +12,9 @@ enum DotColor {
   amber,
   indigo,
   cyan,
+  white,
+  grey,
+  black,
 }
 
 extension DotColorExtension on DotColor {
