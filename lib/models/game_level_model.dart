@@ -28,6 +28,9 @@ extension DotColorExtension on DotColor {
       case DotColor.amber: return Colors.amberAccent;
       case DotColor.indigo: return Colors.indigoAccent;
       case DotColor.cyan: return Colors.cyanAccent;
+      case DotColor.white: return Colors.white;
+      case DotColor.grey: return Colors.grey;
+      case DotColor.black: return Colors.black;
     }
   }
 }

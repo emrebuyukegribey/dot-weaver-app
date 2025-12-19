@@ -73,7 +73,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           iconAssetPath: "assets/images/islands/color_island_icon.png",
           primaryColor: Colors.deepPurpleAccent,
           isLocked: !GameDataManager().isIslandUnlocked("1"),
-          levels: List.generate(20, (i) => LevelModel(
+          levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/color_${i+1}.png',
               starsEarned: GameDataManager().getStars("1", i+1),
@@ -90,7 +90,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           iconAssetPath: "assets/images/islands/number_island_icon.png",
           primaryColor: Colors.blue,
           isLocked: !GameDataManager().isIslandUnlocked("2"),
-           levels: List.generate(20, (i) => LevelModel(
+           levels: List.generate(30, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/number_${i+1}.png',
               starsEarned: GameDataManager().getStars("2", i+1),
@@ -107,7 +107,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           iconAssetPath: "assets/images/islands/jungle_island_icon.png",
           primaryColor: Colors.green,
           isLocked: !GameDataManager().isIslandUnlocked("3"),
-          levels: List.generate(20, (i) => LevelModel(
+          levels: List.generate(30, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/jungle_${i+1}.png',
               starsEarned: GameDataManager().getStars("3", i+1),
@@ -124,7 +124,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           iconAssetPath: "assets/images/islands/ocean_island_icon.png",
           primaryColor: Colors.cyan,
           isLocked: !GameDataManager().isIslandUnlocked("4"),
-          levels: List.generate(20, (i) => LevelModel(
+          levels: List.generate(30, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/ocean_${i+1}.png',
               starsEarned: GameDataManager().getStars("4", i+1),

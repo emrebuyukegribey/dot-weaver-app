@@ -495,7 +495,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     if (levelId <= 13) return [50, 90];  // 7x7
     if (levelId <= 16) return [80, 150]; // 8x8
     if (levelId <= 17) return [130, 240]; // 9x9
-    return [200, 400]; // 10x10 (L19-20)
+    if (levelId <= 30) return [60, 100]; // 6x6 (L21-30)
+    if (levelId <= 40) return [90, 150]; // 7x7 (L31-40)
+    if (levelId <= 50) return [120, 200]; // 8x8 (L41-50)
+    return [200, 400]; // Fallback
   }
 
   Widget _buildWinOverlay() {
@@ -565,7 +568,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                           await GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
                                                           
                                                           // 2. Load next level if exists
-                                                          if (widget.levelId < 20 && mounted) {
+                                                          if (widget.levelId < 50 && mounted) {
                                                               final nextLevelId = widget.levelId + 1;
                                                               
                                                               // NEW: Show Level Announcement First

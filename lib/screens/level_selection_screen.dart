@@ -68,7 +68,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     _pathAnimationController = AnimationController(
         vsync: this, duration: const Duration(seconds: 3))..repeat();
 
-    _floatingControllers = List.generate(20, (index) {
+    _floatingControllers = List.generate(_levels.length, (index) {
         final random = math.Random();
         final durationMs = 2000 + random.nextInt(2000);
         final controller = AnimationController(
@@ -94,7 +94,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
 
   void _refreshLevels() {
       setState(() {
-          _levels = List.generate(20, (i) => LevelModel(
+          _levels = List.generate(widget.island.levels.length, (i) => LevelModel(
               id: i + 1,
               assetPath: widget.island.levels[i].assetPath,
               starsEarned: GameDataManager().getStars(widget.island.id, i+1),
