@@ -25,6 +25,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   late List<LevelModel> _levels;
   late List<AnimationController> _floatingControllers;
   late AnimationController _pathAnimationController;
+  late AnimationController _bgController;
+  final List<_BackgroundParticle> _particles = [];
   final ScrollController _scrollController = ScrollController();
   
 
@@ -34,6 +36,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     super.initState();
     _levels = widget.island.levels;
     _initAnimations();
+    _initParticles();
     _refreshLevels(); // Load latest stars/unlocks immediately
     
     // Auto-Scroll to latest level after frame build
@@ -61,7 +64,9 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       // We want this Y to be in the middle of screen if possible.
       double levelY = 100.0 + (targetIndex * 120.0);
       double screenH = MediaQuery.of(context).size.height;
-      double offset = levelY - (screenH / 2) + 60; // +60 for half item height approx
+      
+      // Target: Level should be near bottom (approx 20% from bottom)
+      double offset = levelY - (screenH * 0.7); 
       
       // Clamp
       if (offset < 0) offset = 0;
@@ -93,11 +98,63 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
         });
         return controller;
     });
+
+    _bgController = AnimationController(vsync: this, duration: const Duration(seconds: 1))..repeat();
+    _bgController.addListener(_updateParticles);
+  }
+
+  void _initParticles() {
+      _particles.clear();
+      for (int i = 0; i < 60; i++) { // More particles
+          _spawnParticle(i, true); 
+      }
+  }
+
+  void _spawnParticle(int index, bool randomY) {
+      final random = math.Random();
+      if (_particles.length <= index) {
+          _particles.add(_BackgroundParticle(
+              x: 0.5, y: 1.0, 
+              vx: 0, vy: 0, 
+              radius: 0, color: Colors.white, life: 1.0
+          ));
+      }
+      
+      var p = _particles[index];
+      // Spawn at bottom, spread horizontally
+      p.x = 0.2 + random.nextDouble() * 0.6; // Keep somewhat central
+      p.y = randomY ? random.nextDouble() : 1.05; // Start below screen if new spawn
+      p.radius = random.nextDouble() * 20 + 5;
+      
+      // Velocity: Upward and slight spread
+      p.vx = (random.nextDouble() - 0.5) * 0.005; // Slight drift L/R
+      p.vy = -(random.nextDouble() * 0.01 + 0.005); // Fast Upward
+      
+      p.life = 1.0;
+      p.color = [
+          Colors.cyanAccent, Colors.purpleAccent, Colors.deepOrangeAccent, 
+          Colors.pinkAccent, Colors.limeAccent
+      ][random.nextInt(5)];
+  }
+
+  void _updateParticles() {
+      for (int i = 0; i < _particles.length; i++) {
+          var p = _particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= 0.005; // Fade out
+          
+          // Respawn if dead or off top
+          if (p.life <= 0 || p.y < -0.1) {
+              _spawnParticle(i, false);
+          }
+      }
   }
 
   @override
   void dispose() {
     routeObserver.unsubscribe(this);
+    _bgController.dispose();
     _scrollController.dispose();
     _pathAnimationController.dispose();
     for (var c in _floatingControllers) {
@@ -112,7 +169,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               id: i + 1,
               assetPath: widget.island.levels[i].assetPath,
               starsEarned: GameDataManager().getStars(widget.island.id, i+1),
-              isLocked: false, // TEMPORARY: Unlock all levels for testing
+              isLocked: i > 0 && GameDataManager().getStars(widget.island.id, i) == 0,
           ));
       });
   }
@@ -133,14 +190,20 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   @override
   Widget build(BuildContext context) {
     int starsObtained = _levels.fold(0, (sum, level) => sum + level.starsEarned);
+    
+    // Calculate Visible Range
+    int lastUnlockedIndex = GameDataManager().getLastUnlockedLevelIndex(widget.island.id, _levels.length);
+    // Show current + next 2 (locked) levels
+    int visibleCount = (lastUnlockedIndex + 3).clamp(0, _levels.length);
+    
     // Match ySpacing (120.0) + padding
-    final double totalHeight = 100 + (_levels.length * 120.0) + 200.0;
+    final double totalHeight = 100 + (visibleCount * 120.0) + 200.0;
 
     return Scaffold(
       body: LayoutBuilder(
         builder: (context, constraints) {
           final double screenWidth = constraints.maxWidth;
-          final List<Offset> basePositions = List.generate(_levels.length, (i) => _getLevelPosition(i, screenWidth));
+          final List<Offset> basePositions = List.generate(visibleCount, (i) => _getLevelPosition(i, screenWidth));
 
           return Stack(
             children: [
@@ -156,9 +219,23 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                     colors: [widget.island.primaryColor.withOpacity(0.8), Colors.black],
                   ),
                 ),
-                 child: BackdropFilter(
-                     filter: ui.ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-                     child: Container(color: Colors.black.withOpacity(0.4)),
+                 child: Stack(
+                     children: [
+                         // Animated Particles (Below Blur)
+                         Positioned.fill(
+                             child: AnimatedBuilder(
+                                 animation: _bgController,
+                                 builder: (context, child) => CustomPaint(
+                                     painter: _BackgroundEffectPainter(particles: _particles),
+                                 ),
+                             ),
+                         ),
+                         // Blur
+                         BackdropFilter(
+                             filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Increased blur for softer look
+                             child: Container(color: Colors.black.withOpacity(0.3)),
+                         ),
+                     ],
                  ), 
               ),
 
@@ -214,7 +291,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                           child: AnimatedBuilder(
                             animation: Listenable.merge([_pathAnimationController, ..._floatingControllers]),
                             builder: (context, child) {
-                                final currentPositions = List.generate(_levels.length, (i) {
+
+                                final currentPositions = List.generate(visibleCount, (i) {
                                     final floatVal = Curves.easeInOut.transform(_floatingControllers[i].value);
                                     final floatOffset = -8.0 + (floatVal * 16.0); 
                                     return basePositions[i].translate(0, floatOffset);
@@ -230,8 +308,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                                           dashPhase: _pathAnimationController.value,
                                           levels: _levels,
                                        ),
-                                     ),
-                                     ...List.generate(_levels.length, (index) {
+                                      ),
+                                     ...List.generate(visibleCount, (index) {
                                          final pos = currentPositions[index];
                                          return Positioned(
                                             left: pos.dx - 40, 
@@ -728,4 +806,41 @@ class _BouncingButtonState extends State<_BouncingButton> with SingleTickerProvi
       ),
     );
   }
+}
+
+class _BackgroundParticle {
+    double x; 
+    double y; 
+    double vx;
+    double vy;
+    double radius;
+    double life; // 1.0 to 0.0
+    Color color;
+    
+    _BackgroundParticle({
+        required this.x, required this.y, 
+        required this.vx, required this.vy,
+        required this.radius, required this.life, required this.color
+    });
+}
+
+class _BackgroundEffectPainter extends CustomPainter {
+    final List<_BackgroundParticle> particles;
+    
+    _BackgroundEffectPainter({required this.particles});
+
+    @override
+    void paint(Canvas canvas, Size size) {
+        for (var p in particles) {
+            final paint = Paint()
+                ..color = p.color.withOpacity(p.color.opacity * p.life)
+                ..style = PaintingStyle.fill
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15); 
+            
+            canvas.drawCircle(Offset(p.x * size.width, p.y * size.height), p.radius, paint);
+        }
+    }
+
+    @override
+    bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
