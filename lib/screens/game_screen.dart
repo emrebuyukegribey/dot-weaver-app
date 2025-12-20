@@ -456,9 +456,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       
       // Check if all cells are filled
       if (_playerNumbers.length == totalCells) {
-        // Check if path is sequential from 1 to totalCells
+        // Check if path is sequential from startValue
         bool isSequential = true;
-        for (int i = 1; i <= totalCells; i++) {
+        int startVal = widget.level.startNode != null ? widget.level.startValue : 1;
+        int endVal = startVal + totalCells - 1;
+        
+        for (int i = startVal; i <= endVal; i++) {
           if (!_playerNumbers.containsValue(i)) {
             isSequential = false;
             break;
@@ -1055,38 +1058,57 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   
   // ... Keep Tutorial & Input Logic same as previous artifact ...
    Widget _buildTutorialOverlay(double cellSize) {
+      final start = widget.level.startNode ?? const GridPoint(0, 0);
+      // For tutorial, we'll just demonstrate moving 2 cells right or down
+      final bool canMoveRight = start.col + 2 < widget.level.cols;
+      
       return IgnorePointer(
           child: AnimatedBuilder(
               animation: _handController,
               builder: (context, child) {
                    double t = _handController.value;
                    double row, col;
-                   // (0,0) -> (0,2) -> (2,2)
-                   if (t < 0.5) {
-                       double localT = t * 2; 
-                       row = 0;
-                       col = localT * 2; 
+                   
+                   // Dynamic animation based on start node
+                   if (canMoveRight) {
+                       // Move Horizontal then Vertical
+                       if (t < 0.5) {
+                           double localT = t * 2; 
+                           row = start.row.toDouble();
+                           col = start.col + (localT * 2); 
+                       } else {
+                           double localT = (t - 0.5) * 2; 
+                           col = (start.col + 2).toDouble();
+                           row = start.row + (localT * 2);
+                       }
                    } else {
-                       double localT = (t - 0.5) * 2; 
-                       col = 2;
-                       row = localT * 2;
+                       // Move Vertical then Horizontal
+                       if (t < 0.5) {
+                           double localT = t * 2; 
+                           col = start.col.toDouble();
+                           row = start.row + (localT * 2); 
+                       } else {
+                           double localT = (t - 0.5) * 2; 
+                           row = (start.row + 2).toDouble();
+                           col = start.col + (localT * 2);
+                       }
                    }
 
                    return Stack(
                        children: [
                            Positioned(
-                               left: col * cellSize + (cellSize/2) - 0, 
-                               top: row * cellSize + (cellSize/2) - 0,
+                               left: col * cellSize + (cellSize/2), 
+                               top: row * cellSize + (cellSize/2),
                                child: Transform.translate(
                                    offset: const Offset(10, 10),
-                                   child: const Icon(Icons.touch_app, size: 50, color: Colors.white, shadows: [Shadow(color: Colors.black, blurRadius: 10)])
+                                   child: Icon(Icons.touch_app, size: cellSize * 0.8, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 10)])
                                ),
                            ),
                            const Align(
                                 alignment: Alignment.bottomCenter,
                                 child: Padding(
-                                    padding: EdgeInsets.only(bottom: 10),
-                                    child: Text("Swipe to Connect", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                                    padding: EdgeInsets.only(bottom: 20),
+                                    child: Text("Swipe to Connect Numbers", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                                 ),
                            )
                        ],
@@ -1112,12 +1134,22 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   
   // NUMBER PATH MODE
   if (widget.level.gameType == GameType.numberPath) {
-    // Must start at number 1
-    final startNumber = widget.level.fixedNumbers?[p];
-    if (startNumber == 1) {
+    // Must start at the designated Start Node OR fallback to 1 for legacy
+    final bool isStartNode = widget.level.startNode != null && p == widget.level.startNode;
+    final bool isLegacyStart = widget.level.fixedNumbers?[p] == 1;
+
+    if (isStartNode || isLegacyStart) {
       setState(() {
         _numberPath = [p];
         _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+        
+        // Ensure starting node has the correct value even if not in fixedNumbers
+        if (isStartNode) {
+          _playerNumbers[p] = widget.level.startValue;
+        } else if (isLegacyStart) {
+          _playerNumbers[p] = 1;
+        }
+        
         if (widget.level.id == 1) _handController.stop();
       });
     }
@@ -1628,6 +1660,43 @@ class _NeonNodePainter extends CustomPainter {
                 cellSize * 0.35, 
                 Paint()..color = bgColor
             );
+
+            // NEW: Visual distinction for START node
+            final bool isActualStartNode = level.startNode != null && gridPoint == level.startNode;
+            if (isActualStartNode) {
+                // Outer Ring
+                canvas.drawCircle(
+                    center, 
+                    cellSize * 0.45, 
+                    Paint()
+                        ..color = Colors.white.withOpacity(0.5 + (0.5 * pulseValue))
+                        ..style = PaintingStyle.stroke
+                        ..strokeWidth = 3.0
+                );
+                
+                // "START" Text Badge
+                final startSpan = TextSpan(
+                    text: 'START',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: cellSize * 0.15,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.0,
+                    ),
+                );
+                final startPainter = TextPainter(text: startSpan, textDirection: TextDirection.ltr);
+                startPainter.layout();
+                
+                // Background for badge
+                final Rect badgeRect = Rect.fromCenter(
+                    center: center + Offset(0, cellSize * 0.45),
+                    width: startPainter.width + 8,
+                    height: startPainter.height + 4
+                );
+                canvas.drawRRect(RRect.fromRectAndRadius(badgeRect, const Radius.circular(4)), Paint()..color = Colors.black87);
+                
+                startPainter.paint(canvas, center + Offset(-startPainter.width / 2, cellSize * 0.45 - startPainter.height / 2));
+            }
             
             // Shine effect
             canvas.drawOval(

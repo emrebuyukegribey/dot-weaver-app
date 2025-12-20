@@ -73,6 +73,8 @@ class GameLevel {
   final GameType gameType; // NEW: Type of puzzle
   final Map<DotColor, List<GridPoint>> dotPositions; // For color dot puzzles
   final Map<GridPoint, int>? fixedNumbers; // NEW: For number path puzzles (pre-filled cells)
+  final GridPoint? startNode; // NEW: Dynamic Start Node coordinate
+  final int startValue; // NEW: Value of the start node
 
   const GameLevel({
     required this.id,
@@ -82,5 +84,7 @@ class GameLevel {
     this.gameType = GameType.colorDots, // Default to original type
     required this.dotPositions,
     this.fixedNumbers,
+    this.startNode,
+    this.startValue = 1,
   });
 }
