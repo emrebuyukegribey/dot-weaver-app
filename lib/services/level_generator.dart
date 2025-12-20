@@ -558,160 +558,160 @@ class LevelGenerator {
       return GameLevel(
         id: levelId,rows: 6,cols: 6,timeLimit: 170,gameType: GameType.numberPath,
         dotPositions: {DotColor.amber: [const GridPoint(0, 3), const GridPoint(5, 2)]},
-        startNode: const GridPoint(0, 3),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 3): 1, const GridPoint(5, 3): 6, const GridPoint(5, 4): 7, const GridPoint(5, 0): 21, const GridPoint(5, 2): 36},
+        startNode: const GridPoint(0, 3),startValue: 150,
+        fixedNumbers: {const GridPoint(0, 3): 150, const GridPoint(5, 3): 155, const GridPoint(5, 4): 156, const GridPoint(5, 0): 170, const GridPoint(5, 2): 185},
       );
     } else if (levelId == 28) {
       // Level 28: 6x6 Outer Ring
       return GameLevel(
         id: levelId,rows: 6,cols: 6,timeLimit: 160,gameType: GameType.numberPath,
         dotPositions: {DotColor.indigo: [const GridPoint(0, 0), const GridPoint(1, 1)]},
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(0, 5): 6, const GridPoint(5, 5): 11, const GridPoint(5, 0): 16, const GridPoint(1, 1): 36},
+        startNode: const GridPoint(0, 0),startValue: 100,
+        fixedNumbers: {const GridPoint(0, 0): 100, const GridPoint(0, 5): 105, const GridPoint(5, 5): 110, const GridPoint(5, 0): 115, const GridPoint(1, 1): 135},
       );
     } else if (levelId == 29) {
       // Level 29: 6x6 Inner Maze
       return GameLevel(
         id: levelId,rows: 6,cols: 6,timeLimit: 150,gameType: GameType.numberPath,
         dotPositions: {DotColor.pink: [const GridPoint(2, 2), const GridPoint(3, 3)]},
-        startNode: const GridPoint(2, 2),startValue: 1,
-        fixedNumbers: {const GridPoint(2, 2): 1, const GridPoint(0, 0): 13, const GridPoint(5, 5): 23, const GridPoint(3, 3): 36},
+        startNode: const GridPoint(2, 2),startValue: 120,
+        fixedNumbers: {const GridPoint(2, 2): 120, const GridPoint(0, 0): 132, const GridPoint(5, 5): 142, const GridPoint(3, 3): 155},
       );
     } else if (levelId == 30) {
       // Level 30: 6x6 Challenge
       return GameLevel(
         id: levelId,rows: 6,cols: 6,timeLimit: 140,gameType: GameType.numberPath,
         dotPositions: {DotColor.red: [const GridPoint(0, 0), const GridPoint(5, 0)]},
-        startNode: const GridPoint(0, 0),startValue: 200,
-        fixedNumbers: {const GridPoint(0, 0): 200, const GridPoint(5, 5): 230, const GridPoint(5, 0): 235},
+        startNode: const GridPoint(0, 0),startValue: 160,
+        fixedNumbers: {const GridPoint(0, 0): 160, const GridPoint(5, 5): 190, const GridPoint(5, 0): 195},
       );
     } else if (levelId == 31) {
       // Level 31: 7x7 Entry
       return GameLevel(
         id: levelId,rows: 7,cols: 7,timeLimit: 300,gameType: GameType.numberPath,
         dotPositions: {DotColor.blue: [const GridPoint(0, 0), const GridPoint(6, 6)]},
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(3, 3): 25, const GridPoint(6, 6): 49},
+        startNode: const GridPoint(0, 0),startValue: 100,
+        fixedNumbers: {const GridPoint(0, 0): 100, const GridPoint(3, 3): 125, const GridPoint(6, 6): 149},
       );
     } else if (levelId == 32) {
       // Level 32: 7x7 Spiral
       return GameLevel(
         id: levelId,rows: 7,cols: 7,timeLimit: 280,gameType: GameType.numberPath,
         dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(3, 3)]},
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(0, 6): 7, const GridPoint(6, 6): 13, const GridPoint(6, 0): 19, const GridPoint(3, 3): 49},
+        startNode: const GridPoint(0, 0),startValue: 120,
+        fixedNumbers: {const GridPoint(0, 0): 120, const GridPoint(0, 6): 126, const GridPoint(6, 6): 132, const GridPoint(6, 0): 138, const GridPoint(3, 3): 168},
       );
     } else if (levelId == 33) {
       // Level 33: 7x7 Corners
       return GameLevel(
         id: levelId,rows: 7,cols: 7,timeLimit: 260,gameType: GameType.numberPath,
         dotPositions: {DotColor.yellow: [const GridPoint(0, 0), const GridPoint(0, 6)]},
-        startNode: const GridPoint(0, 0),startValue: 50,
-        fixedNumbers: {const GridPoint(0, 0): 50, const GridPoint(6, 0): 56, const GridPoint(6, 6): 62, const GridPoint(0, 6): 98},
+        startNode: const GridPoint(0, 0),startValue: 150,
+        fixedNumbers: {const GridPoint(0, 0): 150, const GridPoint(6, 0): 156, const GridPoint(6, 6): 162, const GridPoint(0, 6): 198},
       );
     } else if (levelId == 34) {
       // Level 34: 7x7 Cross
       return GameLevel(
         id: levelId,rows: 7,cols: 7,timeLimit: 240,gameType: GameType.numberPath,
         dotPositions: {DotColor.orange: [const GridPoint(3, 0), const GridPoint(3, 6)]},
-        startNode: const GridPoint(3, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(3, 0): 1, const GridPoint(0, 0): 4, const GridPoint(0, 6): 10, const GridPoint(6, 6): 16, const GridPoint(6, 0): 22, const GridPoint(3, 6): 49},
+        startNode: const GridPoint(3, 0),startValue: 101,
+        fixedNumbers: {const GridPoint(3, 0): 101, const GridPoint(0, 0): 104, const GridPoint(0, 6): 110, const GridPoint(6, 6): 116, const GridPoint(6, 0): 122, const GridPoint(3, 6): 149},
       );
     } else if (levelId == 35) {
       // Level 35: 7x7 Master
       return GameLevel(
         id: levelId,rows: 7,cols: 7,timeLimit: 220,gameType: GameType.numberPath,
         dotPositions: {DotColor.teal: [const GridPoint(1, 1), const GridPoint(5, 5)]},
-        startNode: const GridPoint(1, 1),startValue: 1,
-        fixedNumbers: {const GridPoint(1, 1): 1, const GridPoint(0, 0): 5, const GridPoint(6, 6): 45, const GridPoint(5, 5): 49},
+        startNode: const GridPoint(1, 1),startValue: 140,
+        fixedNumbers: {const GridPoint(1, 1): 140, const GridPoint(0, 0): 144, const GridPoint(6, 6): 184, const GridPoint(5, 5): 188},
       );
     } else if (levelId == 36) {
       // Level 36: 8x8 Entry
       return GameLevel(
         id: levelId,rows: 8,cols: 8,timeLimit: 400,gameType: GameType.numberPath,
-        dotPositions: {DotColor.purple: [const GridPoint(0, 0), const GridPoint(7, 6)]}, // Parite: 0+0=0 (even), 7+6=13 (odd). 8x8=64 (even). 1 to 64: start/end must be different.
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(7, 7): 40, const GridPoint(7, 6): 64},
+        dotPositions: {DotColor.purple: [const GridPoint(0, 0), const GridPoint(7, 6)]},
+        startNode: const GridPoint(0, 0),startValue: 100,
+        fixedNumbers: {const GridPoint(0, 0): 100, const GridPoint(7, 7): 140, const GridPoint(7, 6): 163},
       );
     } else if (levelId == 37) {
       // Level 37: 8x8 Zig Zag
       return GameLevel(
         id: levelId,rows: 8,cols: 8,timeLimit: 380,gameType: GameType.numberPath,
         dotPositions: {DotColor.pink: [const GridPoint(0, 0), const GridPoint(7, 0)]},
-        startNode: const GridPoint(0, 0),startValue: 10,
-        fixedNumbers: {const GridPoint(0, 0): 10, const GridPoint(0, 7): 17, const GridPoint(1, 7): 18, const GridPoint(7, 0): 73},
+        startNode: const GridPoint(0, 0),startValue: 130,
+        fixedNumbers: {const GridPoint(0, 0): 130, const GridPoint(0, 7): 137, const GridPoint(1, 7): 138, const GridPoint(7, 0): 193},
       );
     } else if (levelId == 38) {
       // Level 38: 8x8 Inner Workings
       return GameLevel(
         id: levelId,rows: 8,cols: 8,timeLimit: 360,gameType: GameType.numberPath,
         dotPositions: {DotColor.blue: [const GridPoint(3, 3), const GridPoint(4, 4)]},
-        startNode: const GridPoint(3, 3),startValue: 1,
-        fixedNumbers: {const GridPoint(3, 3): 1, const GridPoint(0, 0): 20, const GridPoint(7, 7): 50, const GridPoint(4, 4): 64},
+        startNode: const GridPoint(3, 3),startValue: 101,
+        fixedNumbers: {const GridPoint(3, 3): 101, const GridPoint(0, 0): 120, const GridPoint(7, 7): 150, const GridPoint(4, 4): 164},
       );
     } else if (levelId == 39) {
       // Level 39: 8x8 Dual Spiral
       return GameLevel(
         id: levelId,rows: 8,cols: 8,timeLimit: 340,gameType: GameType.numberPath,
         dotPositions: {DotColor.green: [const GridPoint(0, 7), const GridPoint(7, 0)]},
-        startNode: const GridPoint(0, 7),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 7): 1, const GridPoint(7, 7): 8, const GridPoint(0, 0): 57, const GridPoint(7, 0): 64},
+        startNode: const GridPoint(0, 7),startValue: 110,
+        fixedNumbers: {const GridPoint(0, 7): 110, const GridPoint(7, 7): 117, const GridPoint(0, 0): 166, const GridPoint(7, 0): 173},
       );
     } else if (levelId == 40) {
       // Level 40: 8x8 Grandmaster Intro
       return GameLevel(
         id: levelId,rows: 8,cols: 8,timeLimit: 300,gameType: GameType.numberPath,
         dotPositions: {DotColor.red: [const GridPoint(0, 0), const GridPoint(7, 6)]},
-        startNode: const GridPoint(0, 0),startValue: 300,
-        fixedNumbers: {const GridPoint(0, 0): 300, const GridPoint(7, 6): 363},
+        startNode: const GridPoint(0, 0),startValue: 120,
+        fixedNumbers: {const GridPoint(0, 0): 120, const GridPoint(7, 6): 183},
       );
     } else if (levelId == 41) {
       // Level 41: 9x9 Entry
       return GameLevel(
         id: levelId,rows: 9,cols: 9,timeLimit: 500,gameType: GameType.numberPath,
-        dotPositions: {DotColor.blue: [const GridPoint(0, 0), const GridPoint(8, 8)]}, // 9x9=81 (odd). start/end same parity. 0+0=0 (even), 8+8=16 (even).
-        startNode: const GridPoint(0, 0),startValue: 400,
-        fixedNumbers: {const GridPoint(0, 0): 400, const GridPoint(4, 4): 440, const GridPoint(8, 8): 480},
+        dotPositions: {DotColor.blue: [const GridPoint(0, 0), const GridPoint(8, 8)]},
+        startNode: const GridPoint(0, 0),startValue: 100,
+        fixedNumbers: {const GridPoint(0, 0): 100, const GridPoint(4, 4): 140, const GridPoint(8, 8): 180},
       );
     } else if (levelId == 42) {
       // Level 42: 9x9 Spiral
       return GameLevel(
         id: levelId,rows: 9,cols: 9,timeLimit: 480,gameType: GameType.numberPath,
         dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(4, 4)]},
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(8, 8): 32, const GridPoint(4, 4): 81},
+        startNode: const GridPoint(0, 0),startValue: 110,
+        fixedNumbers: {const GridPoint(0, 0): 110, const GridPoint(8, 8): 141, const GridPoint(4, 4): 190},
       );
     } else if (levelId == 43) {
       // Level 43: 9x9 Zig Zag
       return GameLevel(
         id: levelId,rows: 9,cols: 9,timeLimit: 460,gameType: GameType.numberPath,
         dotPositions: {DotColor.yellow: [const GridPoint(0, 0), const GridPoint(8, 0)]},
-        startNode: const GridPoint(0, 0),startValue: 10,
-        fixedNumbers: {const GridPoint(0, 0): 10, const GridPoint(0, 8): 18, const GridPoint(8, 8): 54, const GridPoint(8, 0): 90},
+        startNode: const GridPoint(0, 0),startValue: 101,
+        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(0, 8): 109, const GridPoint(8, 8): 145, const GridPoint(8, 0): 181},
       );
     } else if (levelId == 44) {
       // Level 44: 9x9 Inner Maze
       return GameLevel(
         id: levelId,rows: 9,cols: 9,timeLimit: 440,gameType: GameType.numberPath,
         dotPositions: {DotColor.orange: [const GridPoint(1, 1), const GridPoint(7, 7)]},
-        startNode: const GridPoint(1, 1),startValue: 1,
-        fixedNumbers: {const GridPoint(1, 1): 1, const GridPoint(0, 0): 5, const GridPoint(8, 8): 77, const GridPoint(7, 7): 81},
+        startNode: const GridPoint(1, 1),startValue: 110,
+        fixedNumbers: {const GridPoint(1, 1): 110, const GridPoint(0, 0): 114, const GridPoint(8, 8): 186, const GridPoint(7, 7): 190},
       );
     } else if (levelId == 45) {
       // Level 45: 9x9 Master
       return GameLevel(
         id: levelId,rows: 9,cols: 9,timeLimit: 400,gameType: GameType.numberPath,
         dotPositions: {DotColor.teal: [const GridPoint(0, 4), const GridPoint(8, 4)]},
-        startNode: const GridPoint(0, 4),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 4): 1, const GridPoint(8, 4): 81},
+        startNode: const GridPoint(0, 4),startValue: 115,
+        fixedNumbers: {const GridPoint(0, 4): 115, const GridPoint(8, 4): 195},
       );
     } else if (levelId == 46) {
       // Level 46: 10x10 Entry
       return GameLevel(
         id: levelId,rows: 10,cols: 10,timeLimit: 600,gameType: GameType.numberPath,
-        dotPositions: {DotColor.purple: [const GridPoint(0, 0), const GridPoint(9, 8)]}, // 10x10=100 (even). start/end different parity. 0+0=0 (even), 9+8=17 (odd).
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(5, 5): 50, const GridPoint(9, 8): 100},
+        dotPositions: {DotColor.purple: [const GridPoint(0, 0), const GridPoint(9, 8)]},
+        startNode: const GridPoint(0, 0),startValue: 101,
+        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(5, 5): 150, const GridPoint(9, 8): 200},
       );
     } else if (levelId == 47) {
       // Level 47: 10x10 Spiral
@@ -726,24 +726,24 @@ class LevelGenerator {
       return GameLevel(
         id: levelId,rows: 10,cols: 10,timeLimit: 560,gameType: GameType.numberPath,
         dotPositions: {DotColor.blue: [const GridPoint(0, 0), const GridPoint(0, 1)]},
-        startNode: const GridPoint(0, 0),startValue: 500,
-        fixedNumbers: {const GridPoint(0, 0): 500, const GridPoint(9, 9): 550, const GridPoint(0, 1): 599},
+        startNode: const GridPoint(0, 0),startValue: 101,
+        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(9, 9): 150, const GridPoint(0, 1): 200},
       );
     } else if (levelId == 49) {
       // Level 49: 10x10 Zig Zag Master
       return GameLevel(
         id: levelId,rows: 10,cols: 10,timeLimit: 540,gameType: GameType.numberPath,
         dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(9, 0)]},
-        startNode: const GridPoint(0, 0),startValue: 1,
-        fixedNumbers: {const GridPoint(0, 0): 1, const GridPoint(0, 9): 10, const GridPoint(9, 9): 90, const GridPoint(9, 0): 100},
+        startNode: const GridPoint(0, 0),startValue: 50,
+        fixedNumbers: {const GridPoint(0, 0): 50, const GridPoint(0, 9): 59, const GridPoint(9, 9): 140, const GridPoint(9, 0): 149},
       );
     } else if (levelId == 50) {
       // Level 50: 10x10 Grandmaster Finals
       return GameLevel(
         id: levelId,rows: 10,cols: 10,timeLimit: 500,gameType: GameType.numberPath,
         dotPositions: {DotColor.red: [const GridPoint(0, 0), const GridPoint(9, 8)]},
-        startNode: const GridPoint(0, 0),startValue: 900,
-        fixedNumbers: {const GridPoint(0, 0): 900, const GridPoint(9, 8): 999},
+        startNode: const GridPoint(0, 0),startValue: 101,
+        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(9, 8): 200},
       );
     }
     
