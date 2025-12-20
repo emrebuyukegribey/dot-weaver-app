@@ -62,7 +62,8 @@ class LevelGenerator {
   // Generate level based on island context
   static GameLevel generate(int levelId, {String? islandId}) {
     // Route to number matching for Number Island
-    if (islandId == "2") {
+    // Robust check for islandId "2" (can be string or int-like)
+    if (islandId == "2" || islandId == 2.toString()) {
       return generateNumberLevel(levelId);
     }
     
@@ -70,49 +71,45 @@ class LevelGenerator {
     return generateColorLevel(levelId);
   }
 
-  // Generate number matching puzzle (for Number Island)
-  // Uses color dot system but displays as numbers (1→1, 2→2, etc.)
   static GameLevel generateNumberLevel(int levelId) {
     if (levelId == 1) {
-      // Level 1: Simple 3x3, match 1→1 and 2→2
+      // Level 1: 4x4 S-Shape Sequential Path (1→16)
+      // Every cell must be filled! Total 16 cells.
+      // Row 0: (0,0):1 -> (0,3):4
+      // Row 1: (1,3):5 -> (1,0):8
+      // Row 2: (2,0):9 -> (2,3):12
+      // Row 3: (3,3):13 -> (3,0):16
       return GameLevel(
         id: levelId,
-        rows: 3,
-        cols: 3,
-        timeLimit: 15,
-        gameType: GameType.numberPath, // Use numberPath to trigger number rendering
+        rows: 2,
+        cols: 2,
+        timeLimit: 60, // Increased time
+        gameType: GameType.numberPath,
         dotPositions: {
-          DotColor.red: [const GridPoint(0, 0), const GridPoint(2, 2)],    // Will show as 1→1
-          DotColor.blue: [const GridPoint(0, 2), const GridPoint(2, 0)],   // Will show as 2→2
+          DotColor.purple: [const GridPoint(0, 0), const GridPoint(1, 0)],
         },
         fixedNumbers: {
-          // Map positions to numbers for display
-          const GridPoint(0, 0): 1,
-          const GridPoint(2, 2): 1,
-          const GridPoint(0, 2): 2,
-          const GridPoint(2, 0): 2,
+          const GridPoint(0, 0): 2,   
+          const GridPoint(1, 0): 4,   
         },
       );
     } else if (levelId == 2) {
-      // Level 2: 4x4, match 1→1, 2→2, 3→3
+      // Level 2: 5x5 Sequential Path
       return GameLevel(
         id: levelId,
-        rows: 4,
-        cols: 4,
-        timeLimit: 20,
+        rows: 5,
+        cols: 5,
+        timeLimit: 40,
         gameType: GameType.numberPath,
         dotPositions: {
-          DotColor.red: [const GridPoint(0, 0), const GridPoint(3, 3)],
-          DotColor.blue: [const GridPoint(0, 3), const GridPoint(3, 0)],
-          DotColor.green: [const GridPoint(1, 1), const GridPoint(2, 2)],
+          DotColor.purple: [const GridPoint(0, 0), const GridPoint(4, 4)],
         },
         fixedNumbers: {
           const GridPoint(0, 0): 1,
-          const GridPoint(3, 3): 1,
-          const GridPoint(0, 3): 2,
-          const GridPoint(3, 0): 2,
-          const GridPoint(1, 1): 3,
-          const GridPoint(2, 2): 3,
+          const GridPoint(0, 4): 5,
+          const GridPoint(1, 4): 6,
+          const GridPoint(1, 0): 10,
+          const GridPoint(4, 4): 25,
         },
       );
     }

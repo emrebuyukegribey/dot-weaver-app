@@ -198,6 +198,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     return Scaffold(
       backgroundColor: Colors.black, 
       extendBodyBehindAppBar: true,
+      resizeToAvoidBottomInset: false, // Prevent layout shifts
       appBar: AppBar(
         toolbarHeight: 80, // Increased height for larger buttons
         // NEW: Timer Display in Title
@@ -328,8 +329,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                             double maxW = constraints.maxWidth - 48; // Padding
                             double maxH = constraints.maxHeight - 140; // Top bar space + Footer space
                             
-                            double gridSize = math.min(maxW, maxH);
-
+                            double gridSize = math.max(0.0, math.min(maxW, maxH));
+                            if (gridSize <= 0) return const SizedBox();
+                            
                             return Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
@@ -342,9 +344,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                         ),
                                         // Pass the explicit size down
                                         child: Stack(
+                                            alignment: Alignment.topLeft, // Ensure coordinate origin
                                             children: [
                                                 CustomPaint(size: Size(gridSize, gridSize), painter: _NeonGridPainter(rows: widget.level.rows, cols: widget.level.cols)),
-                                                AnimatedBuilder(animation: _flowController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonPathPainter(level: widget.level, paths: _paths, cellSize: gridSize / widget.level.cols, flowPhase: _flowController.value, lockedPaths: _lockedPaths))),
+                                                AnimatedBuilder(animation: _flowController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonPathPainter(level: widget.level, paths: _paths, cellSize: gridSize / widget.level.cols, flowPhase: _flowController.value, lockedPaths: _lockedPaths, numberPath: _numberPath, playerNumbers: _playerNumbers))),
                                                 AnimatedBuilder(animation: _pulseController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonNodePainter(level: widget.level, cellSize: gridSize / widget.level.cols, pulseValue: _pulseController.value, playerNumbers: _playerNumbers))),
                                                 
                                                 // Input
@@ -352,11 +355,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                     onPanStart: _isGameActive ? (d) => _handleInputStart(d, gridSize) : null,
                                                     onPanUpdate: _isGameActive ? (d) => _handleInputUpdate(d, gridSize) : null,
                                                     onPanEnd: _isGameActive ? (_) => _handleInputEnd() : null,
-                                                    behavior: HitTestBehavior.translucent,
+                                                    behavior: HitTestBehavior.opaque, // Prevent event leak
                                                     child: Container(width: gridSize, height: gridSize, color: Colors.transparent),
                                                 ),
                                                 
-                                                if (widget.level.id == 1 && _paths.isEmpty) _buildTutorialOverlay(gridSize / widget.level.cols),
+                                                if (widget.level.id == 1 && _paths.isEmpty && _numberPath.isEmpty) _buildTutorialOverlay(gridSize / widget.level.cols),
                                             ],
                                         ),
                                     ),
@@ -447,68 +450,102 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
 
   void _checkWin() {
-      bool allConnected = true;
-      Set<GridPoint> filled = {};
-
-      widget.level.dotPositions.forEach((color, nodes) {
-          if (!_paths.containsKey(color)) { allConnected = false; return; }
-          final path = _paths[color]!;
-          if (path.isEmpty) { allConnected = false; return; }
-          bool startOk = (path.first == nodes[0] && path.last == nodes[1]);
-          bool reverseOk = (path.first == nodes[1] && path.last == nodes[0]);
-          
-          // Check if path is complete and lock it
-          if (startOk || reverseOk) {
-              if (!_lockedPaths.contains(color)) {
-                  setState(() {
-                      _lockedPaths.add(color);
-                  });
-              }
-          } else {
-              allConnected = false;
-          }
-          
-          filled.addAll(path);
-      });
-
-      if (!allConnected) return;
-
-      bool boardFull = filled.length == (widget.level.rows * widget.level.cols);
+    // NUMBER PATH MODE
+    if (widget.level.gameType == GameType.numberPath) {
+      final totalCells = widget.level.rows * widget.level.cols;
       
-      if (boardFull) {
+      // Check if all cells are filled
+      if (_playerNumbers.length == totalCells) {
+        // Check if path is sequential from 1 to totalCells
+        bool isSequential = true;
+        for (int i = 1; i <= totalCells; i++) {
+          if (!_playerNumbers.containsValue(i)) {
+            isSequential = false;
+            break;
+          }
+        }
+        
+        if (isSequential) {
           _stopGame();
-          // Score Calculation
-          // Score Calculation
-          // Stars based on remaining time percentage? Or just completion within limit (3 stars always?)
-          // Prompt implies "change timer to countdown", let's keep star logic simple for now:
-          // If you finish, you get stars. Maybe quicker = more stars?
-          // Let's use remaining time ratio.
+          
+          // Calculate stars based on remaining time
           double ratio = _remainingSeconds / _totalTime;
-          // Custom Star Logic (Balanced for short times)
-          if (ratio > 0.70) _earnedStars = 3; // > 70% time left
-          else if (ratio > 0.40) _earnedStars = 2; // > 40% time left
+          if (ratio > 0.70) _earnedStars = 3;
+          else if (ratio > 0.40) _earnedStars = 2;
           else _earnedStars = 1;
-
+          
           setState(() {
-              _showWinUI = true;
+            _showWinUI = true;
           });
           _triggerConfetti();
-      } else {
-          // All connected but board NOT full -> Show warning then Ad
-          _stopGame();
-          setState(() {
-              _showBoardNotFullWarning = true;
-          });
-          
-          Future.delayed(const Duration(milliseconds: 1500), () {
-              if (mounted) {
-                  setState(() {
-                      _showBoardNotFullWarning = false;
-                  });
-                  _watchAdToRestart();
-              }
-          });
+        }
       }
+      return;
+    }
+    
+    // COLOR DOT MODE (original logic)
+    bool allConnected = true;
+    Set<GridPoint> filled = {};
+
+    widget.level.dotPositions.forEach((color, nodes) {
+        if (!_paths.containsKey(color)) { allConnected = false; return; }
+        final path = _paths[color]!;
+        if (path.isEmpty) { allConnected = false; return; }
+        bool startOk = (path.first == nodes[0] && path.last == nodes[1]);
+        bool reverseOk = (path.first == nodes[1] && path.last == nodes[0]);
+        
+        // Check if path is complete and lock it
+        if (startOk || reverseOk) {
+            if (!_lockedPaths.contains(color)) {
+                setState(() {
+                    _lockedPaths.add(color);
+                });
+            }
+        } else {
+            allConnected = false;
+        }
+        
+        filled.addAll(path);
+    });
+
+    if (!allConnected) return;
+
+    bool boardFull = filled.length == (widget.level.rows * widget.level.cols);
+    
+    if (boardFull) {
+        _stopGame();
+        // Score Calculation
+        // Score Calculation
+        // Stars based on remaining time percentage? Or just completion within limit (3 stars always?)
+        // Prompt implies "change timer to countdown", let's keep star logic simple for now:
+        // If you finish, you get stars. Maybe quicker = more stars?
+        // Let's use remaining time ratio.
+        double ratio = _remainingSeconds / _totalTime;
+        // Custom Star Logic (Balanced for short times)
+        if (ratio > 0.70) _earnedStars = 3; // > 70% time left
+        else if (ratio > 0.40) _earnedStars = 2; // > 40% time left
+        else _earnedStars = 1;
+
+        setState(() {
+            _showWinUI = true;
+        });
+        _triggerConfetti();
+    } else {
+        // All connected but board NOT full -> Show warning then Ad
+        _stopGame();
+        setState(() {
+            _showBoardNotFullWarning = true;
+        });
+        
+        Future.delayed(const Duration(milliseconds: 1500), () {
+            if (mounted) {
+                setState(() {
+                    _showBoardNotFullWarning = false;
+                });
+                _watchAdToRestart();
+            }
+        });
+    }
   }
 
   List<int> _getStarThresholds(int levelId) {
@@ -889,10 +926,17 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       _stopGame();
       setState(() {
           _paths.clear();
+          _numberPath.clear(); // Clear number path
           _showWinUI = false;
           _hasStarted = false; // SHOW START BUTTON
           _confettiParticles.clear();
           _lockedPaths.clear();
+          
+          // Reset player numbers to fixed numbers
+          if (widget.level.gameType == GameType.numberPath) {
+            _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+          }
+          
           if (widget.level.id == 1) _handController.repeat();
       });
       _loadGameState(); 
@@ -1053,106 +1097,196 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   GridPoint _getGridPoint(Offset localPosition, double size) {
-    double cellSize = size / widget.level.cols;
-    int col = (localPosition.dx / cellSize).floor().clamp(0, widget.level.cols - 1);
-    int row = (localPosition.dy / cellSize).floor().clamp(0, widget.level.rows - 1);
+    if (size <= 0) return const GridPoint(0, 0);
+    double cellW = size / widget.level.cols;
+    double cellH = size / widget.level.rows;
+    int col = (localPosition.dx / cellW).floor().clamp(0, widget.level.cols - 1);
+    int row = (localPosition.dy / cellH).floor().clamp(0, widget.level.rows - 1);
     return GridPoint(row, col);
   }
 
   void _handleInputStart(DragStartDetails details, double size) {
-    _resetInactivityTimer(); // Reset on input
-    
-    // NEW: Auto-delete incomplete paths when starting a new interaction
-    // Only keep paths that are officially "locked" (fully connected)
-    setState(() {
-        _paths.removeWhere((color, path) => !_lockedPaths.contains(color));
-    });
-
-    GridPoint p = _getGridPoint(details.localPosition, size);
-    widget.level.dotPositions.forEach((color, locations) {
-        if (locations.contains(p)) {
-            // Check if trying to modify a locked path
-            if (_lockedPaths.contains(color)) {
-                _handlePathBreak(color);
-                return;
-            }
-            setState(() {
-                _activeColor = color;
-                _paths[color] = [p]; 
-                if (widget.level.id == 1) _handController.stop(); 
-            });
-        }
-    });
-    if (_activeColor == null) {
-        _paths.forEach((color, path) {
-            if (path.isNotEmpty && path.last == p) {
-                // Check if trying to continue a locked path
-                if (_lockedPaths.contains(color)) {
-                    _handlePathBreak(color);
-                    return;
-                }
-                setState(() {
-                    _activeColor = color;
-                    if (widget.level.id == 1) _handController.stop();
-                });
-            }
-        });
+  _resetInactivityTimer(); // Reset on input
+  
+  GridPoint p = _getGridPoint(details.localPosition, size);
+  
+  // NUMBER PATH MODE
+  if (widget.level.gameType == GameType.numberPath) {
+    // Must start at number 1
+    final startNumber = widget.level.fixedNumbers?[p];
+    if (startNumber == 1) {
+      setState(() {
+        _numberPath = [p];
+        _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+        if (widget.level.id == 1) _handController.stop();
+      });
     }
+    return;
   }
+  
+  // COLOR DOT MODE (original logic)
+  // Auto-delete incomplete paths when starting a new interaction
+  setState(() {
+      _paths.removeWhere((color, path) => !_lockedPaths.contains(color));
+  });
+
+  widget.level.dotPositions.forEach((color, locations) {
+      if (locations.contains(p)) {
+          if (_lockedPaths.contains(color)) {
+              _handlePathBreak(color);
+              return;
+          }
+          setState(() {
+              _activeColor = color;
+              _paths[color] = [p]; 
+              if (widget.level.id == 1) _handController.stop(); 
+          });
+      }
+  });
+  if (_activeColor == null) {
+      _paths.forEach((color, path) {
+          if (path.isNotEmpty && path.last == p) {
+              if (_lockedPaths.contains(color)) {
+                  _handlePathBreak(color);
+                  return;
+              }
+              setState(() {
+                  _activeColor = color;
+                  if (widget.level.id == 1) _handController.stop();
+              });
+          }
+      });
+  }
+}
 
   void _handleInputUpdate(DragUpdateDetails details, double size) {
-      _resetInactivityTimer(); // Reset on input
-      if (_activeColor == null) return;
-      GridPoint p = _getGridPoint(details.localPosition, size);
-      List<GridPoint> currentPath = _paths[_activeColor!]!;
-      GridPoint last = currentPath.last;
-      if (p == last) return; 
-
-      // Stop if we've already reached the destination dot (and aren't backtracking)
-      final endpoints = widget.level.dotPositions[_activeColor!]!;
-      if (currentPath.length > 1 && endpoints.contains(last)) {
-          if (currentPath[currentPath.length - 2] == p) {
-              setState(() { currentPath.removeLast(); });
+    _resetInactivityTimer(); // Reset on input
+    
+    GridPoint p = _getGridPoint(details.localPosition, size);
+    
+    // NUMBER PATH MODE
+    if (widget.level.gameType == GameType.numberPath) {
+      if (_numberPath.isEmpty) return;
+      
+      GridPoint last = _numberPath.last;
+      if (p == last) return;
+      
+      // Rule 1: Must be orthogonal (adjacent) - only horizontal or vertical
+      bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || 
+                          (p.col == last.col && (p.row - last.row).abs() == 1);
+      if (!isOrthogonal) return;
+      
+      // Allow backtracking
+      if (_numberPath.length > 1 && _numberPath[_numberPath.length - 2] == p) {
+        setState(() {
+          _numberPath.removeLast();
+          final lastNum = _playerNumbers[last];
+          if (lastNum != null && !(widget.level.fixedNumbers?.containsKey(last) ?? false)) {
+            _playerNumbers.remove(last);
           }
-          return;
-      }
-
-      bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || (p.col == last.col && (p.row - last.row).abs() == 1);
-      if (!isOrthogonal) return; 
-      if (currentPath.length > 1 && currentPath[currentPath.length - 2] == p) {
-          setState(() { currentPath.removeLast(); });
-          return;
-      }
-      if (currentPath.contains(p)) {
-          int idx = currentPath.indexOf(p);
-          setState(() { _paths[_activeColor!] = currentPath.sublist(0, idx + 1); });
-          return;
+        });
+        return;
       }
       
-      // Check if trying to cross a locked path
-      bool hitLockedPath = false;
-      _paths.forEach((c, path) {
-          if (c != _activeColor && _lockedPaths.contains(c) && path.contains(p)) {
-              hitLockedPath = true;
-          }
-      });
-      if (hitLockedPath) return; // Stop drawing if hitting a locked path
+      // Rule 2: Cell must be empty OR match expected next number (for fixed cells)
+      final currentNum = _playerNumbers[last] ?? 1;
+      final nextNum = currentNum + 1;
       
-      bool hitWrongNode = false;
-      widget.level.dotPositions.forEach((c, locs) {
-          if (c != _activeColor && locs.contains(p)) hitWrongNode = true;
-      });
-      if (hitWrongNode) return;
-      setState(() {
-           _paths.forEach((c, path) {
-              if (c != _activeColor && path.contains(p)) {
-                 int idx = path.indexOf(p);
-                 _paths[c] = path.sublist(0, idx);
+      if (_playerNumbers.containsKey(p)) {
+        final existingNum = _playerNumbers[p];
+        
+        // If it's a fixed number, check if it matches expected sequence
+        if (widget.level.fixedNumbers?.containsKey(p) ?? false) {
+          if (existingNum == nextNum) {
+            // Valid: moving to correct fixed number
+            setState(() {
+              _numberPath.add(p);
+            });
+            return;
+          } else {
+            // Invalid: fixed number doesn't match sequence
+            return;
+          }
+        }
+        
+        // Allow retracing to this point (for player-filled cells)
+        int idx = _numberPath.indexOf(p);
+        if (idx >= 0) {
+          setState(() {
+            // Remove all points after this one
+            for (int i = _numberPath.length - 1; i > idx; i--) {
+              final pt = _numberPath[i];
+              if (!(widget.level.fixedNumbers?.containsKey(pt) ?? false)) {
+                _playerNumbers.remove(pt);
               }
+            }
+            _numberPath = _numberPath.sublist(0, idx + 1);
           });
-          _paths[_activeColor!]!.add(p);
+        }
+        return;
+      }
+      
+      // Rule 3: Add next sequential number to empty cell
+      setState(() {
+        _numberPath.add(p);
+        _playerNumbers[p] = nextNum;
       });
-  }
+      
+      // Don't check win here - only check on input end
+      return;
+    }
+    
+    // COLOR DOT MODE (original logic)
+    if (_activeColor == null) return;
+    List<GridPoint> currentPath = _paths[_activeColor!]!;
+    GridPoint last = currentPath.last;
+    if (p == last) return; 
+
+    // Stop if we've already reached the destination dot (and aren't backtracking)
+    final endpoints = widget.level.dotPositions[_activeColor!]!;
+    if (currentPath.length > 1 && endpoints.contains(last)) {
+        if (currentPath[currentPath.length - 2] == p) {
+            setState(() { currentPath.removeLast(); });
+        }
+        return;
+    }
+
+    bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || (p.col == last.col && (p.row - last.row).abs() == 1);
+    if (!isOrthogonal) return; 
+    if (currentPath.length > 1 && currentPath[currentPath.length - 2] == p) {
+        setState(() { currentPath.removeLast(); });
+        return;
+    }
+    if (currentPath.contains(p)) {
+        int idx = currentPath.indexOf(p);
+        setState(() { _paths[_activeColor!] = currentPath.sublist(0, idx + 1); });
+        return;
+    }
+    
+    // Check if trying to cross a locked path
+    bool hitLockedPath = false;
+    _paths.forEach((c, path) {
+        if (c != _activeColor && _lockedPaths.contains(c) && path.contains(p)) {
+            hitLockedPath = true;
+        }
+    });
+    if (hitLockedPath) return; // Stop drawing if hitting a locked path
+    
+    bool hitWrongNode = false;
+    widget.level.dotPositions.forEach((c, locs) {
+        if (c != _activeColor && locs.contains(p)) hitWrongNode = true;
+    });
+    if (hitWrongNode) return;
+    setState(() {
+         _paths.forEach((c, path) {
+            if (c != _activeColor && path.contains(p)) {
+               int idx = path.indexOf(p);
+               _paths[c] = path.sublist(0, idx);
+            }
+        });
+        _paths[_activeColor!]!.add(p);
+    });
+}
 
   void _handleInputEnd() { _activeColor = null; _checkWin(); }
 
@@ -1229,6 +1363,8 @@ class _NeonPathPainter extends CustomPainter {
     final double flowPhase;
     final List<GridPoint>? hintPath;
     final Set<DotColor> lockedPaths;
+    final List<GridPoint>? numberPath; // NEW: For number path rendering
+    final Map<GridPoint, int>? playerNumbers; // NEW: For gradient colors
 
     _NeonPathPainter({
         required this.level, 
@@ -1237,10 +1373,19 @@ class _NeonPathPainter extends CustomPainter {
         required this.flowPhase,
         this.hintPath,
         this.lockedPaths = const {},
+        this.numberPath, // NEW
+        this.playerNumbers, // NEW
     });
 
     @override
     void paint(Canvas canvas, Size size) {
+        // NUMBER PATH MODE - Draw gradient path
+        if (numberPath != null && numberPath!.length > 1 && playerNumbers != null) {
+            _paintNumberPath(canvas);
+            return;
+        }
+        
+        // COLOR DOT MODE - Original rendering
         // Draw Hint Path
         if (hintPath != null && hintPath!.length > 1) {
             final Path hPath = Path();
@@ -1288,6 +1433,113 @@ class _NeonPathPainter extends CustomPainter {
             }
         });
     }
+    
+    void _paintNumberPath(Canvas canvas) {
+        if (numberPath == null || numberPath!.length < 2) return;
+        
+        // Color palette for numbers
+        final List<Color> numberColors = [
+            Colors.redAccent,
+            Colors.blueAccent,
+            Colors.greenAccent,
+            Colors.yellowAccent,
+            Colors.purpleAccent,
+            Colors.orangeAccent,
+            Colors.pinkAccent,
+            Colors.tealAccent,
+            Colors.amberAccent,
+            Colors.indigoAccent,
+            Colors.cyanAccent,
+        ];
+        
+        // Collect indices for segments (all fixed numbers + current tip)
+        List<int> segmentIndices = [];
+        for (int i = 0; i < numberPath!.length; i++) {
+            if (level.fixedNumbers?.containsKey(numberPath![i]) ?? false) {
+                segmentIndices.add(i);
+            }
+        }
+        
+        // Always include the current tip of the path for continuous rendering
+        if (segmentIndices.isEmpty || segmentIndices.last != numberPath!.length - 1) {
+            segmentIndices.add(numberPath!.length - 1);
+        }
+        
+        // Draw segments between the indices
+        for (int s = 0; s < segmentIndices.length - 1; s++) {
+            final int startIdx = segmentIndices[s];
+            final int endIdx = segmentIndices[s + 1];
+            
+            // Get colors for this segment
+            final startNum = playerNumbers![numberPath![startIdx]] ?? 1;
+            final endNum = playerNumbers![numberPath![endIdx]] ?? startNum;
+            final Color startColor = numberColors[(startNum - 1) % numberColors.length];
+            final Color endColor = numberColors[(endNum - 1) % numberColors.length];
+            
+            // Create continuous path
+            final Path path = Path();
+            Offset? firstPoint;
+            Offset? lastPoint;
+            
+            for (int i = startIdx; i <= endIdx; i++) {
+                final point = numberPath![i];
+                final Offset offset = Offset(
+                    (point.col * cellSize) + (cellSize/2), 
+                    (point.row * cellSize) + (cellSize/2)
+                );
+                if (!offset.dx.isFinite || !offset.dy.isFinite) continue;
+                if (i == startIdx) {
+                    path.moveTo(offset.dx, offset.dy);
+                    firstPoint = offset;
+                } else {
+                    path.lineTo(offset.dx, offset.dy);
+                }
+                if (i == endIdx) {
+                    lastPoint = offset;
+                }
+            }
+            
+            // Create gradient shader using absolute points to avoid division by zero in Alignment
+            final Rect bounds = path.getBounds();
+            // Create gradient shader using absolute points to avoid division by zero in Alignment
+            if (firstPoint == null || lastPoint == null || firstPoint == lastPoint) continue;
+            
+            final Shader gradientShader = ui.Gradient.linear(
+                firstPoint, 
+                lastPoint, 
+                [startColor, endColor]
+            );
+            
+            // Draw glow
+            final Paint glowPaint = Paint()
+                ..shader = gradientShader
+                ..strokeWidth = cellSize * 0.4
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+            canvas.drawPath(path, glowPaint);
+            
+            // Draw core
+            final Paint corePaint = Paint()
+                ..shader = gradientShader
+                ..strokeWidth = cellSize * 0.2
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round;
+            canvas.drawPath(path, corePaint);
+            
+            // Draw highlight
+            final Paint highlightPaint = Paint()
+                ..color = Colors.white.withOpacity(0.5)
+                ..strokeWidth = cellSize * 0.06
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round;
+            canvas.drawPath(path, highlightPaint);
+        }
+    }
+    
     Path _createDashedPath(Path source, double dashWidth, double dashSpace) {
         final Path dest = Path();
         for (final ui.PathMetric metric in source.computeMetrics()) {
@@ -1302,7 +1554,7 @@ class _NeonPathPainter extends CustomPainter {
         return dest;
     }
 
-    @override bool shouldRepaint(_NeonPathPainter old) => old.flowPhase != flowPhase || old.hintPath != hintPath;
+    @override bool shouldRepaint(_NeonPathPainter old) => old.flowPhase != flowPhase || old.hintPath != hintPath || old.numberPath != numberPath;
 }
 class _NeonNodePainter extends CustomPainter {
     final GameLevel level;
@@ -1330,21 +1582,38 @@ class _NeonNodePainter extends CustomPainter {
     }
     
     void _paintNumbers(Canvas canvas, Size size) {
-        // Draw fixed numbers and player numbers
-        final numbersToRender = playerNumbers ?? level.fixedNumbers ?? {};
+        // Only draw FIXED numbers (not player-filled numbers)
+        final numbersToRender = level.fixedNumbers ?? {};
+        
+        // Color palette for numbers (cycling through available colors)
+        final List<Color> numberColors = [
+            Colors.redAccent,
+            Colors.blueAccent,
+            Colors.greenAccent,
+            Colors.yellowAccent,
+            Colors.purpleAccent,
+            Colors.orangeAccent,
+            Colors.pinkAccent,
+            Colors.tealAccent,
+            Colors.amberAccent,
+            Colors.indigoAccent,
+            Colors.cyanAccent,
+        ];
         
         numbersToRender.forEach((gridPoint, number) {
             final Offset center = Offset(
                 (gridPoint.col * cellSize) + (cellSize/2), 
                 (gridPoint.row * cellSize) + (cellSize/2)
             );
+            if (!center.dx.isFinite || !center.dy.isFinite) return;
             
             // Determine if this is a fixed number or player number
             final bool isFixed = level.fixedNumbers?.containsKey(gridPoint) ?? false;
             
-            // Background circle
-            final Color bgColor = isFixed ? Colors.purpleAccent : Colors.orangeAccent;
+            // Assign color based on number (cycling through palette)
+            final Color bgColor = numberColors[(number - 1) % numberColors.length];
             final double glowSize = (cellSize * 0.4) + (pulseValue * (cellSize * 0.05));
+            if (!glowSize.isFinite || glowSize < 0) return;
             
             // Glow
             canvas.drawCircle(
