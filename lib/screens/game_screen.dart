@@ -1208,8 +1208,23 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                           (p.col == last.col && (p.row - last.row).abs() == 1);
       if (!isOrthogonal) return;
       
-      // Allow backtracking
+      // --- NEW: Path Locking Logic ---
+      // Find the index of the most recently reached fixed number (clue)
+      int lastFixedIndex = 0;
+      for (int i = _numberPath.length - 1; i >= 0; i--) {
+        if (widget.level.fixedNumbers?.containsKey(_numberPath[i]) ?? false) {
+          lastFixedIndex = i;
+          break;
+        }
+      }
+
+      // Allow backtracking (but only if last point isn't locked by being a fixed number clue)
       if (_numberPath.length > 1 && _numberPath[_numberPath.length - 2] == p) {
+        // If the current tip of the path is a fixed number reached AFTER the start, lock it.
+        if (_numberPath.length - 1 <= lastFixedIndex && lastFixedIndex > 0) {
+          return; // Locked!
+        }
+        
         setState(() {
           _numberPath.removeLast();
           final lastNum = _playerNumbers[last];
@@ -1244,6 +1259,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         // Allow retracing to this point (for player-filled cells)
         int idx = _numberPath.indexOf(p);
         if (idx >= 0) {
+          // Cannot retrace into a locked section (past the last clue)
+          if (idx < lastFixedIndex) return;
+          
           setState(() {
             // Remove all points after this one
             for (int i = _numberPath.length - 1; i > idx; i--) {
