@@ -366,10 +366,22 @@ class LevelGenerator {
     else if (levelId >= 31 && levelId <= 40) size = 7;
     else if (levelId >= 41 && levelId <= 45) size = 8;
     else if (levelId > 45) size = 9;
+    // Determine time limit based on custom User Request
+    int timeLimit = 60;
+    if (levelId == 1) timeLimit = 5;
+    else if (levelId <= 5) timeLimit = 7;
+    else if (levelId <= 12) timeLimit = 10;
+    else if (levelId <= 22) timeLimit = 13;
+    else if (levelId <= 30) timeLimit = 23;
+    else if (levelId <= 40) timeLimit = 30;
+    else if (levelId <= 45) timeLimit = 40;
+    else timeLimit = 60; // Level 46-50
+    
     return GameLevel(
       id: levelId,
       rows: size,
       cols: size,
+      timeLimit: timeLimit,
       dotPositions: positions,
     );
   }

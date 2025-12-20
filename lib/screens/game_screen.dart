@@ -32,7 +32,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   
   // Timer State
   Timer? _gameTimer;
-  int _elapsedMilliseconds = 0;
+  int _remainingSeconds = 0;
+  int _totalTime = 0;
   bool _isGameActive = false;
   
   // Animation Controllers
@@ -117,11 +118,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   void _startGame() {
       _hasStarted = true;
       _isGameActive = true;
-      _elapsedMilliseconds = 0;
-      _gameTimer = Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      _totalTime = widget.level.timeLimit;
+      _remainingSeconds = _totalTime;
+      _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
           if (!mounted) return;
           setState(() {
-              _elapsedMilliseconds += 100;
+              if (_remainingSeconds > 0) {
+                  _remainingSeconds--;
+              } else {
+                  _handleTimeout();
+              }
           });
       });
       if (widget.level.id == 1) _handController.repeat(); 
@@ -166,11 +172,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     super.dispose();
   }
 
+  void _handleTimeout() {
+      _stopGame();
+      // Show Time's Up / Watch Ad Dialog
+      _watchAdToRestart(); 
+  }
+
   String _formatTime() {
-      int seconds = (_elapsedMilliseconds / 1000).floor();
-      int mins = (seconds / 60).floor();
-      int secs = seconds % 60;
-      return '${mins.toString().padLeft(2, '0')}:${secs.toString().padLeft(2, '0')}';
+      int minutes = (_remainingSeconds / 60).floor();
+      int seconds = _remainingSeconds % 60;
+      return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -190,10 +201,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                     const SizedBox(width: 4),
                     Text(
                         _formatTime(), 
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontFamily: 'monospace', 
                             fontWeight: FontWeight.w800,
-                            color: Colors.white,
+                            color: _remainingSeconds <= 10 ? Colors.redAccent : Colors.white,
                             fontSize: 22,
                             letterSpacing: 1.0,
                             shadows: [Shadow(color: Colors.black54, blurRadius: 10)]
@@ -458,11 +469,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (boardFull) {
           _stopGame();
           // Score Calculation
-          int seconds = (_elapsedMilliseconds / 1000).floor();
-          // Dynamic Star Thresholds
-          final thresholds = _getStarThresholds(widget.levelId);
-          if (seconds < thresholds[0]) _earnedStars = 3;
-          else if (seconds < thresholds[1]) _earnedStars = 2;
+          // Score Calculation
+          // Stars based on remaining time percentage? Or just completion within limit (3 stars always?)
+          // Prompt implies "change timer to countdown", let's keep star logic simple for now:
+          // If you finish, you get stars. Maybe quicker = more stars?
+          // Let's use remaining time ratio.
+          double ratio = _remainingSeconds / _totalTime;
+          // Custom Star Logic (Balanced for short times)
+          if (ratio > 0.70) _earnedStars = 3; // > 70% time left
+          else if (ratio > 0.40) _earnedStars = 2; // > 40% time left
           else _earnedStars = 1;
 
           setState(() {
@@ -532,7 +547,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                       children: [
                                           const Text("LEVEL COMPLETE!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, fontFamily: 'Comic Sans MS')),
                                           const SizedBox(height: 10),
-                                          Text("Time: ${_formatTime()}", style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                                          Text("Time Left: ${_formatTime()}", style: const TextStyle(color: Colors.white70, fontSize: 18)),
                                           const SizedBox(height: 20),
                                           // Stars
                                           Row(
@@ -719,7 +734,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                        });
                                    },
                                    child: Container(
-                                       width: 220, height: 220,
+                                       width: 140, height: 140, // Reduced from 220
                                        decoration: BoxDecoration(
                                            shape: BoxShape.circle,
                                            // Ultra Neon Green Gradient
@@ -749,7 +764,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                child: Icon(
                                                    Icons.play_arrow_rounded, 
                                                    color: Colors.white, 
-                                                   size: 140, // Much larger icon 
+                                                   size: 90, // Reduced from 140 
                                                    shadows: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(2,2))]
                                                ),
                                            ),

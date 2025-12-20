@@ -63,12 +63,14 @@ class GameLevel {
   final int id;
   final int rows;
   final int cols;
+  final int timeLimit; // Time in seconds
   final Map<DotColor, List<GridPoint>> dotPositions; // Defines START and END points for each color
 
   const GameLevel({
     required this.id,
     required this.rows,
     required this.cols,
+    this.timeLimit = 60, // Default 60 seconds
     required this.dotPositions,
   });
 }

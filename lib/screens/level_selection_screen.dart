@@ -53,6 +53,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   void didPopNext() {
     // Called when the top route has been popped off, and the current route shows up.
     _refreshLevels();
+    // Auto-scroll to the current level (e.g. if user just unlocked a new one)
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToCurrentLevel());
   }
   
   void _scrollToCurrentLevel() {
@@ -193,11 +195,12 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     
     // Calculate Visible Range
     int lastUnlockedIndex = GameDataManager().getLastUnlockedLevelIndex(widget.island.id, _levels.length);
-    // Show current + next 2 (locked) levels
-    int visibleCount = (lastUnlockedIndex + 3).clamp(0, _levels.length);
+    // Show all levels (User requested to not hide locked levels)
+    int visibleCount = _levels.length;
     
     // Match ySpacing (120.0) + padding
-    final double totalHeight = 100 + (visibleCount * 120.0) + 200.0;
+    // Match ySpacing (120.0) + minimal padding
+    final double totalHeight = 100 + (visibleCount * 120.0) + 50.0;
 
     return Scaffold(
       body: LayoutBuilder(
