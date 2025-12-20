@@ -734,38 +734,30 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                        });
                                    },
                                    child: Container(
-                                       width: 140, height: 140, // Reduced from 220
+                                       width: 140, height: 140, 
                                        decoration: BoxDecoration(
                                            shape: BoxShape.circle,
-                                           // Ultra Neon Green Gradient
-                                           gradient: const LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [Color(0xFFB2FF59), Color(0xFF76FF03)], // Lime to Neon Green
-                                           ),
+                                           color: Colors.transparent, // Transparent Background
                                            boxShadow: [
-                                               // Intense inner glow
-                                               BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.8), blurRadius: 25, spreadRadius: 2),
-                                               // Outer Ambient Glow
-                                               BoxShadow(color: Colors.greenAccent.withOpacity(0.5), blurRadius: 50, spreadRadius: 10),
-                                               // Bottom Shadow for depth
-                                               BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 20, offset: const Offset(5, 8)),
+                                               // Keep outer glow for visibility/cool factor? 
+                                               // Or maybe just remove shadows if "transparent" means invisible container.
+                                               // Let's keep a subtle rim glow since it has a border.
+                                                BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.3), blurRadius: 30, spreadRadius: 5),
                                            ],
-                                           border: Border.all(color: Colors.white.withOpacity(0.3), width: 1.5),
+                                           border: Border.all(color: const Color(0xFF76FF03).withOpacity(0.8), width: 3), // Green Border
                                        ),
                                        child: Container(
                                            margin: const EdgeInsets.all(4), // Inner rim
-                                           decoration: BoxDecoration(
+                                           decoration: const BoxDecoration(
                                                shape: BoxShape.circle,
                                                color: Colors.transparent,
-                                               border: Border.all(color: Colors.white.withOpacity(0.1), width: 2),
                                            ),
                                            child: const Center(
                                                child: Icon(
                                                    Icons.play_arrow_rounded, 
-                                                   color: Colors.white, 
-                                                   size: 90, // Reduced from 140 
-                                                   shadows: [BoxShadow(color: Colors.black26, blurRadius: 10, offset: Offset(2,2))]
+                                                   color: Color(0xFF76FF03), // Green Icon
+                                                   size: 90, 
+                                                   shadows: [BoxShadow(color: Colors.black54, blurRadius: 15, offset: Offset(2,2))]
                                                ),
                                            ),
                                        ),
@@ -1038,6 +1030,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _handleInputStart(DragStartDetails details, double size) {
     _resetInactivityTimer(); // Reset on input
+    
+    // NEW: Auto-delete incomplete paths when starting a new interaction
+    // Only keep paths that are officially "locked" (fully connected)
+    setState(() {
+        _paths.removeWhere((color, path) => !_lockedPaths.contains(color));
+    });
+
     GridPoint p = _getGridPoint(details.localPosition, size);
     widget.level.dotPositions.forEach((color, locations) {
         if (locations.contains(p)) {
