@@ -26,9 +26,13 @@ class GameScreen extends StatefulWidget {
 }
 
 class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
-  // Game State
+  // Game State - Color Dots
   final Map<DotColor, List<GridPoint>> _paths = {};
   DotColor? _activeColor;
+  
+  // Game State - Number Path
+  List<GridPoint> _numberPath = []; // Sequential path for number puzzles
+  Map<GridPoint, int> _playerNumbers = {}; // Numbers filled by player
   
   // Timer State
   Timer? _gameTimer;
@@ -101,6 +105,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
     _handController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     // Hand animation starts ONLY when game starts
+    
+    // Initialize number path state if needed
+    if (widget.level.gameType == GameType.numberPath) {
+      _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+    }
     
     // Load hint status
     _loadGameState();
@@ -336,7 +345,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                             children: [
                                                 CustomPaint(size: Size(gridSize, gridSize), painter: _NeonGridPainter(rows: widget.level.rows, cols: widget.level.cols)),
                                                 AnimatedBuilder(animation: _flowController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonPathPainter(level: widget.level, paths: _paths, cellSize: gridSize / widget.level.cols, flowPhase: _flowController.value, lockedPaths: _lockedPaths))),
-                                                AnimatedBuilder(animation: _pulseController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonNodePainter(level: widget.level, cellSize: gridSize / widget.level.cols, pulseValue: _pulseController.value))),
+                                                AnimatedBuilder(animation: _pulseController, builder: (_,__) => CustomPaint(size: Size(gridSize, gridSize), painter: _NeonNodePainter(level: widget.level, cellSize: gridSize / widget.level.cols, pulseValue: _pulseController.value, playerNumbers: _playerNumbers))),
                                                 
                                                 // Input
                                                 GestureDetector(
@@ -596,7 +605,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                               
                                                               if (!mounted) return;
 
-                                                              final nextGameLevel = LevelGenerator.generate(nextLevelId);
+                                                              final nextGameLevel = LevelGenerator.generate(nextLevelId, islandId: widget.islandId);
                                                               
                                                               Navigator.pushReplacement(
                                                                   context,
@@ -737,27 +746,49 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                        width: 140, height: 140, 
                                        decoration: BoxDecoration(
                                            shape: BoxShape.circle,
-                                           color: Colors.transparent, // Transparent Background
+                                           // Premium Neon Gradient
+                                           gradient: const LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                  Color(0xFFCCFF90), // Light Lime (Highlight)
+                                                  Color(0xFF76FF03), // Neon Green
+                                                  Color(0xFF00C853), // Darker Green
+                                              ],
+                                              stops: [0.1, 0.5, 1.0],
+                                           ),
                                            boxShadow: [
-                                               // Keep outer glow for visibility/cool factor? 
-                                               // Or maybe just remove shadows if "transparent" means invisible container.
-                                               // Let's keep a subtle rim glow since it has a border.
-                                                BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.3), blurRadius: 30, spreadRadius: 5),
+                                               // 1. Bright Core Glow
+                                               BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.6), blurRadius: 20, spreadRadius: 0),
+                                               // 2. Wide Ambient Glow
+                                               BoxShadow(color: Colors.greenAccent.withOpacity(0.4), blurRadius: 40, spreadRadius: 10),
+                                               // 3. Bottom Depth Shadow
+                                               BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, offset: const Offset(0, 8)),
                                            ],
-                                           border: Border.all(color: const Color(0xFF76FF03).withOpacity(0.8), width: 3), // Green Border
+                                           // Matching Green Border
+                                           border: Border.all(color: const Color(0xFFB2FF59).withOpacity(0.9), width: 3), 
                                        ),
                                        child: Container(
-                                           margin: const EdgeInsets.all(4), // Inner rim
-                                           decoration: const BoxDecoration(
+                                           // Inner subtle gradient for 3D feel
+                                           decoration: BoxDecoration(
                                                shape: BoxShape.circle,
-                                               color: Colors.transparent,
+                                               gradient: LinearGradient(
+                                                   begin: Alignment.topCenter,
+                                                   end: Alignment.bottomCenter,
+                                                   colors: [
+                                                       Colors.white.withOpacity(0.3),
+                                                       Colors.transparent,
+                                                       Colors.black.withOpacity(0.1),
+                                                   ]
+                                               )
                                            ),
                                            child: const Center(
                                                child: Icon(
                                                    Icons.play_arrow_rounded, 
-                                                   color: Color(0xFF76FF03), // Green Icon
-                                                   size: 90, 
-                                                   shadows: [BoxShadow(color: Colors.black54, blurRadius: 15, offset: Offset(2,2))]
+                                                   color: Colors.white, 
+                                                   size: 80, 
+                                                   // Sharp shadow to make icon pop
+                                                   shadows: [BoxShadow(color: Colors.black38, blurRadius: 5, offset: Offset(2,2))]
                                                ),
                                            ),
                                        ),
@@ -1276,10 +1307,101 @@ class _NeonPathPainter extends CustomPainter {
 class _NeonNodePainter extends CustomPainter {
     final GameLevel level;
     final double cellSize;
-    final double pulseValue; 
-    _NeonNodePainter({required this.level, required this.cellSize, required this.pulseValue});
+    final double pulseValue;
+    final Map<GridPoint, int>? playerNumbers; // NEW: For number puzzles
+    
+    _NeonNodePainter({
+      required this.level, 
+      required this.cellSize, 
+      required this.pulseValue,
+      this.playerNumbers,
+    });
+    
     @override
     void paint(Canvas canvas, Size size) {
+        // Render based on game type
+        if (level.gameType == GameType.numberPath) {
+            // RENDER NUMBERS
+            _paintNumbers(canvas, size);
+        } else {
+            // RENDER COLOR DOTS (original logic)
+            _paintColorDots(canvas, size);
+        }
+    }
+    
+    void _paintNumbers(Canvas canvas, Size size) {
+        // Draw fixed numbers and player numbers
+        final numbersToRender = playerNumbers ?? level.fixedNumbers ?? {};
+        
+        numbersToRender.forEach((gridPoint, number) {
+            final Offset center = Offset(
+                (gridPoint.col * cellSize) + (cellSize/2), 
+                (gridPoint.row * cellSize) + (cellSize/2)
+            );
+            
+            // Determine if this is a fixed number or player number
+            final bool isFixed = level.fixedNumbers?.containsKey(gridPoint) ?? false;
+            
+            // Background circle
+            final Color bgColor = isFixed ? Colors.purpleAccent : Colors.orangeAccent;
+            final double glowSize = (cellSize * 0.4) + (pulseValue * (cellSize * 0.05));
+            
+            // Glow
+            canvas.drawCircle(
+                center, 
+                glowSize, 
+                Paint()..color = bgColor.withOpacity(0.5)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
+            );
+            
+            // Solid circle
+            canvas.drawCircle(
+                center, 
+                cellSize * 0.35, 
+                Paint()..color = bgColor
+            );
+            
+            // Shine effect
+            canvas.drawOval(
+                Rect.fromCenter(
+                    center: center - Offset(0, cellSize*0.15), 
+                    width: cellSize*0.25, 
+                    height: cellSize*0.12
+                ), 
+                Paint()..color = Colors.white.withOpacity(0.4)
+            );
+            
+            // Draw number text
+            final textSpan = TextSpan(
+                text: '$number',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: cellSize * 0.4,
+                    fontWeight: FontWeight.bold,
+                    shadows: const [
+                        Shadow(color: Colors.black, blurRadius: 4, offset: Offset(1, 1))
+                    ]
+                ),
+            );
+            
+            final textPainter = TextPainter(
+                text: textSpan,
+                textDirection: TextDirection.ltr,
+            );
+            textPainter.layout();
+            
+            // Center the text
+            textPainter.paint(
+                canvas, 
+                Offset(
+                    center.dx - textPainter.width / 2, 
+                    center.dy - textPainter.height / 2
+                )
+            );
+        });
+    }
+    
+    void _paintColorDots(Canvas canvas, Size size) {
+        // Original color dot rendering
         level.dotPositions.forEach((color, nodes) {
             for (var node in nodes) {
                 final Offset center = Offset((node.col * cellSize) + (cellSize/2), (node.row * cellSize) + (cellSize/2));
@@ -1290,7 +1412,8 @@ class _NeonNodePainter extends CustomPainter {
             }
         });
     }
-    @override bool shouldRepaint(_NeonNodePainter old) => old.pulseValue != pulseValue;
+    
+    @override bool shouldRepaint(_NeonNodePainter old) => old.pulseValue != pulseValue || old.playerNumbers != playerNumbers;
 }
 class _BouncingButton extends StatefulWidget {
   final Widget child;

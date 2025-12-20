@@ -59,7 +59,70 @@ class LevelGenerator {
     50: [DotColor.cyan, DotColor.red, DotColor.blue, DotColor.green, DotColor.yellow, DotColor.purple, DotColor.orange, DotColor.pink, DotColor.teal, DotColor.amber, DotColor.indigo],
   };
 
-  static GameLevel generate(int levelId) {
+  // Generate level based on island context
+  static GameLevel generate(int levelId, {String? islandId}) {
+    // Route to number matching for Number Island
+    if (islandId == "2") {
+      return generateNumberLevel(levelId);
+    }
+    
+    // Default: Color dot puzzle
+    return generateColorLevel(levelId);
+  }
+
+  // Generate number matching puzzle (for Number Island)
+  // Uses color dot system but displays as numbers (1→1, 2→2, etc.)
+  static GameLevel generateNumberLevel(int levelId) {
+    if (levelId == 1) {
+      // Level 1: Simple 3x3, match 1→1 and 2→2
+      return GameLevel(
+        id: levelId,
+        rows: 3,
+        cols: 3,
+        timeLimit: 15,
+        gameType: GameType.numberPath, // Use numberPath to trigger number rendering
+        dotPositions: {
+          DotColor.red: [const GridPoint(0, 0), const GridPoint(2, 2)],    // Will show as 1→1
+          DotColor.blue: [const GridPoint(0, 2), const GridPoint(2, 0)],   // Will show as 2→2
+        },
+        fixedNumbers: {
+          // Map positions to numbers for display
+          const GridPoint(0, 0): 1,
+          const GridPoint(2, 2): 1,
+          const GridPoint(0, 2): 2,
+          const GridPoint(2, 0): 2,
+        },
+      );
+    } else if (levelId == 2) {
+      // Level 2: 4x4, match 1→1, 2→2, 3→3
+      return GameLevel(
+        id: levelId,
+        rows: 4,
+        cols: 4,
+        timeLimit: 20,
+        gameType: GameType.numberPath,
+        dotPositions: {
+          DotColor.red: [const GridPoint(0, 0), const GridPoint(3, 3)],
+          DotColor.blue: [const GridPoint(0, 3), const GridPoint(3, 0)],
+          DotColor.green: [const GridPoint(1, 1), const GridPoint(2, 2)],
+        },
+        fixedNumbers: {
+          const GridPoint(0, 0): 1,
+          const GridPoint(3, 3): 1,
+          const GridPoint(0, 3): 2,
+          const GridPoint(3, 0): 2,
+          const GridPoint(1, 1): 3,
+          const GridPoint(2, 2): 3,
+        },
+      );
+    }
+    
+    // Fallback: use color levels for undefined number levels
+    return generateColorLevel(levelId);
+  }
+
+  // Generate color dot puzzle (original logic)
+  static GameLevel generateColorLevel(int levelId) {
     final List<DotColor> colors = levelConfigs[levelId] ?? [DotColor.red, DotColor.blue];
     final Map<DotColor, List<GridPoint>> positions = {};
     // y x

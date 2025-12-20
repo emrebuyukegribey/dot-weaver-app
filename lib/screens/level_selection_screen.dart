@@ -114,12 +114,25 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
 
   void _spawnParticle(int index, bool randomY) {
       final random = math.Random();
+      String? particleText;
+      // DEBUG: Check ID and Name
+      // print("Particle Spawn: Island ID=${widget.island.id}, Name=${widget.island.name}");
+      
+      if (widget.island.id == "2" || widget.island.name.contains("Number")) {
+          // NUMBER ISLAND: Spawn Numbers 0-9
+          particleText = "${random.nextInt(10)}"; // 0-9
+      }
+
       if (_particles.length <= index) {
           _particles.add(_BackgroundParticle(
               x: 0.5, y: 1.0, 
               vx: 0, vy: 0, 
-              radius: 0, color: Colors.white, life: 1.0
+              radius: 0, color: Colors.white, life: 1.0,
+              text: particleText
           ));
+      } else {
+         // Reuse existing
+         _particles[index].text = particleText;
       }
       
       var p = _particles[index];
@@ -128,9 +141,9 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       p.y = randomY ? random.nextDouble() : 1.05; // Start below screen if new spawn
       p.radius = random.nextDouble() * 20 + 5;
       
-      // Velocity: Upward and slight spread
-      p.vx = (random.nextDouble() - 0.5) * 0.005; // Slight drift L/R
-      p.vy = -(random.nextDouble() * 0.01 + 0.005); // Fast Upward
+      // Velocity: Slower Upward and slight spread
+      p.vx = (random.nextDouble() - 0.5) * 0.003; // Reduced horizontal drift (was 0.005)
+      p.vy = -(random.nextDouble() * 0.005 + 0.002); // Much Slower Upward (was 0.01 + 0.005)
       
       p.life = 1.0;
       p.color = [
@@ -144,7 +157,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
           var p = _particles[i];
           p.x += p.vx;
           p.y += p.vy;
-          p.life -= 0.005; // Fade out
+          p.life -= 0.002; // Slower fade out (was 0.005) to match slower speed
           
           // Respawn if dead or off top
           if (p.life <= 0 || p.y < -0.1) {
@@ -394,8 +407,10 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
           DotColor.yellow
       ];
       
-      // Uniform Color for all levels (Cyan/Blue feel)
-      final Color themeColor = const Color(0xFF00E5FF); // Cyan Accent
+      // Island-specific color scheme
+      final Color themeColor = widget.island.id == "2" || widget.island.name.contains("Number")
+          ? const Color(0xFFAB47BC) // Purple for Number Island
+          : const Color(0xFF00E5FF); // Cyan for Color Island
       
       final bool isLocked = level.isLocked;
 
@@ -535,8 +550,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   }
 
   Future<void> _handleLevelTap(LevelModel level, TapUpDetails details) async {
-       // Generate Level using Generator
-       GameLevel gameLevel = LevelGenerator.generate(level.id);
+       // Generate Level using Generator with island context
+       GameLevel gameLevel = LevelGenerator.generate(level.id, islandId: widget.island.id);
 
        // Calculate Zoom Origin
        final Size screenSize = MediaQuery.of(context).size;
@@ -819,11 +834,13 @@ class _BackgroundParticle {
     double radius;
     double life; // 1.0 to 0.0
     Color color;
+    String? text; // NEW: Optional text for Number Island
     
     _BackgroundParticle({
         required this.x, required this.y, 
         required this.vx, required this.vy,
-        required this.radius, required this.life, required this.color
+        required this.radius, required this.life, required this.color,
+        this.text,
     });
 }
 
@@ -835,12 +852,38 @@ class _BackgroundEffectPainter extends CustomPainter {
     @override
     void paint(Canvas canvas, Size size) {
         for (var p in particles) {
-            final paint = Paint()
-                ..color = p.color.withOpacity(p.color.opacity * p.life)
-                ..style = PaintingStyle.fill
-                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15); 
-            
-            canvas.drawCircle(Offset(p.x * size.width, p.y * size.height), p.radius, paint);
+            Color particleColor = p.color.withOpacity(p.color.opacity * p.life);
+
+            if (p.text != null) {
+                // DRAW TEXT (NUMBER)
+                final textSpan = TextSpan(
+                    text: p.text,
+                    style: TextStyle(
+                        color: particleColor,
+                        fontSize: p.radius * 2.5, // Scale text with radius
+                        fontWeight: FontWeight.bold,
+                        shadows: [
+                            Shadow(color: p.color.withOpacity(0.5 * p.life), blurRadius: 10, offset: Offset(0,0))
+                        ]
+                    ),
+                );
+                final textPainter = TextPainter(
+                    text: textSpan,
+                    textDirection: TextDirection.ltr,
+                );
+                textPainter.layout();
+                // Center text at particle position
+                textPainter.paint(canvas, Offset((p.x * size.width) - textPainter.width/2, (p.y * size.height) - textPainter.height/2));
+
+            } else {
+                // DRAW CIRCLE (Default)
+                final paint = Paint()
+                    ..color = particleColor
+                    ..style = PaintingStyle.fill
+                    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15); 
+                
+                canvas.drawCircle(Offset(p.x * size.width, p.y * size.height), p.radius, paint);
+            }
         }
     }
 

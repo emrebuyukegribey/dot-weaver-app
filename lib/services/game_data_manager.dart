@@ -34,8 +34,8 @@ class GameDataManager {
 
   // --- Unlocking ---
   bool isIslandUnlocked(String islandId) {
-    // First island (id="1") is always open, others default to false
-    if (islandId == "1") return true; 
+    // First island (id="1") and Number Island (id="2") are open
+    if (islandId == "1" || islandId == "2") return true; 
     return _prefs.getBool(_getIslandUnlockKey(islandId)) ?? false;
   }
 

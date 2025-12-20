@@ -59,18 +59,28 @@ class GridPoint {
   String toString() => 'GridPoint($row, $col)';
 }
 
+// NEW: Game type enum
+enum GameType {
+  colorDots,    // Original color-matching puzzle
+  numberPath,   // Sequential number path puzzle
+}
+
 class GameLevel {
   final int id;
   final int rows;
   final int cols;
   final int timeLimit; // Time in seconds
-  final Map<DotColor, List<GridPoint>> dotPositions; // Defines START and END points for each color
+  final GameType gameType; // NEW: Type of puzzle
+  final Map<DotColor, List<GridPoint>> dotPositions; // For color dot puzzles
+  final Map<GridPoint, int>? fixedNumbers; // NEW: For number path puzzles (pre-filled cells)
 
   const GameLevel({
     required this.id,
     required this.rows,
     required this.cols,
-    this.timeLimit = 60, // Default 60 seconds
+    this.timeLimit = 60,
+    this.gameType = GameType.colorDots, // Default to original type
     required this.dotPositions,
+    this.fixedNumbers,
   });
 }
