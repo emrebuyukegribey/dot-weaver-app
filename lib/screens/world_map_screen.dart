@@ -72,12 +72,12 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/color_island_bg.png",
           iconAssetPath: "assets/images/islands/color_island_icon.png",
           primaryColor: Colors.deepPurpleAccent,
-          isLocked: !GameDataManager().isIslandUnlocked("1"),
+          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("1"),
           levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/color_${i+1}.png',
               starsEarned: GameDataManager().getStars("1", i+1),
-              isLocked: i > 0 && GameDataManager().getStars("1", i) == 0,
+              isLocked: !GameDataManager().unlockAllLevels && (i > 0 && GameDataManager().getStars("1", i) == 0),
           )),
           dotAssetPath: null,
       );
@@ -89,12 +89,12 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/number_island_bg.png",
           iconAssetPath: "assets/images/islands/number_island_icon.png",
           primaryColor: Colors.blue,
-          isLocked: !GameDataManager().isIslandUnlocked("2"),
-           levels: List.generate(30, (i) => LevelModel(
+          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("2"),
+           levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/number_${i+1}.png',
               starsEarned: GameDataManager().getStars("2", i+1),
-              isLocked: i == 0 ? false : (GameDataManager().getStars("2", i) == 0),
+              isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("2", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/number_dot.png",
       );
@@ -106,12 +106,12 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/jungle_island_bg.png",
           iconAssetPath: "assets/images/islands/jungle_island_icon.png",
           primaryColor: Colors.green,
-          isLocked: !GameDataManager().isIslandUnlocked("3"),
-          levels: List.generate(30, (i) => LevelModel(
+          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("3"),
+          levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/jungle_${i+1}.png',
               starsEarned: GameDataManager().getStars("3", i+1),
-              isLocked: i == 0 ? false : (GameDataManager().getStars("3", i) == 0),
+              isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("3", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/animal_dot.png",
       );
@@ -123,12 +123,12 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/ocean_island_bg.png",
           iconAssetPath: "assets/images/islands/ocean_island_icon.png",
           primaryColor: Colors.cyan,
-          isLocked: !GameDataManager().isIslandUnlocked("4"),
-          levels: List.generate(30, (i) => LevelModel(
+          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("4"),
+          levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/ocean_${i+1}.png',
               starsEarned: GameDataManager().getStars("4", i+1),
-              isLocked: i == 0 ? false : (GameDataManager().getStars("4", i) == 0),
+              isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("4", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/water_dot.png",
       );

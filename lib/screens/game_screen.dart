@@ -469,6 +469,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         }
         
         if (isSequential) {
+          // --- BUG FIX: Check if the LAST point on path is actually the END value ---
+          if (_numberPath.isNotEmpty) {
+              final lastPt = _numberPath.last;
+              if (_playerNumbers[lastPt] != endVal) {
+                  return; // Not reached yet
+              }
+          }
+
           _stopGame();
           
           // Calculate stars based on remaining time

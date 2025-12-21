@@ -7,6 +7,9 @@ class GameDataManager {
 
   late SharedPreferences _prefs;
   bool _initialized = false;
+  
+  // --- TEST MODE FLAG ---
+  final bool unlockAllLevels = true; 
 
   Future<void> init() async {
     if (_initialized) return;
@@ -34,6 +37,7 @@ class GameDataManager {
 
   // --- Unlocking ---
   bool isIslandUnlocked(String islandId) {
+    if (unlockAllLevels) return true;
     // First island (id="1") and Number Island (id="2") are open
     if (islandId == "1" || islandId == "2") return true; 
     return _prefs.getBool(_getIslandUnlockKey(islandId)) ?? false;
@@ -54,6 +58,7 @@ class GameDataManager {
 
   // --- Helpers ---
   int getLastUnlockedLevelIndex(String islandId, int totalLevels) {
+    if (unlockAllLevels) return totalLevels - 1;
     // Iterate to find the highest unlocked level index (0-based)
     for (int i = totalLevels - 1; i >= 0; i--) {
        int levelId = i + 1;

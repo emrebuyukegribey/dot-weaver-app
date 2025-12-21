@@ -184,7 +184,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               id: i + 1,
               assetPath: widget.island.levels[i].assetPath,
               starsEarned: GameDataManager().getStars(widget.island.id, i+1),
-              isLocked: i > 0 && GameDataManager().getStars(widget.island.id, i) == 0,
+              isLocked: !GameDataManager().unlockAllLevels && (i > 0 && GameDataManager().getStars(widget.island.id, i) == 0),
           ));
       });
   }
