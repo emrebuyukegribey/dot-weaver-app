@@ -726,24 +726,53 @@ class LevelGenerator {
       return GameLevel(
         id: levelId,rows: 10,cols: 10,timeLimit: 560,gameType: GameType.numberPath,
         dotPositions: {DotColor.blue: [const GridPoint(0, 0), const GridPoint(0, 1)]},
-        startNode: const GridPoint(0, 0),startValue: 101,
-        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(9, 9): 150, const GridPoint(0, 1): 200},
+        startNode: const GridPoint(5, 5),startValue: 101,
+        fixedNumbers: {const GridPoint(5, 5): 101, const GridPoint(9, 8): 150, const GridPoint(0, 1): 200},
       );
     } else if (levelId == 49) {
-      // Level 49: 10x10 Zig Zag Master
+      // Level 49: 10x10 Zig Zag Master - Revised
       return GameLevel(
-        id: levelId,rows: 10,cols: 10,timeLimit: 540,gameType: GameType.numberPath,
-        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(9, 0)]},
-        startNode: const GridPoint(0, 0),startValue: 50,
-        fixedNumbers: {const GridPoint(0, 0): 50, const GridPoint(0, 9): 59, const GridPoint(9, 9): 140, const GridPoint(9, 0): 149},
+        id: levelId,
+        rows: 10,
+        cols: 10,
+        timeLimit: 540,
+        gameType: GameType.numberPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(1, 1), const GridPoint(9, 9)],
+        },
+        startNode: const GridPoint(1, 1),
+        startValue: 10,
+        fixedNumbers: {
+          const GridPoint(1, 1): 10,
+          const GridPoint(0, 3): 15,
+          const GridPoint(3, 0): 21,
+          const GridPoint(5, 5): 40,
+          const GridPoint(9, 2): 71,
+          const GridPoint(7, 8):105,
+          const GridPoint(8, 9): 109,
+        },
       );
     } else if (levelId == 50) {
-      // Level 50: 10x10 Grandmaster Finals
+      // Level 50: 10x10 Grandmaster Finals - Revised
       return GameLevel(
-        id: levelId,rows: 10,cols: 10,timeLimit: 500,gameType: GameType.numberPath,
-        dotPositions: {DotColor.red: [const GridPoint(0, 0), const GridPoint(9, 8)]},
-        startNode: const GridPoint(0, 0),startValue: 101,
-        fixedNumbers: {const GridPoint(0, 0): 101, const GridPoint(9, 8): 200},
+        id: levelId,
+        rows: 10,
+        cols: 10,
+        timeLimit: 500,
+        gameType: GameType.numberPath,
+        dotPositions: {
+          DotColor.red: [const GridPoint(4, 4), const GridPoint(5, 4)],
+        },
+        startNode: const GridPoint(4, 4),
+        startValue: 20,
+        fixedNumbers: {
+          const GridPoint(4, 4): 20,
+          const GridPoint(0, 0): 44,
+          const GridPoint(0, 9): 59,
+          const GridPoint(9, 9): 74,
+          const GridPoint(9, 0): 83,
+          const GridPoint(5, 4): 119,
+        },
       );
     }
     
