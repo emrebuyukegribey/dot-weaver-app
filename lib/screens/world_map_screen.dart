@@ -99,21 +99,21 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           dotAssetPath: "assets/images/dots/number_dot.png",
       );
 
-      // 3. Jungle Island (Index 2)
+      // 3. Operation Island (Index 2)
       final island3 = IslandModel(
           id: "3",
-          name: "Jungle Island",
-          backgroundImagePath: "assets/images/islands/jungle_island_bg.png",
-          iconAssetPath: "assets/images/islands/jungle_island_icon.png",
+          name: "Operation Island",
+          backgroundImagePath: "assets/images/islands/operation_island_bg.png",
+          iconAssetPath: "assets/images/islands/operation_island_icon.png",
           primaryColor: Colors.green,
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("3"),
           levels: List.generate(50, (i) => LevelModel(
               id: i + 1,
-              assetPath: 'assets/images/levels/jungle_${i+1}.png',
+              assetPath: 'assets/images/levels/operation_${i+1}.png',
               starsEarned: GameDataManager().getStars("3", i+1),
               isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("3", i) == 0)),
           )),
-          dotAssetPath: "assets/images/dots/animal_dot.png",
+          dotAssetPath: "assets/images/dots/operation_dot.png",
       );
       
       // 4. Ocean Island (Index 3)

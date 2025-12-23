@@ -53,6 +53,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   // Win State
   bool _showWinUI = false;
+  bool _showFailedUI = false; // NEW: Failed state
   bool _hasStarted = false; // New State
   int _earnedStars = 0;
   
@@ -106,9 +107,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _handController = AnimationController(vsync: this, duration: const Duration(seconds: 2));
     // Hand animation starts ONLY when game starts
     
-    // Initialize number path state if needed
-    if (widget.level.gameType == GameType.numberPath) {
-      _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+    // Initialize path state if needed
+    if (widget.level.gameType == GameType.numberPath || widget.level.gameType == GameType.operationPath) {
+      _playerNumbers = widget.level.gameType == GameType.numberPath 
+          ? Map.from(widget.level.fixedNumbers ?? {})
+          : (widget.level.startNode != null ? {widget.level.startNode!: widget.level.startValue} : {});
     }
     
     // Load hint status
@@ -402,6 +405,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
             // 9. Board Not Full Warning (New)
             if (_showBoardNotFullWarning) _buildBoardNotFullOverlay(),
+
+            // 10. Failed Overlay (New)
+            if (_showFailedUI) _buildFailedOverlay(),
         ],
       ),
     );
@@ -450,6 +456,32 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
 
   void _checkWin() {
+    // OPERATION PATH MODE
+    if (widget.level.gameType == GameType.operationPath) {
+      if (widget.level.validateOperationPath(_numberPath)) {
+        _stopGame();
+        
+        double ratio = _remainingSeconds / _totalTime;
+        if (ratio > 0.70) _earnedStars = 3;
+        else if (ratio > 0.40) _earnedStars = 2;
+        else _earnedStars = 1;
+        
+        setState(() {
+          _showWinUI = true;
+        });
+        _triggerConfetti();
+      } else {
+        // NEW: Check if path reached target but failed validation (wrong value or incomplete grid)
+        if (_numberPath.isNotEmpty && _numberPath.last == widget.level.targetNode) {
+          _stopGame();
+          setState(() {
+            _showFailedUI = true;
+          });
+        }
+      }
+      return;
+    }
+
     // NUMBER PATH MODE
     if (widget.level.gameType == GameType.numberPath) {
       final totalCells = widget.level.rows * widget.level.cols;
@@ -931,6 +963,63 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           ),
       );
   }
+
+  Widget _buildFailedOverlay() {
+      return Center(
+          child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
+              decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(color: Colors.redAccent, width: 3),
+                  boxShadow: [
+                      BoxShadow(color: Colors.redAccent.withOpacity(0.5), blurRadius: 30)
+                  ],
+              ),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                      const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 80),
+                      const SizedBox(height: 20),
+                      const Text(
+                          "FAILED!",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: 2),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                          widget.level.gameType == GameType.operationPath 
+                            ? "Wrong result or grid not full!" 
+                            : "Path is incorrect!",
+                          style: const TextStyle(color: Colors.white70, fontSize: 18),
+                      ),
+                      const SizedBox(height: 30),
+                      _BouncingButton(
+                          onTap: () {
+                              _resetGame();
+                              setState(() {
+                                  _showFailedUI = false;
+                              });
+                          },
+                          child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                              decoration: BoxDecoration(
+                                  color: Colors.redAccent,
+                                  borderRadius: BorderRadius.circular(15),
+                                  boxShadow: [
+                                      BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
+                                  ],
+                              ),
+                              child: const Text(
+                                  "PLAY AGAIN",
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                              ),
+                          ),
+                      ),
+                  ],
+              ),
+          ),
+      );
+  }
   
 
   void _resetGame() {
@@ -943,9 +1032,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           _confettiParticles.clear();
           _lockedPaths.clear();
           
-          // Reset player numbers to fixed numbers
-          if (widget.level.gameType == GameType.numberPath) {
-            _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+          // Reset player numbers
+          if (widget.level.gameType == GameType.numberPath || widget.level.gameType == GameType.operationPath) {
+            _playerNumbers = widget.level.gameType == GameType.numberPath 
+                ? Map.from(widget.level.fixedNumbers ?? {})
+                : (widget.level.startNode != null ? {widget.level.startNode!: widget.level.startValue} : {});
           }
           
           if (widget.level.id == 1) _handController.repeat();
@@ -1140,18 +1231,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   
   GridPoint p = _getGridPoint(details.localPosition, size);
   
-  // NUMBER PATH MODE
-  if (widget.level.gameType == GameType.numberPath) {
-    // Must start at the designated Start Node OR fallback to 1 for legacy
+  // NUMBER PATH & OPERATION PATH MODE
+  if (widget.level.gameType == GameType.numberPath || widget.level.gameType == GameType.operationPath) {
+    // Must start at the designated Start Node
     final bool isStartNode = widget.level.startNode != null && p == widget.level.startNode;
-    final bool isLegacyStart = widget.level.fixedNumbers?[p] == 1;
+    final bool isLegacyStart = widget.level.gameType == GameType.numberPath && widget.level.fixedNumbers?[p] == 1;
 
     if (isStartNode || isLegacyStart) {
       setState(() {
         _numberPath = [p];
-        _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+        _playerNumbers = widget.level.gameType == GameType.numberPath 
+            ? Map.from(widget.level.fixedNumbers ?? {})
+            : {p: widget.level.startValue};
         
-        // Ensure starting node has the correct value even if not in fixedNumbers
         if (isStartNode) {
           _playerNumbers[p] = widget.level.startValue;
         } else if (isLegacyStart) {
@@ -1204,6 +1296,57 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     
     GridPoint p = _getGridPoint(details.localPosition, size);
     
+    // OPERATION PATH MODE
+    if (widget.level.gameType == GameType.operationPath) {
+      if (_numberPath.isEmpty) return;
+      
+      GridPoint last = _numberPath.last;
+      if (p == last) return;
+      
+      bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || 
+                          (p.col == last.col && (p.row - last.row).abs() == 1);
+      if (!isOrthogonal) return;
+
+      // Backtracking
+      if (_numberPath.length > 1 && _numberPath[_numberPath.length - 2] == p) {
+        setState(() {
+          _numberPath.removeLast();
+          _playerNumbers.remove(last);
+        });
+        return;
+      }
+      
+      // Rule: Cannot move to target unless it's the last cell (totalCells - 1 already in path)
+      final totalCells = widget.level.rows * widget.level.cols;
+      if (p == widget.level.targetNode && _numberPath.length < totalCells - 1) {
+        return;
+      }
+      
+      if (_playerNumbers.containsKey(p)) return;
+
+      // Calculation
+      int currentVal = _playerNumbers[last] ?? widget.level.startValue;
+      final op = widget.level.operations?[p];
+      if (op == null) return;
+
+      int nextVal = currentVal;
+      switch (op.type) {
+        case OperationType.add: nextVal += op.operand; break;
+        case OperationType.subtract: nextVal -= op.operand; break;
+        case OperationType.multiply: nextVal *= op.operand; break;
+        case OperationType.divide: 
+          if (op.operand == 0 || currentVal % op.operand != 0) return;
+          nextVal ~/= op.operand;
+          break;
+      }
+
+      setState(() {
+        _numberPath.add(p);
+        _playerNumbers[p] = nextVal;
+      });
+      return;
+    }
+
     // NUMBER PATH MODE
     if (widget.level.gameType == GameType.numberPath) {
       if (_numberPath.isEmpty) return;
@@ -1438,8 +1581,14 @@ class _NeonPathPainter extends CustomPainter {
     @override
     void paint(Canvas canvas, Size size) {
         // NUMBER PATH MODE - Draw gradient path
-        if (numberPath != null && numberPath!.length > 1 && playerNumbers != null) {
+        if (level.gameType == GameType.numberPath && numberPath != null && numberPath!.length > 1 && playerNumbers != null) {
             _paintNumberPath(canvas);
+            return;
+        }
+
+        // OPERATION PATH MODE - Draw teal/green path
+        if (level.gameType == GameType.operationPath && numberPath != null && numberPath!.length > 1) {
+            _paintOperationPath(canvas);
             return;
         }
         
@@ -1597,7 +1746,72 @@ class _NeonPathPainter extends CustomPainter {
             canvas.drawPath(path, highlightPaint);
         }
     }
-    
+
+
+    void _paintOperationPath(Canvas canvas) {
+        if (numberPath == null || numberPath!.length < 2) return;
+
+        final ops = level.operations ?? {};
+        
+        Color getOpColor(GridPoint point) {
+            if (point == level.startNode) return Colors.greenAccent;
+            if (point == level.targetNode) return Colors.redAccent;
+            final op = ops[point];
+            if (op == null) return Colors.tealAccent;
+            switch (op.type) {
+                case OperationType.add: return Colors.blueAccent;
+                case OperationType.subtract: return Colors.redAccent;
+                case OperationType.multiply: return Colors.orangeAccent;
+                case OperationType.divide: return Colors.purpleAccent;
+                default: return Colors.tealAccent;
+            }
+        }
+
+        for (int i = 0; i < numberPath!.length - 1; i++) {
+            final p1 = numberPath![i];
+            final p2 = numberPath![i + 1];
+            
+            final Offset o1 = Offset((p1.col * cellSize) + (cellSize / 2), (p1.row * cellSize) + (cellSize / 2));
+            final Offset o2 = Offset((p2.col * cellSize) + (cellSize / 2), (p2.row * cellSize) + (cellSize / 2));
+            
+            if (!o1.dx.isFinite || !o2.dx.isFinite) continue;
+
+            final Color c1 = getOpColor(p1);
+            final Color c2 = getOpColor(p2);
+
+            final Shader gradientShader = ui.Gradient.linear(o1, o2, [c1, c2]);
+            
+            final Path segmentPath = Path();
+            segmentPath.moveTo(o1.dx, o1.dy);
+            segmentPath.lineTo(o2.dx, o2.dy);
+
+            // Glow
+            canvas.drawPath(segmentPath, Paint()
+                ..shader = gradientShader
+                ..strokeWidth = cellSize * 0.4
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+
+            // Core
+            canvas.drawPath(segmentPath, Paint()
+                ..shader = gradientShader
+                ..strokeWidth = cellSize * 0.2
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round);
+
+            // Highlight
+            canvas.drawPath(segmentPath, Paint()
+                ..color = Colors.white.withOpacity(0.5)
+                ..strokeWidth = cellSize * 0.06
+                ..style = PaintingStyle.stroke
+                ..strokeCap = StrokeCap.round
+                ..strokeJoin = StrokeJoin.round);
+        }
+    }
+
     Path _createDashedPath(Path source, double dashWidth, double dashSpace) {
         final Path dest = Path();
         for (final ui.PathMetric metric in source.computeMetrics()) {
@@ -1633,6 +1847,9 @@ class _NeonNodePainter extends CustomPainter {
         if (level.gameType == GameType.numberPath) {
             // RENDER NUMBERS
             _paintNumbers(canvas, size);
+        } else if (level.gameType == GameType.operationPath) {
+            // RENDER OPERATIONS
+            _paintOperations(canvas, size);
         } else {
             // RENDER COLOR DOTS (original logic)
             _paintColorDots(canvas, size);
@@ -1764,6 +1981,123 @@ class _NeonNodePainter extends CustomPainter {
         });
     }
     
+    void _paintOperations(Canvas canvas, Size size) {
+        final ops = level.operations ?? {};
+        final Set<GridPoint> nodesToPaint = {};
+        if (level.startNode != null) nodesToPaint.add(level.startNode!);
+        if (level.targetNode != null) nodesToPaint.add(level.targetNode!);
+        nodesToPaint.addAll(ops.keys);
+        
+        for (final gridPoint in nodesToPaint) {
+            final op = ops[gridPoint];
+            final Offset center = Offset(
+                (gridPoint.col * cellSize) + (cellSize/2), 
+                (gridPoint.row * cellSize) + (cellSize/2)
+            );
+            if (!center.dx.isFinite || !center.dy.isFinite) continue;
+            
+            final bool isStart = level.startNode == gridPoint;
+            final bool isTarget = level.targetNode == gridPoint;
+
+            // Determine color based on operation type
+            Color color;
+            if (isStart) {
+                color = Colors.greenAccent;
+            } else if (isTarget) {
+                color = Colors.redAccent;
+            } else if (op != null) {
+                switch (op.type) {
+                    case OperationType.add: color = Colors.blueAccent; break;
+                    case OperationType.subtract: color = Colors.redAccent; break;
+                    case OperationType.multiply: color = Colors.orangeAccent; break;
+                    case OperationType.divide: color = Colors.purpleAccent; break;
+                    default: color = Colors.tealAccent;
+                }
+            } else {
+                color = Colors.tealAccent;
+            }
+            
+            // Glow
+            canvas.drawCircle(
+                center, 
+                cellSize * 0.4, 
+                Paint()..color = color.withOpacity(0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
+            );
+
+            // Ring
+            canvas.drawCircle(
+                center, 
+                cellSize * 0.35, 
+                Paint()
+                    ..color = color
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 2.0
+            );
+
+            // Special marker for Start/Target
+            if (isStart || isTarget) {
+                 canvas.drawCircle(center, cellSize * 0.35, Paint()..color = color.withOpacity(0.2));
+            }
+
+            // Draw Operator Text
+            String text = "";
+            if (isStart) {
+                text = "${level.startValue}";
+            } else if (isTarget) {
+                if (op != null && op.type != OperationType.add || (op != null && op.operand != 0)) {
+                    // Show operation + target if there's a real operation
+                    text = "${op.display}\nTARGET: ${level.targetValue}";
+                } else {
+                    text = "TARGET\n${level.targetValue}";
+                }
+            } else if (op != null) {
+                text = op.display;
+            }
+
+            final textSpan = TextSpan(
+                text: text,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: isTarget ? cellSize * 0.16 : (isStart ? cellSize * 0.35 : cellSize * 0.28),
+                    fontWeight: FontWeight.bold,
+                ),
+            );
+            
+            final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
+            textPainter.layout();
+            textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
+
+            // SUB-LABEL for Start/Target
+            if (isStart) {
+                final startTitleSpan = TextSpan(
+                    text: 'START',
+                    style: TextStyle(color: color.withOpacity(0.8), fontSize: cellSize * 0.12, fontWeight: FontWeight.w900, letterSpacing: 1),
+                );
+                final stPainter = TextPainter(text: startTitleSpan, textDirection: TextDirection.ltr);
+                stPainter.layout();
+                stPainter.paint(canvas, center + Offset(-stPainter.width / 2, -cellSize * 0.3));
+            }
+
+            // Draw current path value overlay if visited (for player feedback)
+            if (playerNumbers?.containsKey(gridPoint) ?? false) {
+                final currentVal = playerNumbers![gridPoint];
+                final valSpan = TextSpan(
+                    text: '$currentVal',
+                    style: TextStyle(
+                        color: color.withOpacity(0.9), // Match operation color
+                        fontSize: cellSize * 0.22,
+                        fontWeight: FontWeight.w900,
+                        shadows: [
+                            Shadow(color: Colors.black, blurRadius: 4),
+                        ]
+                    ),
+                );
+                final valPainter = TextPainter(text: valSpan, textDirection: TextDirection.ltr);
+                valPainter.layout();
+                valPainter.paint(canvas, center + Offset(-valPainter.width / 2, cellSize * 0.22));
+            }
+        }
+    }
     void _paintColorDots(Canvas canvas, Size size) {
         // Original color dot rendering
         level.dotPositions.forEach((color, nodes) {

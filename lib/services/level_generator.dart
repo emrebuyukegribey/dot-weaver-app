@@ -61,10 +61,13 @@ class LevelGenerator {
 
   // Generate level based on island context
   static GameLevel generate(int levelId, {String? islandId}) {
-    // Route to number matching for Number Island
-    // Robust check for islandId "2" (can be string or int-like)
     if (islandId == "2" || islandId == 2.toString()) {
       return generateNumberLevel(levelId);
+    }
+
+    // Route to Operation Island
+    if (islandId == "3" || islandId == 3.toString()) {
+      return generateOperationLevel(levelId);
     }
     
     // Default: Color dot puzzle
@@ -1104,5 +1107,116 @@ class LevelGenerator {
       timeLimit: timeLimit,
       dotPositions: positions,
     );
+  }
+
+  static GameLevel generateOperationLevel(int levelId) {
+    if (levelId == 1) {
+      // Level 1: Start (0,0)=2 -> +3 -> *2 -> Target(1,0)+0 = 10
+      return GameLevel(
+        id: levelId,
+        rows: 2,
+        cols: 2,
+        timeLimit: 60,
+        gameType: GameType.operationPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(0, 0), const GridPoint(1, 0)],
+        },
+        startNode: const GridPoint(0, 0),
+        startValue: 2,
+        targetNode: const GridPoint(1, 0),
+        targetValue: 10,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 3),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 0),
+        },
+      );
+    } else if (levelId == 2) {
+      // Level 2: Start (1,1)=10 -> -4 -> +1 -> Target(0,1)*3 = 21
+      return GameLevel(
+        id: levelId,
+        rows: 2,
+        cols: 2,
+        timeLimit: 60,
+        gameType: GameType.operationPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(1, 1), const GridPoint(0, 1)],
+        },
+        startNode: const GridPoint(1, 1),
+        startValue: 10,
+        targetNode: const GridPoint(0, 1),
+        targetValue: 21,
+        operations: {
+          const GridPoint(1, 0): const OperationCell(type: OperationType.subtract, operand: 4),
+          const GridPoint(0, 0): const OperationCell(type: OperationType.add, operand: 1),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+        },
+      );
+    } else if (levelId == 3) {
+      // Level 3: Start (1,0)=4 -> *4 -> -6 -> Target(1,1)/2 = 5
+      return GameLevel(
+        id: levelId,
+        rows: 2,
+        cols: 2,
+        timeLimit: 60,
+        gameType: GameType.operationPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(1, 0), const GridPoint(1, 1)],
+        },
+        startNode: const GridPoint(1, 0),
+        startValue: 4,
+        targetNode: const GridPoint(1, 1),
+        targetValue: 5,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.subtract, operand: 6),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.divide, operand: 2),
+        },
+      );
+    } else if (levelId == 4) {
+      // Level 4: Start (0,1)=100 -> /2 -> -10 -> Target(1,1)*2 = 80
+      return GameLevel(
+        id: levelId,
+        rows: 2,
+        cols: 2,
+        timeLimit: 60,
+        gameType: GameType.operationPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(0, 1), const GridPoint(1, 1)],
+        },
+        startNode: const GridPoint(0, 1),
+        startValue: 100,
+        targetNode: const GridPoint(1, 1),
+        targetValue: 80,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+        },
+      );
+    } else if (levelId == 5) {
+      // Level 5: Start (0,0)=7 -> +3 -> *4 -> Target(0,1)/2 = 20
+      return GameLevel(
+        id: levelId,
+        rows: 2,
+        cols: 2,
+        timeLimit: 60,
+        gameType: GameType.operationPath,
+        dotPositions: {
+          DotColor.green: [const GridPoint(0, 0), const GridPoint(0, 1)],
+        },
+        startNode: const GridPoint(0, 0),
+        startValue: 7,
+        targetNode: const GridPoint(0, 1),
+        targetValue: 20,
+        operations: {
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 3),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.divide, operand: 2),
+        },
+      );
+    }
+    // Fallback: use color levels for undefined operation levels
+    return generateColorLevel(levelId);
   }
 }

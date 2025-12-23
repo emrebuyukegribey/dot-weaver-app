@@ -121,6 +121,10 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       if (widget.island.id == "2" || widget.island.name.contains("Number")) {
           // NUMBER ISLAND: Spawn Numbers 0-9
           particleText = "${random.nextInt(10)}"; // 0-9
+      } else if (widget.island.id == "3" || widget.island.name.contains("Operation")) {
+          // OPERATION ISLAND: Spawn Symbols +, -, ×, ÷
+          const symbols = ["+", "-", "×", "÷"];
+          particleText = symbols[random.nextInt(symbols.length)];
       }
 
       if (_particles.length <= index) {
@@ -410,7 +414,9 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       // Island-specific color scheme
       final Color themeColor = widget.island.id == "2" || widget.island.name.contains("Number")
           ? const Color(0xFFAB47BC) // Purple for Number Island
-          : const Color(0xFF00E5FF); // Cyan for Color Island
+          : (widget.island.id == "3" || widget.island.name.contains("Operation")
+              ? const Color(0xFF43A047) // Green for Operation Island
+              : const Color(0xFF00E5FF)); // Cyan for Color Island
       
       final bool isLocked = level.isLocked;
 
