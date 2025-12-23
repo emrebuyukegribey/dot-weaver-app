@@ -1646,9 +1646,7 @@ class _NeonPathPainter extends CustomPainter {
         
         // Color palette for numbers
         final List<Color> numberColors = [
-            Colors.redAccent,
             Colors.blueAccent,
-            Colors.greenAccent,
             Colors.yellowAccent,
             Colors.purpleAccent,
             Colors.orangeAccent,
@@ -1657,6 +1655,7 @@ class _NeonPathPainter extends CustomPainter {
             Colors.amberAccent,
             Colors.indigoAccent,
             Colors.cyanAccent,
+            Colors.limeAccent,
         ];
         
         // Collect indices for segments (all fixed numbers + current tip)
@@ -1760,7 +1759,7 @@ class _NeonPathPainter extends CustomPainter {
             if (op == null) return Colors.tealAccent;
             switch (op.type) {
                 case OperationType.add: return Colors.blueAccent;
-                case OperationType.subtract: return Colors.redAccent;
+                case OperationType.subtract: return Colors.pinkAccent;
                 case OperationType.multiply: return Colors.orangeAccent;
                 case OperationType.divide: return Colors.purpleAccent;
                 default: return Colors.tealAccent;
@@ -1779,28 +1778,37 @@ class _NeonPathPainter extends CustomPainter {
             final Color c1 = getOpColor(p1);
             final Color c2 = getOpColor(p2);
 
-            final Shader gradientShader = ui.Gradient.linear(o1, o2, [c1, c2]);
-            
             final Path segmentPath = Path();
             segmentPath.moveTo(o1.dx, o1.dy);
             segmentPath.lineTo(o2.dx, o2.dy);
 
-            // Glow
-            canvas.drawPath(segmentPath, Paint()
-                ..shader = gradientShader
+            final Paint glowPaint = Paint()
                 ..strokeWidth = cellSize * 0.4
                 ..style = PaintingStyle.stroke
                 ..strokeCap = StrokeCap.round
                 ..strokeJoin = StrokeJoin.round
-                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+                ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
 
-            // Core
-            canvas.drawPath(segmentPath, Paint()
-                ..shader = gradientShader
+            final Paint corePaint = Paint()
                 ..strokeWidth = cellSize * 0.2
                 ..style = PaintingStyle.stroke
                 ..strokeCap = StrokeCap.round
-                ..strokeJoin = StrokeJoin.round);
+                ..strokeJoin = StrokeJoin.round;
+
+            if (o1 == o2) {
+                glowPaint.color = c1.withOpacity(0.5);
+                corePaint.color = c1;
+            } else {
+                final Shader gradientShader = ui.Gradient.linear(o1, o2, [c1, c2]);
+                glowPaint.shader = gradientShader;
+                corePaint.shader = gradientShader;
+            }
+
+            // Glow
+            canvas.drawPath(segmentPath, glowPaint);
+
+            // Core
+            canvas.drawPath(segmentPath, corePaint);
 
             // Highlight
             canvas.drawPath(segmentPath, Paint()
@@ -1862,9 +1870,7 @@ class _NeonNodePainter extends CustomPainter {
         
         // Color palette for numbers (cycling through available colors)
         final List<Color> numberColors = [
-            Colors.redAccent,
             Colors.blueAccent,
-            Colors.greenAccent,
             Colors.yellowAccent,
             Colors.purpleAccent,
             Colors.orangeAccent,
@@ -1873,6 +1879,7 @@ class _NeonNodePainter extends CustomPainter {
             Colors.amberAccent,
             Colors.indigoAccent,
             Colors.cyanAccent,
+            Colors.limeAccent,
         ];
         
         numbersToRender.forEach((gridPoint, number) {
@@ -2008,7 +2015,7 @@ class _NeonNodePainter extends CustomPainter {
             } else if (op != null) {
                 switch (op.type) {
                     case OperationType.add: color = Colors.blueAccent; break;
-                    case OperationType.subtract: color = Colors.redAccent; break;
+                    case OperationType.subtract: color = Colors.pinkAccent; break;
                     case OperationType.multiply: color = Colors.orangeAccent; break;
                     case OperationType.divide: color = Colors.purpleAccent; break;
                     default: color = Colors.tealAccent;
@@ -2034,9 +2041,45 @@ class _NeonNodePainter extends CustomPainter {
                     ..strokeWidth = 2.0
             );
 
-            // Special marker for Start/Target
+            // NEW: Square-based Start/Target Visuals
             if (isStart || isTarget) {
-                 canvas.drawCircle(center, cellSize * 0.35, Paint()..color = color.withOpacity(0.2));
+                final Rect squareRect = Rect.fromLTWH(
+                    gridPoint.col * cellSize + 4, 
+                    gridPoint.row * cellSize + 4, 
+                    cellSize - 8, 
+                    cellSize - 8
+                );
+                final RRect rRect = RRect.fromRectAndRadius(squareRect, const Radius.circular(12));
+                
+                // 1. Subtle Background Fill
+                canvas.drawRRect(rRect, Paint()..color = color.withOpacity(0.08));
+                
+                // 2. Glowing Square Border
+                canvas.drawRRect(rRect, Paint()
+                    ..color = color.withOpacity(0.4)
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 2.5
+                    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
+                
+                // 3. Corner Icon
+                final IconData iconData = isStart ? Icons.play_arrow : Icons.flag_rounded;
+                final iconSpan = TextSpan(
+                    text: String.fromCharCode(iconData.codePoint),
+                    style: TextStyle(
+                        fontFamily: 'MaterialIcons',
+                        fontSize: cellSize * 0.2, // Slightly larger icon
+                        color: color.withOpacity(0.9),
+                    ),
+                );
+                final iconPainter = TextPainter(text: iconSpan, textDirection: TextDirection.ltr);
+                iconPainter.layout();
+                
+                // Position at top-right or top-left
+                final Offset iconOffset = isStart 
+                    ? Offset(gridPoint.col * cellSize + 8, gridPoint.row * cellSize + 8) // Top-Left
+                    : Offset((gridPoint.col + 1) * cellSize - iconPainter.width - 8, gridPoint.row * cellSize + 8); // Top-Right
+                
+                iconPainter.paint(canvas, iconOffset);
             }
 
             // Draw Operator Text
@@ -2044,11 +2087,10 @@ class _NeonNodePainter extends CustomPainter {
             if (isStart) {
                 text = "${level.startValue}";
             } else if (isTarget) {
-                if (op != null && op.type != OperationType.add || (op != null && op.operand != 0)) {
-                    // Show operation + target if there's a real operation
-                    text = "${op.display}\nTARGET: ${level.targetValue}";
+                if (op != null && (op.type != OperationType.add || op.operand != 0)) {
+                    text = "${op.display}\n${level.targetValue}";
                 } else {
-                    text = "TARGET\n${level.targetValue}";
+                    text = "${level.targetValue}";
                 }
             } else if (op != null) {
                 text = op.display;
@@ -2058,28 +2100,22 @@ class _NeonNodePainter extends CustomPainter {
                 text: text,
                 style: TextStyle(
                     color: Colors.white,
-                    fontSize: isTarget ? cellSize * 0.16 : (isStart ? cellSize * 0.35 : cellSize * 0.28),
+                    fontSize: isTarget ? cellSize * 0.2 : (isStart ? cellSize * 0.35 : cellSize * 0.28),
                     fontWeight: FontWeight.bold,
                 ),
             );
             
-            final textPainter = TextPainter(text: textSpan, textDirection: TextDirection.ltr);
-            textPainter.layout();
+            final textPainter = TextPainter(
+                text: textSpan, 
+                textDirection: TextDirection.ltr,
+                textAlign: TextAlign.center,
+            );
+            textPainter.layout(maxWidth: cellSize * 0.85); 
             textPainter.paint(canvas, center - Offset(textPainter.width / 2, textPainter.height / 2));
 
-            // SUB-LABEL for Start/Target
-            if (isStart) {
-                final startTitleSpan = TextSpan(
-                    text: 'START',
-                    style: TextStyle(color: color.withOpacity(0.8), fontSize: cellSize * 0.12, fontWeight: FontWeight.w900, letterSpacing: 1),
-                );
-                final stPainter = TextPainter(text: startTitleSpan, textDirection: TextDirection.ltr);
-                stPainter.layout();
-                stPainter.paint(canvas, center + Offset(-stPainter.width / 2, -cellSize * 0.3));
-            }
-
             // Draw current path value overlay if visited (for player feedback)
-            if (playerNumbers?.containsKey(gridPoint) ?? false) {
+            // Skip for START node as it already showing its value as the primary label
+            if (!isStart && (playerNumbers?.containsKey(gridPoint) ?? false)) {
                 final currentVal = playerNumbers![gridPoint];
                 final valSpan = TextSpan(
                     text: '$currentVal',
