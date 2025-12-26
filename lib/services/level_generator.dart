@@ -1350,7 +1350,7 @@ class LevelGenerator {
         startNode: const GridPoint(0, 0),
         startValue: 10,
         targetNode: const GridPoint(3, 0),
-        targetValue: 47, // 10+2+3-5*2-4+6-2*2-10+5+2-3*2-4+1 = 65
+        targetValue: 47,
         operations: {
           const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 2),
           const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 3),
