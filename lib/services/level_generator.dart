@@ -1618,37 +1618,724 @@ class LevelGenerator {
             },
         );
     } else if (levelId == 20) {
-        // Level 20: 4x4 The Final Challenge
+        // Level 20: 4x4 Spiral from Center
+        // Path: (1,1) → (1,2) → (2,2) → (2,1) → (2,0) → (3,0) → (3,1) → (3,2) → (3,3) 
+        // → (2,3) → (1,3) → (0,3) → (0,2) → (0,1) → (0,0) → (1,0)
         return GameLevel(
             id: levelId,
             rows: 4,
             cols: 4,
             timeLimit: 250,
             gameType: GameType.operationPath,
-            dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(3, 3)]},
-            startNode: const GridPoint(1, 2),
-            startValue: 7,
-            targetNode: const GridPoint(3, 3),
-            targetValue: 5,
+            dotPositions: {DotColor.green: [const GridPoint(1, 1), const GridPoint(1, 0)]},
+            startNode: const GridPoint(1, 1),
+            startValue: 10,
+            targetNode: const GridPoint(1, 0),
+            targetValue: 48,
             operations: {
-                const GridPoint(0, 2): const OperationCell(type: OperationType.divide, operand: 7),
-                const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 9),
-                const GridPoint(1, 3): const OperationCell(type: OperationType.subtract, operand: 3),
+                const GridPoint(0, 0): const OperationCell(type: OperationType.add, operand: 12),
+                const GridPoint(0, 1): const OperationCell(type: OperationType.subtract, operand: 8),
+                const GridPoint(0, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+                const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 6),
+                const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 0),
+                const GridPoint(1, 2): const OperationCell(type: OperationType.subtract, operand: 4),
+                const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 10),
+                const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+                const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 8),
+                const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 6),
                 const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
-                const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 6),
-                const GridPoint(2, 1): const OperationCell(type: OperationType.multiply, operand: 3),
-                const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 20),
-                const GridPoint(0, 1): const OperationCell(type: OperationType.divide, operand: 10),
-                const GridPoint(0, 0): const OperationCell(type: OperationType.add, operand: 50),
-                const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 6),
-                const GridPoint(2, 0): const OperationCell(type: OperationType.divide, operand: 2),
-                const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 4),
-                const GridPoint(3, 1): const OperationCell(type: OperationType.subtract, operand: 100),
-                const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 45),
-                const GridPoint(3, 3): const OperationCell(type: OperationType.divide, operand: 13),
-
+                const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 10),
+                const GridPoint(3, 1): const OperationCell(type: OperationType.add, operand: 14),
+                const GridPoint(3, 2): const OperationCell(type: OperationType.divide, operand: 2),
+                const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 5),
             },
         );
+    } else if (levelId == 21) {
+      // Level 21: 5x5 Diagonal Cross Pattern
+      // Start from top-left corner, cross diagonally to center, then to bottom-right
+      // Path: (0,0) → (0,1) → (1,1) → (1,2) → (2,2) → (3,2) → (3,3) → (4,3) → (4,4) 
+      // → (3,4) → (2,4) → (2,3) → (1,3) → (1,4) → (0,4) → (0,3) → (0,2) → (1,0) 
+      // → (2,0) → (2,1) → (3,1) → (3,0) → (4,0) → (4,1) → (4,2)
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 200,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(4, 2)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 8,
+        targetNode: const GridPoint(4, 2),
+        targetValue: 64,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 4),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 6),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 12),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 6),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.subtract, operand: 18),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.add, operand: 0),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 14),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 16),
+        },
+      );
+    } else if (levelId == 22) {
+      // Level 22: 5x5 Zigzag from Corners
+      // Start bottom-left, zigzag to top-right
+      // Path: (4,0) → (4,1) → (3,1) → (3,2) → (4,2) → (4,3) → (3,3) → (2,3) → (2,2) 
+      // → (1,2) → (1,3) → (0,3) → (0,2) → (1,1) → (2,1) → (2,0) → (1,0) → (0,0) 
+      // → (0,1) → (1,4) → (2,4) → (3,4) → (4,4) → (3,0) → (0,4)
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 210,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(4, 0), const GridPoint(0, 4)]},
+        startNode: const GridPoint(4, 0),
+        startValue: 6,
+        targetNode: const GridPoint(0, 4),
+        targetValue: 72,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 6),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 15),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 7),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 12),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.add, operand: 18),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.add, operand: 14),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.add, operand: 16),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.add, operand: 6),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+        },
+      );
+    } else if (levelId == 23) {
+      // Level 23: 5x5 U-Shape Path
+      // Start top-right, go down, across bottom, up left side
+      // Path: (0,4) → (1,4) → (2,4) → (3,4) → (4,4) → (4,3) → (4,2) → (4,1) → (4,0) 
+      // → (3,0) → (2,0) → (1,0) → (0,0) → (0,1) → (0,2) → (0,3) → (1,3) → (1,2) 
+      // → (1,1) → (2,1) → (2,2) → (2,3) → (3,3) → (3,2) → (3,1)
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 220,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 4), const GridPoint(3, 1)]},
+        startNode: const GridPoint(0, 4),
+        startValue: 12,
+        targetNode: const GridPoint(3, 1),
+        targetValue: 96,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.add, operand: 18),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 24),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.subtract, operand: 16),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 22),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 12),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.add, operand: 0),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.subtract, operand: 18),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.add, operand: 26),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 14),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.subtract, operand: 24),
+        },
+      );
+    } else if (levelId == 24) {
+      // Level 24: 5x5 S-Curve Pattern
+      // Start center-left, curve through board like an S
+      // Path: (2,0) → (1,0) → (0,0) → (0,1) → (0,2) → (1,2) → (2,2) → (3,2) → (4,2) 
+      // → (4,3) → (3,3) → (2,3) → (1,3) → (0,3) → (0,4) → (1,4) → (2,4) → (3,4) 
+      // → (4,4) → (4,1) → (3,1) → (2,1) → (1,1) → (3,0) → (4,0)
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 230,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(2, 0), const GridPoint(4, 0)]},
+        startNode: const GridPoint(2, 0),
+        startValue: 10,
+        targetNode: const GridPoint(4, 0),
+        targetValue: 80,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 6),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 4),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 12),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 18),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.add, operand: 16),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.subtract, operand: 14),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 22),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 16),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 24),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.divide, operand: 2),
+        },
+      );
+    } else if (levelId == 25) {
+      // Level 25: 5x5 Full Board Spiral
+      // Start from outer edge, spiral inward to center
+      // Path: (0,0) → (0,1) → (0,2) → (0,3) → (0,4) → (1,4) → (2,4) → (3,4) → (4,4) 
+      // → (4,3) → (4,2) → (4,1) → (4,0) → (3,0) → (2,0) → (1,0) → (1,1) → (1,2) 
+      // → (1,3) → (2,3) → (3,3) → (3,2) → (3,1) → (2,1) → (2,2)
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 240,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(2, 2)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 5,
+        targetNode: const GridPoint(2, 2),
+        targetValue: 100,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 8),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 16),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 14),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.multiply, operand: 5),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 0),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.subtract, operand: 18),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.add, operand: 24),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.subtract, operand: 22),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 30),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.add, operand: 16),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.subtract, operand: 24),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.subtract, operand: 28),
+        },
+      );
+    } else if (levelId == 26) {
+      // Level 26: 5x5 Vertical Snake
+      // Start: (0,0)=10, Target: (4,4)=80
+      // Solution: (0,0)=10 → (1,0)+5=15 → (2,0)×2=30 → (3,0)-10=20 → (4,0)+15=35 
+      // → (4,1)×2=70 → (3,1)-30=40 → (2,1)+20=60 → (1,1)÷2=30 → (0,1)+25=55 
+      // → (0,2)+5=60 → (1,2)×2=120 → (2,2)-40=80 → (3,2)÷2=40 → (4,2)+30=70 
+      // → (4,3)-20=50 → (3,3)+10=60 → (2,3)×2=120 → (1,3)-60=60 → (0,3)+10=70 
+      // → (0,4)÷2=35 → (1,4)+25=60 → (2,4)×2=120 → (3,4)-50=70 → (4,4)+10=80 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 250,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(4, 4)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 10,
+        targetNode: const GridPoint(4, 4),
+        targetValue: 80,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 25),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 5),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 5),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.add, operand: 25),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.add, operand: 30),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 10),
+        },
+      );
+    } else if (levelId == 27) {
+      // Level 27: 5x5 Spiral Out
+      // Start: (2,2)=12, Target: (0,0)=96
+      // Path: (2,2) → (1,2) → (1,1) → (1,1)?? No, full board spiral
+      // Solution: (2,2)=12 → (2,1)+8=20 → (3,1)×2=40 → (3,2)+5=45 → (3,3)-15=30 
+      // → (2,3)×3=90 → (1,3)-20=70 → (1,2)+10=80 → (1,1)÷2=40 → (0,1)×3=120 
+      // → (0,2)-40=80 → (0,3)+25=105 → (0,4)÷3=35 → (1,4)+15=50 → (2,4)×2=100 
+      // → (3,4)-30=70 → (4,4)+10=80 → (4,3)÷4=20 → (4,2)×5=100 → (4,1)-20=80 
+      // → (4,0)+15=95 → (3,0)-15=80 → (2,0)×2=160 → (1,0)-60=100 → (0,0)-4=96 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 260,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(2, 2), const GridPoint(0, 0)]},
+        startNode: const GridPoint(2, 2),
+        startValue: 12,
+        targetNode: const GridPoint(0, 0),
+        targetValue: 96,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.subtract, operand: 4),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 25),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.divide, operand: 3),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 15),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 5),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 15),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.multiply, operand: 5),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 10),
+        },
+      );
+    } else if (levelId == 28) {
+      // Level 28: 5x5 Vertical Zigzag
+      // Start: (0,0)=15, Target: (4,4)=105
+      // Path: (0,0) → (1,0) → (2,0) → (3,0) → (4,0) → (4,1) → (3,1) → (2,1) → (1,1) → (0,1) → ...
+      // Solution: (0,0)=15 → (1,0)+10=25 → (2,0)×2=50 → (3,0)-20=30 → (4,0)×3=90 
+      // → (4,1)-50=40 → (3,1)+25=65 → (2,1)-15=50 → (1,1)×2=100 → (0,1)-16=84 
+      // → (0,2)÷2=42 → (1,2)+58=100 → (2,2)-30=70 → (3,2)×2=140 → (4,2)-60=80 
+      // → (4,3)+40=120 → (3,3)-100=20 → (2,3)×4=80 → (1,3)+35=115 → (0,3)-15=100 
+      // → (0,4)÷2=50 → (1,4)×2=100 → (2,4)-60=40 → (3,4)+50=90 → (4,4)+15=105 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 270,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(4, 4)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 15,
+        targetNode: const GridPoint(4, 4),
+        targetValue: 105,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.subtract, operand: 16),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 15),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.add, operand: 58),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 35),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.subtract, operand: 15),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.add, operand: 25),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.add, operand: 50),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 15),
+        },
+      );
+    } else if (levelId == 29) {
+      // Level 29: 5x5 H-Pattern
+      // Start: (0,0)=20, Target: (4,0)=120
+      // Path: (0,0) → (1,0) → (2,0) → (3,0) → (4,0)?? No, coverage.
+      // Solution: (0,0)=20 → (0,1)+10=30 → (1,1)×2=60 → (1,0)-30=30 → (2,0)+50=80 
+      // → (3,0)÷2=40 → (4,0)+80=120? Target is (4,0) but coverage is needed.
+      // Better path for all 25: (0,0) to (4,0) via all squares
+      // (0,0)=20 → (0,1)+10=30 → (0,2)×2=60 → (0,3)-20=40 → (0,4)+60=100
+      // → (1,4)÷2=50 → (1,3)+30=80 → (1,2)-30=50 → (1,1)×2=100 → (1,0)+20=120
+      // → (2,0)÷2=60 → (2,1)+40=100 → (2,2)-20=80 → (2,3)×2=160 → (2,4)-60=100
+      // → (3,4)+40=140 → (3,3)-100=40 → (3,2)+60=100 → (3,1)÷2=50 → (3,0)×3=150
+      // → (4,0)-30=120 target node op.
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 280,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(4, 0)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 20,
+        targetNode: const GridPoint(4, 0),
+        targetValue: 120,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 15), // tweaked operand
+          const GridPoint(0, 4): const OperationCell(type: OperationType.add, operand: 35),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 30),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 60),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.add, operand: 25),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+        },
+      );
+    } else if (levelId == 30) {
+      // Level 30: 5x5 Nested Squares
+      // Start: (0,0)=18, Target: (2,2)=108
+      // Path: Perimeter (0,0) → (0,4) → (4,4) → (4,0) → (1,0) → (1,3) → (3,3) → (3,1) → (2,1) → (2,2)
+      // Solution: (0,0)=18 → (0,1)+12=30 → (0,2)×2=60 → (0,3)-10=50 → (0,4)×3=150 
+      // → (1,4)-70=80 → (2,4)+40=120 → (3,4)÷2=60 → (4,4)×2=120 → (4,3)-40=80 
+      // → (4,2)+60=140 → (4,1)÷2=70 → (4,0)×2=140 → (3,0)-60=80 → (2,0)+50=130 
+      // → (1,0)÷2=65 → (1,1)+35=100 → (1,2)×2=200 → (1,3)-80=120 → (2,3)÷2=60 
+      // → (3,3)×3=180 → (3,2)-80=100 → (3,1)÷2=50 → (2,1)×2=100 → (2,2)+8=108 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 290,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 0), const GridPoint(2, 2)]},
+        startNode: const GridPoint(0, 0),
+        startValue: 18,
+        targetNode: const GridPoint(2, 2),
+        targetValue: 108,
+        operations: {
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 12),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 10),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.add, operand: 35),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.subtract, operand: 80),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 70),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.add, operand: 50),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 8),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.subtract, operand: 80),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.add, operand: 60),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+        },
+      );
+    } else if (levelId == 31) {
+      // Level 31: 5x5 Vertical S-Curve
+      // Start: (0,2)=24, Target: (4,2)=144
+      // Solution: (0,2)=24 → (0,3)+16=40 → (0,4)×2=80 → (1,4)-30=50 → (2,4)×3=150 
+      // → (3,4)-70=80 → (4,4)+40=120 → (4,3)÷3=40 → (3,3)×5=200 → (2,3)-100=100 
+      // → (1,3)÷4=25 → (1,2)×6=150 → (0,1)-50=100 → (0,0)÷2=50 → (1,0)+70=120 
+      // → (2,0)÷3=40 → (3,0)×4=160 → (4,0)-60=100 → (4,1)÷2=50 → (3,1)×3=150 
+      // → (2,1)-110=40 → (1,1)+80=120 → (2,2)÷2=60 → (3,2)×3=180 → (4,2)-36=144 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 300,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 2), const GridPoint(4, 2)]},
+        startNode: const GridPoint(0, 2),
+        startValue: 24,
+        targetNode: const GridPoint(4, 2),
+        targetValue: 144,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.add, operand: 16),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 70),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.add, operand: 80),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.divide, operand: 3),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.subtract, operand: 110),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.multiply, operand: 5),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.subtract, operand: 70),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 36),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.divide, operand: 3),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 40),
+        },
+      );
+    } else if (levelId == 32) {
+      // Level 32: 5x5 Star Burst
+      // Start: (2,2)=10, Target: (4,4)=128
+      // Solution: (2,2)=10 → (1,2)+10=20 → (0,2)×4=80 → (0,3)-30=50 → (0,4)+50=100 
+      // → (1,4)÷2=50 → (1,3)×3=150 → (2,3)-70=80 → (2,4)×2=160 → (3,4)-60=100 
+      // → (4,3)+20=120 → (3,3)÷4=30 → (3,2)×6=180 → (4,2)-100=80 → (4,1)÷2=40 
+      // → (3,1)×3=120 → (2,1)-40=80 → (2,0)÷2=40 → (1,0)+60=100 → (0,0)÷4=25 
+      // → (0,1)×4=100 → (1,1)-20=80 → (3,0)×2=160 → (4,0)-32=128 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 310,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(2, 2), const GridPoint(4, 4)]},
+        startNode: const GridPoint(2, 2),
+        startValue: 10,
+        targetNode: const GridPoint(4, 4),
+        targetValue: 128,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.subtract, operand: 30),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.add, operand: 50),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 60),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.add, operand: 10),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.subtract, operand: 70),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.subtract, operand: 32),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.add, operand: 0),
+        },
+      );
+    } else if (levelId == 33) {
+      // Level 33: 5x5 Maze Focus
+      // Start: (1,1)=20, Target: (3,3)=140
+      // Solution: (1,1)=20 → (0,1)+30=50 → (0,0)×2=100 → (1,0)-40=60 → (2,0)+40=100 
+      // → (3,0)÷2=50 → (4,0)×3=150 → (4,1)-50=100 → (4,2)÷4=25 → (4,3)×6=150 
+      // → (4,4)-50=100 → (3,4)÷2=50 → (2,4)×3=150 → (1,4)-70=80 → (0,4)+40=120 
+      // → (0,3)÷4=30 → (0,2)×4=120 → (1,2)-40=80 → (2,2)+20=100 → (3,2)÷2=50 
+      // → (3,1)×3=150 → (2,1)-100=50 → (1,3)+30=80 → (2,3)×2=160 → (3,3)-20=140 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 320,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(1, 1), const GridPoint(3, 3)]},
+        startNode: const GridPoint(1, 1),
+        startValue: 20,
+        targetNode: const GridPoint(3, 3),
+        targetValue: 140,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 30),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.add, operand: 30),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.subtract, operand: 70),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 20),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.subtract, operand: 50),
+        },
+      );
+    } else if (levelId == 34) {
+      // Level 34: 5x5 Diamond Path
+      // Start: (0,2)=25, Target: (4,2)=150
+      // Solution: (0,2)=25 → (0,1)+15=40 → (0,0)×3=120 → (1,0)-40=80 → (1,1)+20=100 
+      // → (2,1)÷2=50 → (2,0)×4=200 → (3,0)-100=100 → (3,1)÷5=20 → (4,1)×6=120 
+      // → (4,0)-40=80 → (4,3)+20=100 → (4,4)÷2=50 → (3,4)×3=150 → (3,3)-50=100 
+      // → (2,3)×2=200 → (2,4)-120=80 → (1,4)+40=120 → (1,3)÷3=40 → (0,3)×4=160 
+      // → (0,4)-60=100 → (2,2)+50=150 → (3,2)÷3=50 → (4,2)×3=150 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 330,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(0, 2), const GridPoint(4, 2)]},
+        startNode: const GridPoint(0, 2),
+        startValue: 25,
+        targetNode: const GridPoint(4, 2),
+        targetValue: 150,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 15),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.divide, operand: 3),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.add, operand: 50),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 120),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.divide, operand: 5),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.divide, operand: 3),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 0): const OperationCell(type: OperationType.subtract, operand: 40),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.divide, operand: 2),
+        },
+      );
+    } else if (levelId == 35) {
+      // Level 35: 5x5 The Ultimate Journey
+      // Start: (4,0)=30, Target: (0,4)=180
+      // Solution: (4,0)=30 → (4,1)+20=50 → (4,2)×4=200 → (4,3)-100=100 → (4,4)÷2=50 
+      // → (3,4)×3=150 → (3,3)-50=100 → (3,2)+40=140 → (3,1)÷2=70 → (3,0)×2=140 
+      // → (2,0)-60=80 → (2,1)+40=120 → (1,1)÷4=30 → (1,0)×6=180 → (0,0)-100=80 
+      // → (0,1)+40=120 → (2,2)÷2=60 → (2,3)×3=180 → (2,4)-100=80 → (1,4)+60=140 
+      // → (1,3)÷2=70 → (1,2)×2=140 → (0,2)+40=180 → (0,3)÷4=45 → (0,4)×4=180 ✓
+      return GameLevel(
+        id: levelId,
+        rows: 5,
+        cols: 5,
+        timeLimit: 340,
+        gameType: GameType.operationPath,
+        dotPositions: {DotColor.green: [const GridPoint(4, 0), const GridPoint(0, 4)]},
+        startNode: const GridPoint(4, 0),
+        startValue: 30,
+        targetNode: const GridPoint(0, 4),
+        targetValue: 180,
+        operations: {
+          const GridPoint(0, 0): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(0, 3): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(1, 0): const OperationCell(type: OperationType.multiply, operand: 6),
+          const GridPoint(1, 1): const OperationCell(type: OperationType.divide, operand: 4),
+          const GridPoint(1, 2): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(1, 3): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(1, 4): const OperationCell(type: OperationType.add, operand: 60),
+          const GridPoint(2, 0): const OperationCell(type: OperationType.subtract, operand: 60),
+          const GridPoint(2, 1): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(2, 2): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(2, 3): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(2, 4): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(3, 0): const OperationCell(type: OperationType.multiply, operand: 2),
+          const GridPoint(3, 1): const OperationCell(type: OperationType.divide, operand: 2),
+          const GridPoint(3, 2): const OperationCell(type: OperationType.add, operand: 40),
+          const GridPoint(3, 3): const OperationCell(type: OperationType.subtract, operand: 50),
+          const GridPoint(3, 4): const OperationCell(type: OperationType.multiply, operand: 3),
+          const GridPoint(4, 1): const OperationCell(type: OperationType.add, operand: 20),
+          const GridPoint(4, 2): const OperationCell(type: OperationType.multiply, operand: 4),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 100),
+          const GridPoint(4, 4): const OperationCell(type: OperationType.divide, operand: 2),
+        },
+      );
     }
     // Fallback: use color levels for undefined operation levels
     return generateColorLevel(levelId);
