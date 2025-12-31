@@ -107,7 +107,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           iconAssetPath: "assets/images/islands/operation_island_icon.png",
           primaryColor: Colors.green,
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("3"),
-          levels: List.generate(50, (i) => LevelModel(
+          levels: List.generate(35, (i) => LevelModel(
               id: i + 1,
               assetPath: 'assets/images/levels/operation_${i+1}.png',
               starsEarned: GameDataManager().getStars("3", i+1),
