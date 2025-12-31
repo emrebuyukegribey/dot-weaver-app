@@ -1,8 +1,8 @@
-import 'package:flutter/material.dart';
-import 'dart:ui' as ui;
 import 'dart:math' as math;
+import 'dart:ui' as ui;
+import 'package:flutter/material.dart';
 import '../models/island_model.dart';
-import '../models/level_model.dart';
+import '../models/level_model.dart'; // Ensure LevelModel is imported
 import '../services/game_data_manager.dart';
 import 'level_selection_screen.dart';
 
@@ -14,113 +14,107 @@ class WorldMapScreen extends StatefulWidget {
 }
 
 class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStateMixin {
-  late List<IslandModel> islands;
-  final double _nodeHeight = 320.0; // Increased spacing for larger cards
-  
-  // Animation Controllers
-  late List<AnimationController> _islandControllers;
-  late AnimationController _pathController;
+  late ScrollController _scrollController;
   late AnimationController _bgController;
+  late AnimationController _pathController;
+  final List<AnimationController> _islandControllers = [];
+
+  List<IslandModel> islands = [];
   
-  final ScrollController _scrollController = ScrollController();
+  // Background Elements Logic
   final List<_BackgroundElement> _elements = [];
+  final math.Random _rnd = math.Random();
 
   @override
   void initState() {
     super.initState();
-    _loadIslands();
-    _initAnimations();
-    _initBackgroundElements();
+    _scrollController = ScrollController();
     
-    // Scroll to bottom (start) initially
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-       if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-       }
-    });
-  }
-
-  void _initAnimations() {
-    // 1. Path Flow Animation
-    _pathController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 4), 
-    )..repeat();
-
-    // 2. Background Animation
+    // Background Animation
     _bgController = AnimationController(
-        vsync: this, duration: const Duration(seconds: 15))..repeat(); // Slower
+       vsync: this, 
+       duration: const Duration(seconds: 20) // Slower animation
+    )..repeat();
     _bgController.addListener(_updateBackground);
 
-    // 3. Island Floating Animations
-    _islandControllers = List.generate(4, (index) {
-      final random = math.Random();
-      final durationMs = 3000 + random.nextInt(2000); 
-      
-      final controller = AnimationController(
+    // Path Flow Animation
+    _pathController = AnimationController(
         vsync: this,
-        duration: Duration(milliseconds: durationMs),
-      );
+        duration: const Duration(seconds: 3)
+    )..repeat();
 
-      Future.delayed(Duration(milliseconds: random.nextInt(1000)), () {
-        if (mounted) controller.repeat(reverse: true);
-      });
-      
-      return controller;
-    });
+    _initBackgroundElements();
+    _loadIslands();
   }
 
   void _initBackgroundElements() {
-      final random = math.Random();
-      _elements.clear();
-      
-      // Palette
-      final colors = [
-          const Color(0xFF00E5FF), // Cyan
-          const Color(0xFFD500F9), // Purple
-          const Color(0xFF00E676), // Green
-          const Color(0xFFFFEA00), // Yellow
-          const Color(0xFFFF1744), // Red
-      ];
-
-      for (int i = 0; i < 50; i++) {
-         bool isNumber = random.nextBool();
-         _elements.add(_BackgroundElement(
-             x: random.nextDouble(),
-             y: random.nextDouble(),
-             speed: 0.05 + random.nextDouble() * 0.1,
-             size: isNumber ? 12.0 + random.nextDouble() * 20 : 5.0 + random.nextDouble() * 15,
-             opacity: 0.1 + random.nextDouble() * 0.4,
-             color: colors[random.nextInt(colors.length)],
-             type: isNumber ? _BackgroundElementType.number : _BackgroundElementType.dot,
-             text: isNumber ? "${random.nextInt(10)}" : null
-         ));
+      for (int i = 0; i < 20; i++) {
+          _elements.add(_generateRandomElement());
       }
+  }
+
+  _BackgroundElement _generateRandomElement() {
+      bool isNumber = _rnd.nextBool();
+      return _BackgroundElement(
+          x: _rnd.nextDouble(),
+          y: _rnd.nextDouble(),
+          speed: 0.05 + _rnd.nextDouble() * 0.1, // Slower speed
+          size: isNumber ? 12.0 + _rnd.nextDouble() * 20.0 : 2.0 + _rnd.nextDouble() * 4.0,
+          opacity: 0.1 + _rnd.nextDouble() * 0.3,
+          color: [
+             Colors.cyanAccent, 
+             Colors.purpleAccent, 
+             Colors.greenAccent, 
+             Colors.amberAccent,
+             Colors.redAccent
+          ][_rnd.nextInt(5)],
+          type: isNumber ? _BackgroundElementType.number : _BackgroundElementType.dot,
+          text: isNumber ? _rnd.nextInt(10).toString() : null
+      );
   }
 
   void _updateBackground() {
       for (var e in _elements) {
-          e.y -= e.speed * 0.002; 
+          e.y -= e.speed * 0.01;
+          e.opacity += (0.5 - _rnd.nextDouble()) * 0.02;
+          
+          // Clamp opacity
+          if (e.opacity < 0.1) e.opacity = 0.1;
+          if (e.opacity > 0.6) e.opacity = 0.6;
+
+          // Reset if out of bounds
           if (e.y < -0.1) {
               e.y = 1.1;
-              e.x = math.Random().nextDouble();
+              e.x = _rnd.nextDouble();
           }
       }
   }
 
   @override
   void dispose() {
-    _pathController.dispose();
-    _bgController.dispose();
     _scrollController.dispose();
-    for (var c in _islandControllers) {
-      c.dispose();
-    }
+    _bgController.dispose();
+    _pathController.dispose();
+    for (var c in _islandControllers) c.dispose();
     super.dispose();
   }
 
   void _loadIslands() {
-      // 1. Color Island (Bottom)
+      // Create controllers for floating effect
+      for (var c in _islandControllers) c.dispose();
+      _islandControllers.clear();
+
+      // We will have 4 islands initially
+      for (int i=0; i<4; i++) {
+          _islandControllers.add(
+              AnimationController(
+                  vsync: this,
+                  duration: Duration(seconds: 2 + i), // Varied duration
+              )..repeat(reverse: true)
+          );
+      }
+
+      // 1. Color Island
       final island1 = IslandModel(
           id: "1",
           name: "COLOR REALM",
@@ -164,6 +158,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           dotAssetPath: "assets/images/dots/operation_dot.png",
       );
       
+      /*
       // 4. Ocean Island
       final island4 = IslandModel(
           id: "4",
@@ -178,9 +173,10 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           )),
           dotAssetPath: "assets/images/dots/water_dot.png",
       );
+      */
 
       setState(() {
-          islands = [island1, island2, island3, island4];
+          islands = [island1, island2, island3]; // Removed island4
       });
   }
 
@@ -188,10 +184,24 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
   Widget build(BuildContext context) {
     if (islands.isEmpty) return const SizedBox();
 
-    final double totalContentHeight = (islands.length * _nodeHeight) + 150;
+    final Size screenSize = MediaQuery.of(context).size;
+    
+    // Responsive Dimensions
+    // Card Width: ~45% of width, capped at 220, min 160
+    final double cardWidth = math.min(220.0, math.max(160.0, screenSize.width * 0.45));
+    final double cardHeight = cardWidth * 1.2; // Aspect ratio
+    
+    // Vertical Spacing: 30% of height, capped at 400, min 280
+    final double nodeHeight = math.min(400.0, math.max(280.0, screenSize.height * 0.3));
+
+    final double totalContentHeight = (islands.length * nodeHeight) + 100;
+    
+    // Ensure content at least fills screen to allow centering/spacing effects if needed
+    // Increase height to accommodate title above card (extra 50px buffer per card)
+    final double actualHeight = math.max(totalContentHeight + (islands.length * 50), screenSize.height);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1E1E2C), // Slightly Lighter Dark for Vibrancy
+      backgroundColor: const Color(0xFF1E1E2C), 
       body: Stack(
         children: [
           // 1. Dynamic Background
@@ -218,7 +228,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                           physics: const BouncingScrollPhysics(),
                           reverse: true, // Start from bottom
                           child: SizedBox(
-                            height: totalContentHeight,
+                            height: actualHeight,
                             child: AnimatedBuilder(
                               animation: Listenable.merge([_pathController, ..._islandControllers]),
                               builder: (context, child) {
@@ -235,7 +245,9 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                       child: CustomPaint(
                                         painter: _GlowingPathPainter(
                                           islands: islands,
-                                          nodeHeight: _nodeHeight,
+                                          nodeHeight: nodeHeight,
+                                          cardWidth: cardWidth,
+                                          cardHeight: cardHeight,
                                           verticalOffsets: floatOffsets,
                                           flowPhase: _pathController.value,
                                         ),
@@ -244,13 +256,19 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
 
                                     // Island Nodes
                                     ...List.generate(islands.length, (index) {
+                                      // Vertical center of the "slot"
+                                      // Previously: bottom = 50 + index*nodeH
+                                      // Let's adjust slightly to center in the nodeHeight slot
+                                      final double bottomPos = 40 + (index * nodeHeight);
+
                                       return Positioned(
-                                        bottom: 50 + (index * _nodeHeight), // Position from Bottom
+                                        bottom: bottomPos, 
                                         left: 0, right: 0,
-                                        height: 240, // Card Height
+                                        // Increase height for Column(Title + Card)
+                                        height: cardHeight + 50, 
                                         child: Transform.translate(
                                           offset: Offset(0, floatOffsets[index]),
-                                          child: _buildIslandPortal(islands[index], index),
+                                          child: _buildIslandPortal(islands[index], index, cardWidth, cardHeight),
                                         ),
                                       );
                                     }), 
@@ -281,8 +299,23 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Row(
-              mainAxisAlignment: MainAxisAlignment.end, // Align to right
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alignment for Logo + Stars
               children: [
+                  // Game Logo
+                  Text(
+                      "LUMINA PATH",
+                      style: TextStyle(
+                          fontFamily: 'Orbitron',
+                          fontSize: 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                          color: Colors.white,
+                          shadows: [
+                              Shadow(color: Colors.cyanAccent.withOpacity(0.8), blurRadius: 15),
+                          ]
+                      ),
+                  ),
+
                   // Total Star Counter
                   Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -315,8 +348,9 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       );
   }
 
-  Widget _buildIslandPortal(IslandModel island, int index) {
+  Widget _buildIslandPortal(IslandModel island, int index, double cardWidth, double cardHeight) {
       // Zig-Zag Layout
+      // We need more vertical space for the title on top
       double alignX = (index % 2 == 0) ? -0.2 : 0.2; 
       
       bool isLocked = island.isLocked;
@@ -329,175 +363,151 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
 
       return Align(
           alignment: Alignment(alignX, 0),
-          child: GestureDetector(
-            onTap: () {
-                 if (isLocked) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text("Complete previous islands to unlock ${island.name}"),
-                              backgroundColor: Colors.redAccent.withOpacity(0.8),
-                              behavior: SnackBarBehavior.floating,
-                          )
-                      );
-                      return;
-                 }
-                 _navigateToIsland(island);
-            },
-            child: Container(
-                width: 240, // Slightly wider for stats
-                margin: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(30),
-                    boxShadow: [
-                         // Main Glow
-                         BoxShadow(
-                             color: island.primaryColor.withOpacity(isLocked ? 0.0 : 0.4),
-                             blurRadius: 30,
-                             offset: const Offset(0, 10),
-                         )
-                    ]
-                ),
-                child: ClipRRect(
-                    borderRadius: BorderRadius.circular(30),
-                    child: BackdropFilter(
-                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                        child: Container(
-                            decoration: BoxDecoration(
-                                color: const Color(0xFF1A1F2B).withOpacity(0.8),
-                                borderRadius: BorderRadius.circular(30),
-                                border: Border.all(
-                                    color: isLocked 
-                                        ? Colors.white.withOpacity(0.1) 
-                                        : island.primaryColor.withOpacity(0.5),
-                                    width: 1.5
-                                ),
-                                gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                        Colors.white.withOpacity(0.1),
-                                        Colors.white.withOpacity(0.05),
-                                    ]
-                                )
-                            ),
-                            child: Stack(
-                                children: [
-                                    // 1. Icon / Image
-                                    Positioned.fill(
-                                        child: Padding(
-                                            padding: const EdgeInsets.all(20.0),
-                                            child: Opacity(
-                                                opacity: isLocked ? 0.3 : 0.8,
-                                                child: Image.asset(island.iconAssetPath, fit: BoxFit.contain)
-                                            ),
+          child: Column(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+                 // 1. Island Name (Now Above)
+                 Text(
+                      island.name,
+                      style: TextStyle(
+                          color: isLocked ? Colors.grey : Colors.white,
+                          fontFamily: 'Orbitron', 
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16, 
+                          letterSpacing: 1.2,
+                          shadows: isLocked 
+                              ? [] 
+                              : [Shadow(color: island.primaryColor, blurRadius: 15)]
+                      ),
+                  ),
+                  const SizedBox(height: 12), // Spacing between title and card
+
+                  // 2. The Card
+                  GestureDetector(
+                    onTap: () {
+                         if (isLocked) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                      content: Text("Complete previous islands to unlock ${island.name}"),
+                                      backgroundColor: Colors.redAccent.withOpacity(0.8),
+                                      behavior: SnackBarBehavior.floating,
+                                  )
+                              );
+                              return;
+                         }
+                         _navigateToIsland(island);
+                    },
+                    child: Container(
+                        width: cardWidth, 
+                        height: cardHeight, 
+                        margin: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(30),
+                            boxShadow: [
+                                 // Main Glow
+                                 BoxShadow(
+                                     color: island.primaryColor.withOpacity(isLocked ? 0.0 : 0.4),
+                                     blurRadius: 30,
+                                     offset: const Offset(0, 10),
+                                 )
+                            ]
+                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(30),
+                            child: BackdropFilter(
+                                filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                                child: Container(
+                                    decoration: BoxDecoration(
+                                        color: const Color(0xFF1A1F2B).withOpacity(0.5), 
+                                        borderRadius: BorderRadius.circular(30),
+                                        border: Border.all(
+                                            color: isLocked 
+                                                ? Colors.white.withOpacity(0.1) 
+                                                : island.primaryColor.withOpacity(0.5),
+                                            width: 1.5
+                                        ),
+                                        image: DecorationImage(
+                                            image: AssetImage(island.backgroundImagePath),
+                                            fit: BoxFit.cover,
+                                            colorFilter: ColorFilter.mode(
+                                                Colors.black.withOpacity(0.6), 
+                                                BlendMode.darken
+                                            )
                                         ),
                                     ),
-                                    
-                                    // 2. Info Overlay (Bottom)
-                                    Positioned(
-                                        bottom: 0, left: 0, right: 0,
-                                        child: Container(
-                                            padding: const EdgeInsets.all(16),
-                                            decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                    begin: Alignment.topCenter,
-                                                    end: Alignment.bottomCenter,
-                                                    colors: [
-                                                        Colors.transparent,
-                                                        Colors.black.withOpacity(0.95),
-                                                    ]
-                                                )
-                                            ),
-                                            child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                    Text(
-                                                        island.name,
-                                                        style: TextStyle(
-                                                            color: isLocked ? Colors.grey : Colors.white,
-                                                            fontFamily: 'Orbitron', 
-                                                            fontWeight: FontWeight.bold,
-                                                            fontSize: 15,
-                                                            letterSpacing: 1.0,
-                                                            shadows: isLocked ? [] : [Shadow(color: island.primaryColor, blurRadius: 8)]
-                                                        ),
+                                    child: Stack(
+                                        children: [
+                                            // Icon / Image
+                                            Positioned.fill(
+                                                bottom: 50, // Leave room for stats
+                                                child: Padding(
+                                                    padding: const EdgeInsets.all(20.0),
+                                                    child: Opacity(
+                                                        opacity: isLocked ? 0.3 : 0.8,
+                                                        child: Image.asset(island.iconAssetPath, fit: BoxFit.contain)
                                                     ),
-                                                    const SizedBox(height: 8),
-                                                    // Stats Row
-                                                    Row(
-                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                ),
+                                            ),
+                                            
+                                            // Stats Info (Bottom)
+                                            Positioned(
+                                                bottom: 0, left: 0, right: 0,
+                                                child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.black.withOpacity(0.6), 
+                                                        border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1)))
+                                                    ),
+                                                    child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                         children: [
-                                                            // Level Progress
-                                                            Row(
+                                                            // Level Stat
+                                                            Column(
                                                                 children: [
-                                                                    Icon(Icons.layers, color: Colors.white70, size: 16),
-                                                                    const SizedBox(width: 4),
+                                                                    Icon(Icons.layers, color: Colors.cyanAccent, size: 20),
+                                                                    const SizedBox(height: 4),
                                                                     Text(
                                                                         "$levelsCompleted/$totalLevels",
-                                                                        style: TextStyle(
-                                                                            color: Colors.white.withOpacity(0.9),
-                                                                            fontSize: 13,
-                                                                            fontWeight: FontWeight.w600
+                                                                        style: const TextStyle(
+                                                                            color: Colors.white,
+                                                                            fontSize: 14,
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontFamily: 'Orbitron'
                                                                         ),
                                                                     ),
                                                                 ],
                                                             ),
-                                                            
-                                                            // Star Progress
-                                                            Row(
+                                                            // Divider
+                                                            Container(width: 1, height: 30, color: Colors.white24),
+                                                            // Star Stat
+                                                            Column(
                                                                 children: [
-                                                                    const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 16),
-                                                                    const SizedBox(width: 4),
+                                                                    Icon(Icons.star, color: Colors.amberAccent, size: 20),
+                                                                    const SizedBox(height: 4),
                                                                     Text(
                                                                         "$starsEarnedInIsland/$totalStarsInIsland",
-                                                                        style: TextStyle(
-                                                                            color: const Color(0xFFFFD700),
-                                                                            fontSize: 13,
-                                                                            fontWeight: FontWeight.w600
+                                                                        style: const TextStyle(
+                                                                            color: Colors.white,
+                                                                            fontSize: 14,
+                                                                            fontWeight: FontWeight.bold,
+                                                                            fontFamily: 'Orbitron'
                                                                         ),
                                                                     ),
                                                                 ],
-                                                            )
+                                                            ),
                                                         ],
                                                     ),
-                                                    const SizedBox(height: 6),
-                                                    // Progress Bar
-                                                    ClipRRect(
-                                                        borderRadius: BorderRadius.circular(4),
-                                                        child: LinearProgressIndicator(
-                                                            value: totalLevels > 0 ? levelsCompleted / totalLevels : 0,
-                                                            backgroundColor: Colors.white10,
-                                                            valueColor: AlwaysStoppedAnimation(
-                                                                isLocked ? Colors.grey : island.primaryColor
-                                                            ),
-                                                            minHeight: 4,
-                                                        ),
-                                                    ),
-                                                ],
+                                                )
                                             ),
-                                        ),
+                                        ],
                                     ),
-
-                                    // 3. Lock Icon
-                                    if (isLocked)
-                                        Center(
-                                            child: Container(
-                                                padding: const EdgeInsets.all(12),
-                                                decoration: BoxDecoration(
-                                                    color: Colors.black54,
-                                                    shape: BoxShape.circle,
-                                                    border: Border.all(color: Colors.white24)
-                                                ),
-                                                child: const Icon(Icons.lock_rounded, color: Colors.white54, size: 32),
-                                            ),
-                                        ),
-                                ],
-                            ),
-                        ),
-                    ),
-                ),
-            ),
-          ),
+                                )
+                            )
+                        )
+                    )
+                  ),
+             ],
+          )
       );
   }
 
@@ -619,12 +629,16 @@ class _InteractiveBackgroundPainter extends CustomPainter {
 class _GlowingPathPainter extends CustomPainter {
   final List<IslandModel> islands;
   final double nodeHeight;
+  final double cardWidth;
+  final double cardHeight;
   final List<double> verticalOffsets;
   final double flowPhase;
 
   _GlowingPathPainter({
     required this.islands,
     required this.nodeHeight,
+    required this.cardWidth,
+    required this.cardHeight,
     required this.verticalOffsets,
     required this.flowPhase,
   });
@@ -644,11 +658,10 @@ class _GlowingPathPainter extends CustomPainter {
       double x = wHalf + (alignX * wHalf);
 
       // Y Position (From Bottom)
-      // bottom: 50 + (index * _nodeHeight)
-      // center Y is roughly: size.height - (50 + index*_nodeHeight + cardHeight/2)
-      double cardH = 240;
-      double bottomY = 50 + (index * nodeHeight);
-      double y = size.height - (bottomY + cardH / 2);
+      // bottom: 40 + (index * nodeHeight)
+      // center Y is roughly: size.height - (40 + index*nodeHeight + cardHeight/2)
+      double bottomY = 40 + (index * nodeHeight);
+      double y = size.height - (bottomY + cardHeight / 2);
       
       // Apply float offset
       y -= verticalOffsets.length > index ? verticalOffsets[index] : 0.0;
@@ -718,4 +731,3 @@ class _GlowingPathPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _GlowingPathPainter old) => true;
 }
-
