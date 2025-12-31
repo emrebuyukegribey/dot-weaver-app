@@ -2309,11 +2309,11 @@ class LevelGenerator {
         startNode: const GridPoint(4, 0),
         startValue: 30,
         targetNode: const GridPoint(0, 4),
-        targetValue: 180,
+        targetValue: 112,
         operations: {
           const GridPoint(0, 0): const OperationCell(type: OperationType.subtract, operand: 10),
           const GridPoint(0, 1): const OperationCell(type: OperationType.add, operand: 4),
-          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 14),
+          const GridPoint(0, 2): const OperationCell(type: OperationType.add, operand: 15),
           const GridPoint(0, 3): const OperationCell(type: OperationType.divide, operand: 4),
           const GridPoint(0, 4): const OperationCell(type: OperationType.multiply, operand: 2),
           const GridPoint(1, 0): const OperationCell(type: OperationType.add, operand: 6),
@@ -2333,7 +2333,7 @@ class LevelGenerator {
           const GridPoint(3, 4): const OperationCell(type: OperationType.multiply, operand: 3),
           const GridPoint(4, 1): const OperationCell(type: OperationType.add, operand: 2),
           const GridPoint(4, 2): const OperationCell(type: OperationType.add, operand: 4),
-          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 118),
+          const GridPoint(4, 3): const OperationCell(type: OperationType.subtract, operand: 18),
           const GridPoint(4, 4): const OperationCell(type: OperationType.divide, operand: 2),
         },
       );
