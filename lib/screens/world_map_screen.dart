@@ -15,38 +15,53 @@ class WorldMapScreen extends StatefulWidget {
 
 class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStateMixin {
   late List<IslandModel> islands;
-  final double _nodeHeight = 280.0;
+  final double _nodeHeight = 320.0; // Increased spacing for larger cards
   
   // Animation Controllers
   late List<AnimationController> _islandControllers;
-  late AnimationController _dashController;
+  late AnimationController _pathController;
+  late AnimationController _bgController;
   
+  final ScrollController _scrollController = ScrollController();
+  final List<_BackgroundElement> _elements = [];
+
   @override
   void initState() {
     super.initState();
     _loadIslands();
     _initAnimations();
+    _initBackgroundElements();
+    
+    // Scroll to bottom (start) initially
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+       if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+       }
+    });
   }
 
   void _initAnimations() {
-    // 1. Dash Animation (Marching Ants)
-    _dashController = AnimationController(
+    // 1. Path Flow Animation
+    _pathController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 2), // Speed of the dash movement
+      duration: const Duration(seconds: 4), 
     )..repeat();
 
-    // 2. Island Floating Animations (Independent & Random)
+    // 2. Background Animation
+    _bgController = AnimationController(
+        vsync: this, duration: const Duration(seconds: 15))..repeat(); // Slower
+    _bgController.addListener(_updateBackground);
+
+    // 3. Island Floating Animations
     _islandControllers = List.generate(4, (index) {
-      // Randomize duration slightly for independence and organic look
       final random = math.Random();
-      final durationMs = 2000 + random.nextInt(1500); // 2.0s to 3.5s
+      final durationMs = 3000 + random.nextInt(2000); 
       
       final controller = AnimationController(
         vsync: this,
         duration: Duration(milliseconds: durationMs),
       );
 
-      // Random start phase
       Future.delayed(Duration(milliseconds: random.nextInt(1000)), () {
         if (mounted) controller.repeat(reverse: true);
       });
@@ -55,9 +70,49 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
     });
   }
 
+  void _initBackgroundElements() {
+      final random = math.Random();
+      _elements.clear();
+      
+      // Palette
+      final colors = [
+          const Color(0xFF00E5FF), // Cyan
+          const Color(0xFFD500F9), // Purple
+          const Color(0xFF00E676), // Green
+          const Color(0xFFFFEA00), // Yellow
+          const Color(0xFFFF1744), // Red
+      ];
+
+      for (int i = 0; i < 50; i++) {
+         bool isNumber = random.nextBool();
+         _elements.add(_BackgroundElement(
+             x: random.nextDouble(),
+             y: random.nextDouble(),
+             speed: 0.05 + random.nextDouble() * 0.1,
+             size: isNumber ? 12.0 + random.nextDouble() * 20 : 5.0 + random.nextDouble() * 15,
+             opacity: 0.1 + random.nextDouble() * 0.4,
+             color: colors[random.nextInt(colors.length)],
+             type: isNumber ? _BackgroundElementType.number : _BackgroundElementType.dot,
+             text: isNumber ? "${random.nextInt(10)}" : null
+         ));
+      }
+  }
+
+  void _updateBackground() {
+      for (var e in _elements) {
+          e.y -= e.speed * 0.002; 
+          if (e.y < -0.1) {
+              e.y = 1.1;
+              e.x = math.Random().nextDouble();
+          }
+      }
+  }
+
   @override
   void dispose() {
-    _dashController.dispose();
+    _pathController.dispose();
+    _bgController.dispose();
+    _scrollController.dispose();
     for (var c in _islandControllers) {
       c.dispose();
     }
@@ -65,174 +120,137 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
   }
 
   void _loadIslands() {
-      // 1. Color Island (Bottom - Index 0)
+      // 1. Color Island (Bottom)
       final island1 = IslandModel(
           id: "1",
-          name: "Color Island",
+          name: "COLOR REALM",
           backgroundImagePath: "assets/images/islands/color_island_bg.png",
           iconAssetPath: "assets/images/islands/color_island_icon.png",
-          primaryColor: Colors.deepPurpleAccent,
+          primaryColor: const Color(0xFF00E5FF), // Cyan Neon
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("1"),
           levels: List.generate(50, (i) => LevelModel(
-              id: i + 1,
-              assetPath: 'assets/images/levels/color_${i+1}.png',
-              starsEarned: GameDataManager().getStars("1", i+1),
+              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("1", i+1),
               isLocked: !GameDataManager().unlockAllLevels && (i > 0 && GameDataManager().getStars("1", i) == 0),
           )),
-          dotAssetPath: null,
       );
 
-      // 2. Number Island (Index 1)
+      // 2. Number Island
       final island2 = IslandModel(
           id: "2",
-          name: "Number Island",
+          name: "NUMBER NEXUS",
           backgroundImagePath: "assets/images/islands/number_island_bg.png",
           iconAssetPath: "assets/images/islands/number_island_icon.png",
-          primaryColor: Colors.blue,
+          primaryColor: const Color(0xFFD500F9), // Purple Neon
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("2"),
            levels: List.generate(50, (i) => LevelModel(
-              id: i + 1,
-              assetPath: 'assets/images/levels/number_${i+1}.png',
-              starsEarned: GameDataManager().getStars("2", i+1),
+              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("2", i+1),
               isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("2", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/number_dot.png",
       );
 
-      // 3. Operation Island (Index 2)
+      // 3. Operation Island
       final island3 = IslandModel(
           id: "3",
-          name: "Operation Island",
+          name: "LOGIC CORE", // Cooler name
           backgroundImagePath: "assets/images/islands/operation_island_bg.png",
           iconAssetPath: "assets/images/islands/operation_island_icon.png",
-          primaryColor: Colors.green,
+          primaryColor: const Color(0xFF00E676), // Green Neon
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("3"),
-          levels: List.generate(35, (i) => LevelModel(
-              id: i + 1,
-              assetPath: 'assets/images/levels/operation_${i+1}.png',
-              starsEarned: GameDataManager().getStars("3", i+1),
+          levels: List.generate(35, (i) => LevelModel( // Corrected to 35
+              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("3", i+1),
               isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("3", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/operation_dot.png",
       );
       
-      // 4. Ocean Island (Index 3)
+      // 4. Ocean Island
       final island4 = IslandModel(
           id: "4",
-          name: "Ocean Island",
+          name: "ABYSSAL ZONE",
           backgroundImagePath: "assets/images/islands/ocean_island_bg.png",
           iconAssetPath: "assets/images/islands/ocean_island_icon.png",
-          primaryColor: Colors.cyan,
+          primaryColor: const Color(0xFF2979FF), // Deep Blue Neon
           isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("4"),
           levels: List.generate(50, (i) => LevelModel(
-              id: i + 1,
-              assetPath: 'assets/images/levels/ocean_${i+1}.png',
-              starsEarned: GameDataManager().getStars("4", i+1),
+              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("4", i+1),
               isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("4", i) == 0)),
           )),
           dotAssetPath: "assets/images/dots/water_dot.png",
       );
 
       setState(() {
-          // Internal order: 0=Color ... 3=Ocean
           islands = [island1, island2, island3, island4];
       });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (islands.isEmpty) return const SizedBox(); // Safety check
+    if (islands.isEmpty) return const SizedBox();
 
-    final double totalContentHeight = islands.length * _nodeHeight + 100;
-
-    // Create a Listenable that merges all controllers so AnimatedBuilder rebuilds on any change
-    final List<Listenable> allAnimations = [_dashController, ..._islandControllers];
+    final double totalContentHeight = (islands.length * _nodeHeight) + 150;
 
     return Scaffold(
+      backgroundColor: const Color(0xFF1E1E2C), // Slightly Lighter Dark for Vibrancy
       body: Stack(
         children: [
-          const _ScrollingBackground(),
-
+          // 1. Dynamic Background
+          Positioned.fill(
+              child: AnimatedBuilder(
+                  animation: _bgController,
+                  builder: (context, child) => CustomPaint(
+                      painter: _InteractiveBackgroundPainter(elements: _elements),
+                  ),
+              ),
+          ),
+          
+          // 2. Main Content
           SafeArea(
               child: Column(
                   children: [
-                      // Top Bar
-                      Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                          child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                  GestureDetector(
-                                      onTap: () => Navigator.pop(context),
-                                      child: const Icon(Icons.arrow_back_ios, color: Colors.white),
-                                  ),
-                                  const Text(
-                                      "WORLD MAP",
-                                      style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 28,
-                                          fontFamily: 'Comic Sans MS',
-                                          fontWeight: FontWeight.bold,
-                                          shadows: [Shadow(color: Colors.black, blurRadius: 4, offset: Offset(2,2))]
-                                      ),
-                                  ),
-                                  Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                      decoration: BoxDecoration(
-                                          color: Colors.black54,
-                                          borderRadius: BorderRadius.circular(20)
-                                      ),
-                                      child: const Row(
-                                          children: [
-                                              Icon(Icons.star, color: Colors.amber, size: 20),
-                                              SizedBox(width: 4),
-                                              Text("0", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-                                          ],
-                                      ),
-                                  )
-                              ],
-                          ),
-                      ),
+                      // Header
+                      _buildHeader(),
                       
+                      // Scrollable World
                       Expanded(
                         child: SingleChildScrollView(
-                          reverse: true, // Scrolls to bottom initially (Color Island)
+                          controller: _scrollController,
+                          physics: const BouncingScrollPhysics(),
+                          reverse: true, // Start from bottom
                           child: SizedBox(
                             height: totalContentHeight,
                             child: AnimatedBuilder(
-                              animation: Listenable.merge(allAnimations),
+                              animation: Listenable.merge([_pathController, ..._islandControllers]),
                               builder: (context, child) {
-                                // Calculate current offsets for painting lines
-                                final List<double> currentOffsets = _islandControllers.map((c) {
-                                  // Map 0.0-1.0 to -15.0 to 15.0
-                                  final double t = Curves.easeInOut.transform(c.value);
-                                  return -15.0 + (t * 30.0); // Range -15 to +15
+                                // Calculate offsets for floating effect
+                                final List<double> floatOffsets = _islandControllers.map((c) {
+                                  final double t = Curves.easeInOutSine.transform(c.value);
+                                  return -10.0 + (t * 20.0);
                                 }).toList();
 
                                 return Stack(
                                   children: [
-                                    // 1. Path Painter
+                                    // Path Line
                                     Positioned.fill(
                                       child: CustomPaint(
-                                        painter: IslandPathPainter(
+                                        painter: _GlowingPathPainter(
                                           islands: islands,
                                           nodeHeight: _nodeHeight,
-                                          verticalOffsets: currentOffsets,
-                                          dashPhase: _dashController.value,
+                                          verticalOffsets: floatOffsets,
+                                          flowPhase: _pathController.value,
                                         ),
                                       ),
                                     ),
 
-                                    // 2. Island Nodes
+                                    // Island Nodes
                                     ...List.generate(islands.length, (index) {
                                       return Positioned(
-                                        top: totalContentHeight - ((index + 1) * _nodeHeight),
-                                        left: 0,
-                                        right: 0,
-                                        height: _nodeHeight,
+                                        bottom: 50 + (index * _nodeHeight), // Position from Bottom
+                                        left: 0, right: 0,
+                                        height: 240, // Card Height
                                         child: Transform.translate(
-                                          offset: Offset(0, currentOffsets[index]),
-                                          child: _buildIslandNode(islands[index], index),
+                                          offset: Offset(0, floatOffsets[index]),
+                                          child: _buildIslandPortal(islands[index], index),
                                         ),
                                       );
                                     }), 
@@ -251,243 +269,453 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
     );
   }
 
-  Widget _buildIslandNode(IslandModel island, int index) {
-      double alignX = 0;
-      if (index % 4 == 1) alignX = 0.6; // Right
-      if (index % 4 == 3) alignX = -0.6; // Left
+  Widget _buildHeader() {
+      // Total Stars
+      int totalStars = 0;
+      for (var island in islands) {
+          for (var level in island.levels) {
+              totalStars += level.starsEarned;
+          }
+      }
+
+      return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          child: Row(
+              mainAxisAlignment: MainAxisAlignment.end, // Align to right
+              children: [
+                  // Total Star Counter
+                  Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                          boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.1), blurRadius: 10)]
+                      ),
+                      child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                              const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 28),
+                              const SizedBox(width: 8),
+                              Text(
+                                  "$totalStars",
+                                  style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: 'Orbitron',
+                                      shadows: [Shadow(color: Color(0xFFFFD700), blurRadius: 10)]
+                                  ),
+                              )
+                          ],
+                      ),
+                  )
+              ],
+          ),
+      );
+  }
+
+  Widget _buildIslandPortal(IslandModel island, int index) {
+      // Zig-Zag Layout
+      double alignX = (index % 2 == 0) ? -0.2 : 0.2; 
       
-      double size = 120.0;
-      if (index == 0) size = 140.0; // Start island bigger
+      bool isLocked = island.isLocked;
+      int levelsCompleted = island.levels.where((l) => l.starsEarned > 0).length;
+      int totalLevels = island.levels.length;
+      
+      int starsEarnedInIsland = 0;
+      for (var l in island.levels) starsEarnedInIsland += l.starsEarned;
+      int totalStarsInIsland = totalLevels * 3;
 
       return Align(
           alignment: Alignment(alignX, 0),
           child: GestureDetector(
-            // Capture location of tap for zoom origin
-            onTapUp: (TapUpDetails details) async {
-                if (island.isLocked) return;
-
-                // 1. Get Screen Size
-                final Size screenSize = MediaQuery.of(context).size;
-                
-                // 2. Calculate Alignment relative to center of screen
-                // Alignment(0,0) is center. (-1,-1) is top left.
-                // Formula: (pos / size) * 2 - 1
-                final double relativeX = (details.globalPosition.dx / screenSize.width) * 2 - 1;
-                final double relativeY = (details.globalPosition.dy / screenSize.height) * 2 - 1;
-                
-                final Alignment tapAlignment = Alignment(relativeX, relativeY);
-
-                // 3. Navigate with Custom Transition
-                await Navigator.push(
-                  context,
-                  PageRouteBuilder(
-                    transitionDuration: const Duration(milliseconds: 1000), // Slightly slower for dramatic effect
-                    reverseTransitionDuration: const Duration(milliseconds: 800),
-                    pageBuilder: (context, animation, secondaryAnimation) => LevelSelectionScreen(island: island),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      // Quartic curve for "accelerating into" the world
-                      var curve = CurvedAnimation(parent: animation, curve: Curves.easeInOutQuart);
-                      
-                      return ScaleTransition(
-                        scale: Tween<double>(begin: 0.0, end: 1.0).animate(curve),
-                        alignment: tapAlignment, // KEY: Scale FROM the tap location
-                        child: FadeTransition(
-                          opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curve),
-                          child: child,
-                        ),
+            onTap: () {
+                 if (isLocked) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text("Complete previous islands to unlock ${island.name}"),
+                              backgroundColor: Colors.redAccent.withOpacity(0.8),
+                              behavior: SnackBarBehavior.floating,
+                          )
                       );
-                    },
-                  ),
-                );
-                _loadIslands();
+                      return;
+                 }
+                 _navigateToIsland(island);
             },
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                  Container(
-                      width: size,
-                      height: size,
-                      decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 10, offset: const Offset(0, 5))
-                          ]
-                      ),
-                      child: Stack(
-                          children: [
-                              ClipOval(
-                                  child: Image.asset(
-                                      island.iconAssetPath,
-                                      fit: BoxFit.cover,
-                                      width: size,
-                                      height: size,
-                                      errorBuilder: (_,__,___) => Container(
-                                          color: island.primaryColor,
-                                          child: Icon(Icons.terrain, color: Colors.white, size: size/2),
-                                      ),
-                                  ),
-                              ),
-                              if (island.isLocked)
-                                  Container(
-                                      decoration: BoxDecoration(
-                                          color: Colors.black.withOpacity(0.6),
-                                          shape: BoxShape.circle,
-                                      ),
-                                      child: Center(
-                                          child: Icon(Icons.lock, color: Colors.white70, size: size * 0.4),
-                                      ),
-                                  ),
-                          ],
-                      ),
-                  ),
-              ],
+            child: Container(
+                width: 240, // Slightly wider for stats
+                margin: const EdgeInsets.symmetric(horizontal: 20),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: [
+                         // Main Glow
+                         BoxShadow(
+                             color: island.primaryColor.withOpacity(isLocked ? 0.0 : 0.4),
+                             blurRadius: 30,
+                             offset: const Offset(0, 10),
+                         )
+                    ]
+                ),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(30),
+                    child: BackdropFilter(
+                        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                            decoration: BoxDecoration(
+                                color: const Color(0xFF1A1F2B).withOpacity(0.8),
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(
+                                    color: isLocked 
+                                        ? Colors.white.withOpacity(0.1) 
+                                        : island.primaryColor.withOpacity(0.5),
+                                    width: 1.5
+                                ),
+                                gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                        Colors.white.withOpacity(0.1),
+                                        Colors.white.withOpacity(0.05),
+                                    ]
+                                )
+                            ),
+                            child: Stack(
+                                children: [
+                                    // 1. Icon / Image
+                                    Positioned.fill(
+                                        child: Padding(
+                                            padding: const EdgeInsets.all(20.0),
+                                            child: Opacity(
+                                                opacity: isLocked ? 0.3 : 0.8,
+                                                child: Image.asset(island.iconAssetPath, fit: BoxFit.contain)
+                                            ),
+                                        ),
+                                    ),
+                                    
+                                    // 2. Info Overlay (Bottom)
+                                    Positioned(
+                                        bottom: 0, left: 0, right: 0,
+                                        child: Container(
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                        Colors.transparent,
+                                                        Colors.black.withOpacity(0.95),
+                                                    ]
+                                                )
+                                            ),
+                                            child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                    Text(
+                                                        island.name,
+                                                        style: TextStyle(
+                                                            color: isLocked ? Colors.grey : Colors.white,
+                                                            fontFamily: 'Orbitron', 
+                                                            fontWeight: FontWeight.bold,
+                                                            fontSize: 15,
+                                                            letterSpacing: 1.0,
+                                                            shadows: isLocked ? [] : [Shadow(color: island.primaryColor, blurRadius: 8)]
+                                                        ),
+                                                    ),
+                                                    const SizedBox(height: 8),
+                                                    // Stats Row
+                                                    Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                        children: [
+                                                            // Level Progress
+                                                            Row(
+                                                                children: [
+                                                                    Icon(Icons.layers, color: Colors.white70, size: 16),
+                                                                    const SizedBox(width: 4),
+                                                                    Text(
+                                                                        "$levelsCompleted/$totalLevels",
+                                                                        style: TextStyle(
+                                                                            color: Colors.white.withOpacity(0.9),
+                                                                            fontSize: 13,
+                                                                            fontWeight: FontWeight.w600
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            ),
+                                                            
+                                                            // Star Progress
+                                                            Row(
+                                                                children: [
+                                                                    const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 16),
+                                                                    const SizedBox(width: 4),
+                                                                    Text(
+                                                                        "$starsEarnedInIsland/$totalStarsInIsland",
+                                                                        style: TextStyle(
+                                                                            color: const Color(0xFFFFD700),
+                                                                            fontSize: 13,
+                                                                            fontWeight: FontWeight.w600
+                                                                        ),
+                                                                    ),
+                                                                ],
+                                                            )
+                                                        ],
+                                                    ),
+                                                    const SizedBox(height: 6),
+                                                    // Progress Bar
+                                                    ClipRRect(
+                                                        borderRadius: BorderRadius.circular(4),
+                                                        child: LinearProgressIndicator(
+                                                            value: totalLevels > 0 ? levelsCompleted / totalLevels : 0,
+                                                            backgroundColor: Colors.white10,
+                                                            valueColor: AlwaysStoppedAnimation(
+                                                                isLocked ? Colors.grey : island.primaryColor
+                                                            ),
+                                                            minHeight: 4,
+                                                        ),
+                                                    ),
+                                                ],
+                                            ),
+                                        ),
+                                    ),
+
+                                    // 3. Lock Icon
+                                    if (isLocked)
+                                        Center(
+                                            child: Container(
+                                                padding: const EdgeInsets.all(12),
+                                                decoration: BoxDecoration(
+                                                    color: Colors.black54,
+                                                    shape: BoxShape.circle,
+                                                    border: Border.all(color: Colors.white24)
+                                                ),
+                                                child: const Icon(Icons.lock_rounded, color: Colors.white54, size: 32),
+                                            ),
+                                        ),
+                                ],
+                            ),
+                        ),
+                    ),
+                ),
             ),
           ),
       );
   }
+
+  Future<void> _navigateToIsland(IslandModel island) async {
+      await Navigator.push(
+          context,
+          PageRouteBuilder(
+              pageBuilder: (_,__,___) => LevelSelectionScreen(island: island),
+              transitionsBuilder: (context, anim, secAnim, child) {
+                   return FadeTransition(opacity: anim, child: child);
+              }
+          )
+      );
+      
+      // Refresh data when returning from level selection logic
+      if (mounted) {
+           _loadIslands();
+      }
+  }
 }
 
-class IslandPathPainter extends CustomPainter {
+
+// --- PAINTERS & MODELS ---
+
+enum _BackgroundElementType {
+   dot,
+   number
+}
+
+class _BackgroundElement {
+    double x, y, speed, size, opacity;
+    Color color;
+    _BackgroundElementType type;
+    String? text; // For number type
+
+    _BackgroundElement({
+        required this.x, 
+        required this.y, 
+        required this.speed, 
+        required this.size, 
+        required this.opacity,
+        required this.color,
+        required this.type,
+        this.text
+    });
+}
+
+class _InteractiveBackgroundPainter extends CustomPainter {
+    final List<_BackgroundElement> elements;
+    _InteractiveBackgroundPainter({required this.elements});
+
+    @override
+    void paint(Canvas canvas, Size size) {
+        // Dark but neutral background
+        final Rect rect = Offset.zero & size;
+        final Paint bgPaint = Paint()
+           ..shader = const LinearGradient(
+               begin: Alignment.topCenter,
+               end: Alignment.bottomCenter,
+               colors: [
+                   Color(0xFF121212), // Almost black
+                   Color(0xFF1E1E2C), // Dark Grey-Blue
+               ]
+           ).createShader(rect);
+        
+        canvas.drawRect(rect, bgPaint);
+
+        for (var e in elements) {
+             if (e.type == _BackgroundElementType.dot) {
+                 // Draw Colored Glow Dot
+                 final paint = Paint()
+                    ..color = e.color.withOpacity(e.opacity * 0.8) // Slightly more subtle
+                    ..style = PaintingStyle.fill
+                    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 15);
+                 
+                 canvas.drawCircle(
+                     Offset(e.x * size.width, e.y * size.height), 
+                     e.size, 
+                     paint
+                 );
+             } else {
+                 // Draw Number with Glow
+                 final textSpan = TextSpan(
+                     text: e.text,
+                     style: TextStyle(
+                         color: e.color.withOpacity(e.opacity),
+                         fontSize: e.size,
+                         fontWeight: FontWeight.bold,
+                         fontFamily: 'Orbitron',
+                         shadows: [
+                             Shadow(
+                                 color: e.color.withOpacity(e.opacity * 0.8),
+                                 blurRadius: 15,
+                                 offset: const Offset(0, 0)
+                             )
+                         ]
+                     )
+                 );
+                 final textPainter = TextPainter(
+                     text: textSpan,
+                     textDirection: TextDirection.ltr,
+                 );
+                 textPainter.layout();
+                 textPainter.paint(
+                     canvas, 
+                     Offset(
+                         (e.x * size.width) - (textPainter.width / 2), 
+                         (e.y * size.height) - (textPainter.height / 2)
+                     )
+                 );
+             }
+        }
+    }
+
+    @override
+    bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class _GlowingPathPainter extends CustomPainter {
   final List<IslandModel> islands;
   final double nodeHeight;
   final List<double> verticalOffsets;
-  final double dashPhase;
+  final double flowPhase;
 
-  IslandPathPainter({
+  _GlowingPathPainter({
     required this.islands,
     required this.nodeHeight,
     required this.verticalOffsets,
-    required this.dashPhase,
+    required this.flowPhase,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     if (islands.isEmpty) return;
 
-    final paint = Paint()
-      ..color = Colors.white.withOpacity(0.7) // Increased opacity for visibility
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 6 // Thicker line
-      ..strokeCap = StrokeCap.round;
-
-    // Helper to get center offset for index
+    // Helper to get center offset for index (Matches Widget Logic)
     Offset getCenter(int index) {
-      // Logic must match _buildIslandNode alignment
-      double alignX = 0;
-      if (index % 4 == 1) alignX = 0.6; // Right
-      if (index % 4 == 3) alignX = -0.6; // Left
-
-      // alignX is -1.0 to 1.0 mapping to 0 to size.width
-      // Center (0) -> size.width / 2
-      double x = size.width / 2 + (alignX * size.width / 2);
-
-      // Y Position
-      // In stack: top = totalContentHeight - ((index + 1) * _nodeHeight)
-      // Center of that node block is top + nodeHeight / 2
-      double totalH = size.height;
-      double top = totalH - ((index + 1) * nodeHeight);
-      double y = top + nodeHeight / 2;
+      double alignX = (index % 2 == 0) ? -0.2 : 0.2; // -1.0 to 1.0 range relative to center
       
-      // Apply the dynamic animation offset!
-      y += verticalOffsets.length > index ? verticalOffsets[index] : 0.0;
+      // Map -1..1 to screen coordinates
+      // 0 -> size.width/2
+      // -0.2 -> size.width/2 - (0.2 * size.width/2)
+      double wHalf = size.width / 2;
+      double x = wHalf + (alignX * wHalf);
+
+      // Y Position (From Bottom)
+      // bottom: 50 + (index * _nodeHeight)
+      // center Y is roughly: size.height - (50 + index*_nodeHeight + cardHeight/2)
+      double cardH = 240;
+      double bottomY = 50 + (index * nodeHeight);
+      double y = size.height - (bottomY + cardH / 2);
+      
+      // Apply float offset
+      y -= verticalOffsets.length > index ? verticalOffsets[index] : 0.0;
       
       return Offset(x, y);
     }
 
-    // Draw paths between i and i+1
+    // Paint Styles
+    final activeGlowPaint = Paint()
+       ..style = PaintingStyle.stroke
+       ..strokeWidth = 8.0
+       ..strokeCap = StrokeCap.round
+       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+
+    final linePaint = Paint()
+       ..style = PaintingStyle.stroke
+       ..strokeWidth = 3.0
+       ..strokeCap = StrokeCap.round;
+
     for (int i = 0; i < islands.length - 1; i++) {
-      final p1 = getCenter(i);
-      final p2 = getCenter(i + 1);
+        final p1 = getCenter(i);
+        final p2 = getCenter(i + 1);
+        final bool isUnlocked = !islands[i+1].isLocked; // Connection is lit if next island is reached
 
-      final path = Path();
-      path.moveTo(p1.dx, p1.dy);
+        final path = Path();
+        path.moveTo(p1.dx, p1.dy);
+        
+        double cpY = (p1.dy + p2.dy) / 2;
+        path.cubicTo(p1.dx, cpY, p2.dx, cpY, p2.dx, p2.dy);
 
-      // Simple S-curve implementation
-      double cpY = (p1.dy + p2.dy) / 2;
-      path.cubicTo(p1.dx, cpY, p2.dx, cpY, p2.dx, p2.dy);
-      
-      // Draw animated dashed line
-      // dashPhase is 0.0 to 1.0. We multiply by dash+space (20+15=35) to shift it 1 full cycle
-      _drawDashedPath(canvas, path, 20, 15, paint, dashPhase * 35.0);
+        // Color
+        Color color = isUnlocked ? islands[i+1].primaryColor : Colors.grey.withOpacity(0.3);
+
+        if (isUnlocked) {
+           // Glow
+           activeGlowPaint.color = color.withOpacity(0.6);
+           canvas.drawPath(path, activeGlowPaint);
+           
+           // Core Line with Flow
+           linePaint.shader = ui.Gradient.linear(
+               p1, p2,
+               [color, Colors.white, color],
+               [0.0, flowPhase, 1.0], // Animate gradient
+               TileMode.mirror
+           );
+           canvas.drawPath(path, linePaint);
+        } else {
+           // Dashed line for locked
+           linePaint.shader = null;
+           linePaint.color = Colors.white.withOpacity(0.1);
+           _drawDashedPath(canvas, path, 10, 10, linePaint);
+        }
     }
   }
-  
-  void _drawDashedPath(Canvas canvas, Path path, double dashWidth, double dashSpace, Paint paint, double phaseOffset) {
+
+  void _drawDashedPath(Canvas canvas, Path path, double dashWidth, double dashSpace, Paint paint) {
     final ui.PathMetrics pathMetrics = path.computeMetrics();
     for (ui.PathMetric pathMetric in pathMetrics) {
       double distance = 0.0;
-      // Subtract phaseOffset to move 'forward' (or add to move backward)
-      // We start at -phaseOffset to ensure the first dash slides in from "outside"
-      distance -= phaseOffset; 
-      
       while (distance < pathMetric.length) {
-        double start = distance;
-        double end = distance + dashWidth;
-        
-        // Handle visible segments only
-        if (end > 0 && start < pathMetric.length) {
-            // Clamp
-            double drawStart = start < 0 ? 0 : start;
-            double drawEnd = end > pathMetric.length ? pathMetric.length : end;
-            
-            // Only draw if valid range
-            if (drawEnd > drawStart) {
-               canvas.drawPath(pathMetric.extractPath(drawStart, drawEnd), paint);
-            }
-        }
-        
-        distance += dashWidth + dashSpace;
+         canvas.drawPath(pathMetric.extractPath(distance, distance + dashWidth), paint);
+         distance += dashWidth + dashSpace;
       }
     }
   }
 
   @override
-  bool shouldRepaint(covariant IslandPathPainter oldDelegate) {
-     return true; // Always repaint as we are animating
-  }
+  bool shouldRepaint(covariant _GlowingPathPainter old) => true;
 }
 
-class _ScrollingBackground extends StatefulWidget {
-  const _ScrollingBackground();
-
-  @override
-  State<_ScrollingBackground> createState() => _ScrollingBackgroundState();
-}
-
-class _ScrollingBackgroundState extends State<_ScrollingBackground> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    // Very slow continuous scroll (Ping Pong for simplicity and smoothness without seams)
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 30))..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        return Container(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: const AssetImage("assets/images/general_islands_bg.jpg"),
-              fit: BoxFit.cover,
-              // Pan from -0.1 to 0.1? Or slightly more.
-              // Alignment(0,0) is center. Alignment(1,0) is right edge.
-              // We want a slow drift.
-              alignment: Alignment(_controller.value * 0.3 - 0.15, 0), 
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
