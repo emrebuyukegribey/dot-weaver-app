@@ -5,7 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../models/island_model.dart';
 import '../models/level_model.dart';
 import '../services/game_data_manager.dart';
+import '../widgets/ad_banner.dart';
 import 'level_selection_screen.dart';
+import 'settings_screen.dart';
 
 class WorldMapScreen extends StatefulWidget {
   const WorldMapScreen({super.key});
@@ -56,16 +58,18 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           );
       }
 
+      final data = GameDataManager();
+
       final island1 = IslandModel(
           id: "1",
           name: "COLOR REALM",
           backgroundImagePath: "assets/images/islands/color_island_bg.png",
           iconAssetPath: "assets/images/islands/color_island_icon.png",
           primaryColor: const Color(0xFF00E5FF),
-          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("1"),
+          isLocked: !data.isIslandUnlocked("1"),
           levels: List.generate(50, (i) => LevelModel(
-              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("1", i+1),
-              isLocked: !GameDataManager().unlockAllLevels && (i > 0 && GameDataManager().getStars("1", i) == 0),
+              id: i + 1, assetPath: '', starsEarned: data.getStars("1", i+1),
+              isLocked: !data.isLevelUnlocked("1", i + 1),
           )),
       );
 
@@ -75,10 +79,10 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/number_island_bg.png",
           iconAssetPath: "assets/images/islands/number_island_icon.png",
           primaryColor: const Color(0xFFD500F9),
-          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("2"),
+          isLocked: !data.isIslandUnlocked("2"),
            levels: List.generate(50, (i) => LevelModel(
-              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("2", i+1),
-              isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("2", i) == 0)),
+              id: i + 1, assetPath: '', starsEarned: data.getStars("2", i+1),
+              isLocked: !data.isLevelUnlocked("2", i + 1),
           )),
           dotAssetPath: "assets/images/dots/number_dot.png",
       );
@@ -89,16 +93,27 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           backgroundImagePath: "assets/images/islands/operation_island_bg.png",
           iconAssetPath: "assets/images/islands/operation_island_icon.png",
           primaryColor: const Color(0xFF00E676),
-          isLocked: !GameDataManager().unlockAllLevels && !GameDataManager().isIslandUnlocked("3"),
-          levels: List.generate(35, (i) => LevelModel( 
-              id: i + 1, assetPath: '', starsEarned: GameDataManager().getStars("3", i+1),
-              isLocked: GameDataManager().unlockAllLevels ? false : (i == 0 ? false : (GameDataManager().getStars("3", i) == 0)),
+          isLocked: !data.isIslandUnlocked("3"),
+          levels: List.generate(35, (i) => LevelModel(
+              id: i + 1, assetPath: '', starsEarned: data.getStars("3", i+1),
+              isLocked: !data.isLevelUnlocked("3", i + 1),
           )),
           dotAssetPath: "assets/images/dots/operation_dot.png",
       );
 
+      // Ocean is a "coming soon" island: always locked and has no levels yet.
+      final island4 = IslandModel(
+          id: "4",
+          name: "OCEAN DEPTHS",
+          backgroundImagePath: "assets/images/islands/ocean_island_bg.png",
+          iconAssetPath: "assets/images/islands/ocean_island_icon.png",
+          primaryColor: const Color(0xFF18B6FF),
+          isLocked: true,
+          levels: const [],
+      );
+
       setState(() {
-          islands = [island1, island2, island3]; 
+          islands = [island1, island2, island3, island4];
       });
   }
 
@@ -188,6 +203,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                           ),
                         ),
                       ),
+                      const Center(child: AdBanner()),
                   ],
               ),
           ),
@@ -204,52 +220,75 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
 
       return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                  // Simplified, Premium Look: White Text + Neon Glow
-                  Text(
-                    "LUMINA PATH",
-                    style: GoogleFonts.orbitron(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2.0,
-                      color: Colors.white,
-                      shadows: [
-                           // Core Glow
-                           Shadow(color: Colors.cyanAccent.withOpacity(0.8), blurRadius: 15),
-                           // Outer Atmosphere
-                           Shadow(color: Colors.blue.withOpacity(0.5), blurRadius: 30),
-                      ]
-                    ),
+                  // Star count (left) and settings (right) on the top row.
+                  Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                          Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.6), 
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                                  boxShadow: [
+                                     BoxShadow(color: Colors.amber.withValues(alpha: 0.2), blurRadius: 10)
+                                  ]
+                              ),
+                              child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                      const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 28),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                          "$totalStars",
+                                          style: GoogleFonts.orbitron(
+                                              color: Colors.white,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                          ),
+                                      )
+                                  ],
+                              ),
+                          ),
+                          GestureDetector(
+                              onTap: () {
+                                  Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                                  );
+                              },
+                              child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.6),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                                  ),
+                                  child: const Icon(Icons.settings_rounded, color: Colors.white, size: 24),
+                              ),
+                          ),
+                      ],
                   ),
-
-                  Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6), 
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: Colors.white.withOpacity(0.3)),
-                          boxShadow: [
-                             BoxShadow(color: Colors.amber.withOpacity(0.2), blurRadius: 10)
+                  const SizedBox(height: 12),
+                  // Centered title with neon glow, below the icons row.
+                  Text(
+                      "LUMINA PATH",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.orbitron(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2.0,
+                          color: Colors.white,
+                          shadows: [
+                               // Core Glow
+                               Shadow(color: Colors.cyanAccent.withValues(alpha: 0.8), blurRadius: 15),
+                               // Outer Atmosphere
+                               Shadow(color: Colors.blue.withValues(alpha: 0.5), blurRadius: 30),
                           ]
                       ),
-                      child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                              const Icon(Icons.star_rounded, color: Color(0xFFFFD700), size: 28),
-                              const SizedBox(width: 8),
-                              Text(
-                                  "$totalStars",
-                                  style: GoogleFonts.orbitron(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                  ),
-                              )
-                          ],
-                      ),
-                  )
+                  ),
               ],
           ),
       );
@@ -259,6 +298,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       double alignX = (index % 2 == 0) ? -0.2 : 0.2; 
       
       bool isLocked = island.isLocked;
+      final bool comingSoon = island.levels.isEmpty;
       int levelsCompleted = island.levels.where((l) => l.starsEarned > 0).length;
       int totalLevels = island.levels.length;
       
@@ -270,11 +310,24 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           alignment: Alignment(alignX, 0),
           child: GestureDetector(
             onTap: () {
-                 if (isLocked) {
+                 if (comingSoon) {
                       ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                              content: Text("Complete previous islands to unlock ${island.name}"),
-                              backgroundColor: Colors.redAccent.withOpacity(0.8),
+                              content: Text("${island.name} is coming soon!"),
+                              backgroundColor: Colors.blueAccent.withValues(alpha: 0.85),
+                              behavior: SnackBarBehavior.floating,
+                          )
+                      );
+                      return;
+                 }
+                 if (isLocked) {
+                      final needed = GameDataManager().levelsRequiredToUnlock(island.id);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(needed > 0
+                                  ? "Complete $needed more level(s) to unlock ${island.name}"
+                                  : "Complete previous islands to unlock ${island.name}"),
+                              backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
                               behavior: SnackBarBehavior.floating,
                           )
                       );
@@ -290,7 +343,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                     borderRadius: BorderRadius.circular(30),
                     boxShadow: [
                          BoxShadow(
-                             color: island.primaryColor.withOpacity(isLocked ? 0.0 : 0.3),
+                             color: island.primaryColor.withValues(alpha: isLocked ? 0.0 : 0.3),
                              blurRadius: 20,
                              offset: const Offset(0, 8),
                          )
@@ -304,16 +357,28 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                             decoration: BoxDecoration(
                                 color: Colors.transparent, 
                                 borderRadius: BorderRadius.circular(30),
+                                gradient: comingSoon
+                                    ? LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                            island.primaryColor.withValues(alpha: 0.25),
+                                            Colors.black.withValues(alpha: 0.7),
+                                        ],
+                                      )
+                                    : null,
                                 border: Border.all(
                                     color: isLocked 
-                                        ? Colors.white.withOpacity(0.1) 
-                                        : island.primaryColor.withOpacity(0.5),
+                                        ? Colors.white.withValues(alpha: 0.1) 
+                                        : island.primaryColor.withValues(alpha: 0.5),
                                     width: 1.0
                                 ),
-                                image: DecorationImage(
-                                    image: AssetImage(island.backgroundImagePath),
-                                    fit: BoxFit.cover,
-                                ),
+                                image: comingSoon
+                                    ? null
+                                    : DecorationImage(
+                                        image: AssetImage(island.backgroundImagePath),
+                                        fit: BoxFit.cover,
+                                    ),
                             ),
                             child: Stack(
                                 children: [
@@ -349,12 +414,41 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                                       Shadow(offset: Offset(1.5, 1.5), color: Colors.black),
                                                       Shadow(offset: Offset(-1.5, 1.5), color: Colors.black),
                                                       // Glow
-                                                      Shadow(color: Colors.black.withOpacity(0.8), blurRadius: 10),
+                                                      Shadow(color: Colors.black.withValues(alpha: 0.8), blurRadius: 10),
                                                   ]
                                               ),
                                           ),
                                         ),
                                     ),
+
+                                    // Lock overlay for locked (not coming-soon) islands
+                                    if (isLocked && !comingSoon)
+                                        Positioned.fill(
+                                            child: Container(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.black.withValues(alpha: 0.55),
+                                                    borderRadius: BorderRadius.circular(30),
+                                                ),
+                                                child: Center(
+                                                    child: Column(
+                                                        mainAxisSize: MainAxisSize.min,
+                                                        children: [
+                                                            const Icon(Icons.lock_rounded, color: Colors.white, size: 44),
+                                                            const SizedBox(height: 8),
+                                                            Text(
+                                                                "LOCKED",
+                                                                style: GoogleFonts.orbitron(
+                                                                    color: Colors.white,
+                                                                    fontSize: 14,
+                                                                    letterSpacing: 2,
+                                                                    fontWeight: FontWeight.bold,
+                                                                ),
+                                                            ),
+                                                        ],
+                                                    ),
+                                                ),
+                                            ),
+                                        ),
 
                                     // Stats Info (Bottom)
                                     Positioned(
@@ -362,10 +456,27 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                         child: Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                             decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.5), 
-                                                border: Border(top: BorderSide(color: Colors.white.withOpacity(0.1)))
+                                                color: Colors.black.withValues(alpha: 0.5), 
+                                                border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1)))
                                             ),
-                                            child: Row(
+                                            child: comingSoon
+                                                ? Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                        const Icon(Icons.lock_clock, color: Colors.white70, size: 18),
+                                                        const SizedBox(width: 8),
+                                                        Text(
+                                                            "COMING SOON",
+                                                            style: GoogleFonts.orbitron(
+                                                                color: Colors.white,
+                                                                fontSize: 14,
+                                                                letterSpacing: 1.5,
+                                                                fontWeight: FontWeight.bold,
+                                                            ),
+                                                        ),
+                                                    ],
+                                                  )
+                                                : Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                                 children: [
                                                     Column(
@@ -478,10 +589,10 @@ class _GlowingPathPainter extends CustomPainter {
         double cpY = (p1.dy + p2.dy) / 2;
         path.cubicTo(p1.dx, cpY, p2.dx, cpY, p2.dx, p2.dy);
 
-        Color color = isUnlocked ? islands[i+1].primaryColor : Colors.grey.withOpacity(0.3);
+        Color color = isUnlocked ? islands[i+1].primaryColor : Colors.grey.withValues(alpha: 0.3);
 
         if (isUnlocked) {
-           activeGlowPaint.color = color.withOpacity(0.6);
+           activeGlowPaint.color = color.withValues(alpha: 0.6);
            canvas.drawPath(path, activeGlowPaint);
            
            linePaint.shader = ui.Gradient.linear(
@@ -493,7 +604,7 @@ class _GlowingPathPainter extends CustomPainter {
            canvas.drawPath(path, linePaint);
         } else {
            linePaint.shader = null;
-           linePaint.color = Colors.white.withOpacity(0.1);
+           linePaint.color = Colors.white.withValues(alpha: 0.1);
            _drawDashedPath(canvas, path, 10, 10, linePaint);
         }
     }

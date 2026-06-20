@@ -783,7 +783,6 @@ class LevelGenerator {
     return generateColorLevel(levelId);
   }
   static GameLevel generateColorLevel(int levelId) {
-    final List<DotColor> colors = levelConfigs[levelId] ?? [DotColor.red, DotColor.blue];
     final Map<DotColor, List<GridPoint>> positions = {};
     // y x
     if (levelId == 1) {
@@ -1041,13 +1040,13 @@ class LevelGenerator {
       positions[DotColor.pink] = [const GridPoint(5, 3), const GridPoint(5, 5)];
       positions[DotColor.yellow] = [const GridPoint(6, 3), const GridPoint(6, 5)];
     } else if (levelId == 46) {
-      positions[DotColor.teal] = [const GridPoint(0, 0), const GridPoint(6, 0)];
-      positions[DotColor.red]  = [const GridPoint(0, 8), const GridPoint(6, 8)];
-      positions[DotColor.orange] = [const GridPoint(0, 2), const GridPoint(6, 2)];
-      positions[DotColor.purple] = [const GridPoint(0, 6), const GridPoint(6, 6)];
-      positions[DotColor.blue]   = [const GridPoint(1, 3), const GridPoint(1, 5)];
-      positions[DotColor.yellow] = [const GridPoint(5, 3), const GridPoint(5, 5)];
-      positions[DotColor.pink] = [const GridPoint(3, 1), const GridPoint(3, 7)];
+      // Revised: previous layout left rows 7-8 uncoverable (unsolvable).
+      // This S-band tiling fills the whole 9x9 board.
+      positions[DotColor.red]    = [const GridPoint(0, 0), const GridPoint(1, 0)];
+      positions[DotColor.blue]   = [const GridPoint(2, 0), const GridPoint(3, 0)];
+      positions[DotColor.green]  = [const GridPoint(4, 0), const GridPoint(5, 0)];
+      positions[DotColor.yellow] = [const GridPoint(6, 0), const GridPoint(7, 0)];
+      positions[DotColor.purple] = [const GridPoint(8, 0), const GridPoint(8, 8)];
     } else if (levelId == 47) {
       positions[DotColor.blue] = [const GridPoint(0, 0), const GridPoint(1, 1)];
       positions[DotColor.purple] = [const GridPoint(4, 0), const GridPoint(5, 0)];
@@ -1631,7 +1630,7 @@ class LevelGenerator {
             startNode: const GridPoint(1, 1),
             startValue: 10,
             targetNode: const GridPoint(1, 0),
-            targetValue: 48,
+            targetValue: 72,
             operations: {
                 const GridPoint(0, 0): const OperationCell(type: OperationType.add, operand: 12),
                 const GridPoint(0, 1): const OperationCell(type: OperationType.subtract, operand: 8),
@@ -2292,13 +2291,11 @@ class LevelGenerator {
         },
       );
     } else if (levelId == 35) {
-      // Level 35: 5x5 The Ultimate Journey
-      // Start: (4,0)=30, Target: (0,4)=180
-      // Solution: (4,0)=30 → (4,1)+20=50 → (4,2)×4=200 → (4,3)-100=100 → (4,4)÷2=50 
-      // → (3,4)×3=150 → (3,3)-50=100 → (3,2)+40=140 → (3,1)÷2=70 → (3,0)×2=140 
-      // → (2,0)-60=80 → (2,1)+40=120 → (1,1)÷4=30 → (1,0)×6=180 → (0,0)-100=80 
-      // → (0,1)+40=120 → (2,2)÷2=60 → (2,3)×3=180 → (2,4)-100=80 → (1,4)+60=140 
-      // → (1,3)÷2=70 → (1,2)×2=140 → (0,2)+40=180 → (0,3)÷4=45 → (0,4)×4=180 ✓
+      // Level 35: 5x5 The Ultimate Journey.
+      // Start: (4,0)=30, Target: (0,4) reaching value 112.
+      // Solver-verified solvable (see test/level_validation_test.dart). A full
+      // Hamiltonian path from start to target evaluates to targetValue using the
+      // operations map below.
       return GameLevel(
         id: levelId,
         rows: 5,

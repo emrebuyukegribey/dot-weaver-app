@@ -5,6 +5,7 @@ import '../models/level_model.dart';
 import '../models/game_level_model.dart'; // Ensure DotColor is imported
 import '../models/island_model.dart';
 import '../services/game_data_manager.dart';
+import '../widgets/ad_banner.dart';
 import 'game_screen.dart';
 import '../services/level_generator.dart';
 import '../../main.dart'; // for routeObserver
@@ -188,7 +189,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               id: i + 1,
               assetPath: widget.island.levels[i].assetPath,
               starsEarned: GameDataManager().getStars(widget.island.id, i+1),
-              isLocked: !GameDataManager().unlockAllLevels && (i > 0 && GameDataManager().getStars(widget.island.id, i) == 0),
+              isLocked: !GameDataManager().isLevelUnlocked(widget.island.id, i + 1),
           ));
       });
   }
@@ -210,8 +211,6 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   Widget build(BuildContext context) {
     int starsObtained = _levels.fold(0, (sum, level) => sum + level.starsEarned);
     
-    // Calculate Visible Range
-    int lastUnlockedIndex = GameDataManager().getLastUnlockedLevelIndex(widget.island.id, _levels.length);
     // Show all levels (User requested to not hide locked levels)
     int visibleCount = _levels.length;
     
@@ -220,6 +219,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     final double totalHeight = 100 + (visibleCount * 120.0) + 50.0;
 
     return Scaffold(
+      bottomNavigationBar: const AdBanner(),
       body: LayoutBuilder(
         builder: (context, constraints) {
           final double screenWidth = constraints.maxWidth;
@@ -236,7 +236,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                   gradient: widget.island.backgroundImagePath.contains('assets') ? null : RadialGradient(
                     center: Alignment.center,
                     radius: 1.2,
-                    colors: [widget.island.primaryColor.withOpacity(0.8), Colors.black],
+                    colors: [widget.island.primaryColor.withValues(alpha: 0.8), Colors.black],
                   ),
                 ),
                  child: Stack(
@@ -253,7 +253,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                          // Blur
                          BackdropFilter(
                              filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Increased blur for softer look
-                             child: Container(color: Colors.black.withOpacity(0.3)),
+                             child: Container(color: Colors.black.withValues(alpha: 0.3)),
                          ),
                      ],
                  ), 
@@ -286,7 +286,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                                           // 3D Depth
                                           BoxShadow(color: Colors.black, offset: const Offset(0, 4), blurRadius: 0),
                                           // Inner shine (simulated)
-                                          BoxShadow(color: Colors.white.withOpacity(0.5), offset: const Offset(0, -2), blurRadius: 0, spreadRadius: -2)
+                                          BoxShadow(color: Colors.white.withValues(alpha: 0.5), offset: const Offset(0, -2), blurRadius: 0, spreadRadius: -2)
                                       ]
                                   ),
                                   child: const Center(
@@ -358,10 +358,10 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10), // Larger padding
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.white.withOpacity(0.2), width: 2), // Thicker border
-        boxShadow: [BoxShadow(color: color.withOpacity(0.3), blurRadius: 15, spreadRadius: 2)] // Glow
+        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 2), // Thicker border
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.3), blurRadius: 15, spreadRadius: 2)] // Glow
       ),
       child: Row(
           children: [
@@ -381,36 +381,9 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
     );
   }
 
-  Color _getNeonColor(DotColor color) {
-      switch (color) {
-          case DotColor.red: return const Color(0xFFFF1744); // Neon Red
-          case DotColor.blue: return const Color(0xFF00E5FF); // Neon Cyan/Blue
-          case DotColor.green: return const Color(0xFF00E676); // Neon Green
-          case DotColor.yellow: return const Color(0xFFFFEA00); // Neon Yellow
-          case DotColor.orange: return const Color(0xFFFF9100); // Neon Orange
-          case DotColor.purple: return const Color(0xFFD500F9); // Neon Purple
-          default: return const Color(0xFF00E5FF);
-      }
-  }
-
   Widget _buildLevelButton(LevelModel level, int index) {
       const double size = 80.0;
-      
-      // Look up colors for this level
-      final List<DotColor> dotColors = LevelGenerator.levelConfigs[level.id] ?? [DotColor.red, DotColor.blue];
-      
-      // COLOR SELECTION LOGIC:
-      // Choose a background color that CONSTRASTS with the dots inside.
-      // We prefer cool/dark colors for backgrounds if possible, but neon is key.
-      const List<DotColor> candidates = [
-          DotColor.purple, // Best contrast usually
-          DotColor.blue,
-          DotColor.green,
-          DotColor.orange,
-          DotColor.red, 
-          DotColor.yellow
-      ];
-      
+
       // Island-specific color scheme
       final Color themeColor = widget.island.id == "2" || widget.island.name.contains("Number")
           ? const Color(0xFFAB47BC) // Purple for Number Island
@@ -426,15 +399,15 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
               shape: BoxShape.circle,
               // Subtle Border
               border: Border.all(
-                  color: isLocked ? const Color(0xFF455A64) : Colors.white.withOpacity(0.5), 
+                  color: isLocked ? const Color(0xFF455A64) : Colors.white.withValues(alpha: 0.5), 
                   width: 2
               ),
               boxShadow: [
                   // Deep Shadow
-                  BoxShadow(color: Colors.black.withOpacity(0.6), blurRadius: 10, offset: const Offset(0, 6)),
+                  BoxShadow(color: Colors.black.withValues(alpha: 0.6), blurRadius: 10, offset: const Offset(0, 6)),
                   // Glow
                   if (!isLocked)
-                     BoxShadow(color: themeColor.withOpacity(0.6), blurRadius: 20, spreadRadius: -2),
+                     BoxShadow(color: themeColor.withValues(alpha: 0.6), blurRadius: 20, spreadRadius: -2),
               ],
               // COLORED SPHERE GRADIENT
               gradient: RadialGradient(
@@ -466,8 +439,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                      Colors.white.withOpacity(0.4),
-                                      Colors.white.withOpacity(0.0),
+                                      Colors.white.withValues(alpha: 0.4),
+                                      Colors.white.withValues(alpha: 0.0),
                                   ]
                               ),
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(size/2))
@@ -515,13 +488,13 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                          // Shadow
                          Positioned(
                            top:2, left:1,
-                           child: Icon(Icons.star_rounded, size: 30, color: Colors.black.withOpacity(0.5))
+                           child: Icon(Icons.star_rounded, size: 30, color: Colors.black.withValues(alpha: 0.5))
                          ),
                          // Star
                          Icon(
                             Icons.star_rounded,
                             size: 30, 
-                            color: i < level.starsEarned ? const Color(0xFFFFD700) : Colors.black.withOpacity(0.3),
+                            color: i < level.starsEarned ? const Color(0xFFFFD700) : Colors.black.withValues(alpha: 0.3),
                          )
                      ]
                  )
@@ -594,108 +567,6 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
   }
 }
 
-// PAINTER: Draws two specific dots and a connecting line
-class _ColorConnectionPainter extends CustomPainter {
-    final List<Color> colors;
-    
-    _ColorConnectionPainter({required this.colors});
-
-    @override
-    void paint(Canvas canvas, Size size) {
-        if (colors.length == 3) {
-            // Triangle Layout for 3 Colors
-            final Offset p1 = Offset(size.width * 0.5, size.height * 0.2); // Top
-            final Offset p2 = Offset(size.width * 0.2, size.height * 0.8); // Bottom Left
-            final Offset p3 = Offset(size.width * 0.8, size.height * 0.8); // Bottom Right
-            
-            // Draw Connections (Triangle)
-            _drawLine(canvas, p1, p2);
-            _drawLine(canvas, p2, p3);
-            _drawLine(canvas, p3, p1);
-            
-            // Draw Dots
-            _drawDot(canvas, p1, colors[0]);
-            _drawDot(canvas, p2, colors[1]);
-            _drawDot(canvas, p3, colors[2]);
-
-        } else if (colors.length == 4) {
-            // Square/Spiral Layout for 4 Colors
-            final Offset p1 = Offset(size.width * 0.25, size.height * 0.25);
-            final Offset p2 = Offset(size.width * 0.75, size.height * 0.25);
-            final Offset p3 = Offset(size.width * 0.75, size.height * 0.75);
-            final Offset p4 = Offset(size.width * 0.25, size.height * 0.75);
-            
-            // Draw Connections (Square)
-            _drawLine(canvas, p1, p2);
-            _drawLine(canvas, p2, p3);
-            _drawLine(canvas, p3, p4);
-            _drawLine(canvas, p4, p1);
-            
-            // Draw Dots
-            _drawDot(canvas, p1, colors[0]);
-            _drawDot(canvas, p2, colors[1]);
-            _drawDot(canvas, p3, colors[2]);
-            _drawDot(canvas, p4, colors[3]);
-
-        } else if (colors.length == 5) {
-            // Pentagon Layout for 5 Colors
-            final double radius = size.width * 0.35;
-            final Offset center = Offset(size.width * 0.5, size.height * 0.5);
-            final List<Offset> points = List.generate(5, (i) {
-                double angle = (i * 2 * math.pi / 5) - (math.pi / 2); // Start from top
-                return Offset(
-                    center.dx + radius * math.cos(angle),
-                    center.dy + radius * math.sin(angle)
-                );
-            });
-            
-            // Draw Connections (Pentagon / Star)
-            for (int i = 0; i < 5; i++) {
-                _drawLine(canvas, points[i], points[(i + 1) % 5]);
-            }
-            
-            // Draw Dots
-            for (int i = 0; i < 5; i++) {
-                _drawDot(canvas, points[i], colors[i]);
-            }
-
-        } else {
-             // Default Line Layout (2 Colors)
-            final Offset start = Offset(size.width * 0.2, size.height * 0.8);
-            final Offset end = Offset(size.width * 0.8, size.height * 0.2);
-            Color c1 = colors.isNotEmpty ? colors[0] : Colors.red;
-            Color c2 = colors.length > 1 ? colors[1] : c1;
-
-            _drawLine(canvas, start, end);
-            _drawDot(canvas, start, c1);
-            _drawDot(canvas, end, c2);
-        }
-    }
-    
-    void _drawLine(Canvas canvas, Offset p1, Offset p2) {
-        final Paint linePaint = Paint()
-            ..shader = LinearGradient(colors: [Colors.white.withOpacity(0.8), Colors.white.withOpacity(0.2)]).createShader(Rect.fromPoints(p1, p2))
-            ..strokeWidth = 3
-            ..style = PaintingStyle.stroke;
-        canvas.drawLine(p1, p2, linePaint);
-    }
-
-    void _drawDot(Canvas canvas, Offset center, Color color) {
-        // White Border for Contrast
-         canvas.drawCircle(center, 7.0, Paint()..color = Colors.white);
-         
-        // Glow
-         canvas.drawCircle(center, 8.0, Paint()..color = color.withOpacity(0.4)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
-         // Core
-         canvas.drawCircle(center, 5.0, Paint()..color = color);
-         // Shine
-         canvas.drawCircle(center + const Offset(-1.5, -1.5), 1.5, Paint()..color = Colors.white.withOpacity(0.8));
-    }
-
-    @override
-    bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
 class LevelPathPainter extends CustomPainter {
     final List<Offset> positions;
     final Color color;
@@ -715,21 +586,21 @@ class LevelPathPainter extends CustomPainter {
         
         // Base paint for active path
         final activePaint = Paint()
-           ..color = color.withOpacity(1.0)
+           ..color = color.withValues(alpha: 1.0)
            ..style = PaintingStyle.stroke
            ..strokeWidth = 6.0
            ..strokeCap = StrokeCap.round
            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3); // Glow effect
 
         final activeCorePaint = Paint()
-           ..color = Colors.white.withOpacity(0.8)
+           ..color = Colors.white.withValues(alpha: 0.8)
            ..style = PaintingStyle.stroke
            ..strokeWidth = 2.0
            ..strokeCap = StrokeCap.round;
 
         // Base paint for inactive path
         final inactivePaint = Paint()
-           ..color = color.withOpacity(0.3)
+           ..color = color.withValues(alpha: 0.3)
            ..style = PaintingStyle.stroke
            ..strokeWidth = 4.0
            ..strokeCap = StrokeCap.round;
@@ -858,7 +729,7 @@ class _BackgroundEffectPainter extends CustomPainter {
     @override
     void paint(Canvas canvas, Size size) {
         for (var p in particles) {
-            Color particleColor = p.color.withOpacity(p.color.opacity * p.life);
+            Color particleColor = p.color.withValues(alpha: p.color.opacity * p.life);
 
             if (p.text != null) {
                 // DRAW TEXT (NUMBER)
@@ -869,7 +740,7 @@ class _BackgroundEffectPainter extends CustomPainter {
                         fontSize: p.radius * 2.5, // Scale text with radius
                         fontWeight: FontWeight.bold,
                         shadows: [
-                            Shadow(color: p.color.withOpacity(0.5 * p.life), blurRadius: 10, offset: Offset(0,0))
+                            Shadow(color: p.color.withValues(alpha: 0.5 * p.life), blurRadius: 10, offset: Offset(0,0))
                         ]
                     ),
                 );

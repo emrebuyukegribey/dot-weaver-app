@@ -1,0 +1,15 @@
+# Android release signing configuration.
+#
+# 1. Copy this file to android/key.properties (which is gitignored).
+# 2. Generate an upload keystore (keep it OUTSIDE version control), e.g.:
+#
+#      keytool -genkey -v -keystore ~/dot-weaver-upload.jks \
+#        -keyalg RSA -keysize 2048 -validity 10000 -alias upload
+#
+# 3. Fill in the values below. `storeFile` may be absolute, or relative to the
+#    android/app directory.
+
+storePassword=YOUR_KEYSTORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=upload
+storeFile=/absolute/path/to/dot-weaver-upload.jks

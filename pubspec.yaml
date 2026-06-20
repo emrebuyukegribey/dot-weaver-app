@@ -1,5 +1,5 @@
 name: dot_weaver_app
-description: "A new Flutter project."
+description: "Dot Weaver - a neon connect-the-path puzzle game with color, number and math islands."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -36,6 +36,12 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.5.3
   google_fonts: ^6.3.3
+  google_mobile_ads: ^9.0.0
+  in_app_purchase: ^3.3.0
+  app_tracking_transparency: ^2.0.7
+  url_launcher: ^6.3.2
+  package_info_plus: ^10.1.0
+  audioplayers: ^6.1.0
 
 dev_dependencies:
   flutter_test:
@@ -47,6 +53,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.8
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -64,6 +72,9 @@ flutter:
     - assets/images/
     - assets/images/levels/
     - assets/images/islands/
+    - assets/images/dots/
+    - assets/images/branding/
+    - assets/sounds/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -90,3 +101,22 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# App launcher icon configuration (run: dart run flutter_launcher_icons)
+flutter_launcher_icons:
+  android: "ic_launcher"
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/images/branding/app_icon.png"
+  background_color_ios: "#050510"
+  adaptive_icon_background: "#050510"
+  adaptive_icon_foreground: "assets/images/branding/app_icon_foreground.png"
+
+# Native splash screen configuration (run: dart run flutter_native_splash:create)
+flutter_native_splash:
+  color: "#050510"
+  image: assets/images/branding/splash_logo.png
+  android_12:
+    color: "#050510"
+    image: assets/images/branding/splash_logo.png
+  fullscreen: true

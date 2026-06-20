@@ -1,4 +1,4 @@
-package com.example.dot_weaver_app
+package com.dotweaver.game
 
 import io.flutter.embedding.android.FlutterActivity
 

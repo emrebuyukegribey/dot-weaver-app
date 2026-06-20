@@ -4,8 +4,11 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'dart:collection';
 import '../models/game_level_model.dart';
+import '../services/ad_service.dart';
 import '../services/game_data_manager.dart';
 import '../services/level_generator.dart';
+import '../services/puzzle_solver.dart';
+import '../services/sound_service.dart';
 
 class GameScreen extends StatefulWidget {
   final GameLevel level;
@@ -25,7 +28,8 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
+class _GameScreenState extends State<GameScreen>
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   // Game State - Color Dots
   final Map<DotColor, List<GridPoint>> _paths = {};
   DotColor? _activeColor;
@@ -39,6 +43,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   int _remainingSeconds = 0;
   int _totalTime = 0;
   bool _isGameActive = false;
+  // True when the countdown was paused because the app went to the background
+  // (or a full-screen ad took over), so we know to resume it on return.
+  bool _pausedByLifecycle = false;
   
   // Animation Controllers
   late AnimationController _pulseController;
@@ -61,26 +68,25 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Timer? _inactivityTimer;
   Timer? _hintTimer;
   bool _showHint = false;
-  // Hardcoded Hint for Level 2 Yellow: (3,4) -> (4,4) filling bottom rows
-  final List<GridPoint> _level2Hint = const [
-      GridPoint(3, 4), GridPoint(3, 3), GridPoint(3, 2), GridPoint(3, 1), GridPoint(3, 0),
-      GridPoint(4, 0), GridPoint(4, 1), GridPoint(4, 2), GridPoint(4, 3), GridPoint(4, 4)
-  ];
   
   // Path Locking & Game State
   final Set<DotColor> _lockedPaths = {};
-  bool _showAdOverlay = false;
   bool _showLevelAnnouncement = false;
   bool _showBoardNotFullWarning = false;
+  bool _showTimeUpUI = false; // NEW: time-up dialog (watch ad +30s / restart)
   int _targetLevelId = 0;
-  
+
   // Hint System
   bool _hintUsed = false;
   bool _isHintAnimating = false;
 
+  // Extra seconds granted per rewarded "continue" ad.
+  static const int _rewardExtraSeconds = 30;
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // _startGame(); // WAIT for user input
     
     // Existing Animations
@@ -172,7 +178,35 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      // Only resume if we paused the countdown ourselves and the game is still
+      // in a live, playable state (not won/failed/timed-out).
+      final bool canResume = _pausedByLifecycle &&
+          _isGameActive &&
+          _hasStarted &&
+          _remainingSeconds > 0 &&
+          !_showWinUI &&
+          !_showFailedUI &&
+          !_showTimeUpUI;
+      _pausedByLifecycle = false;
+      if (canResume) _resumeTimer();
+    } else {
+      // App is leaving the foreground (inactive/paused/hidden/detached) or a
+      // full-screen ad is taking over: freeze the countdown so time can't drain
+      // off-screen.
+      if (_isGameActive && _gameTimer != null) {
+        _pausedByLifecycle = true;
+        _gameTimer?.cancel();
+        _gameTimer = null;
+      }
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _gameTimer?.cancel();
     _inactivityTimer?.cancel();
     _hintTimer?.cancel();
@@ -186,8 +220,49 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _handleTimeout() {
       _stopGame();
-      // Show Time's Up / Watch Ad Dialog
-      _watchAdToRestart(); 
+      SoundService().playError();
+      // Offer to continue with a rewarded ad (+30s) or restart the level.
+      setState(() {
+          _showTimeUpUI = true;
+      });
+  }
+
+  /// Resumes the countdown after a rewarded "continue" without resetting the
+  /// board.
+  void _resumeTimer() {
+      _isGameActive = true;
+      _gameTimer?.cancel();
+      _gameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (!mounted) return;
+          setState(() {
+              if (_remainingSeconds > 0) {
+                  _remainingSeconds--;
+              } else {
+                  _handleTimeout();
+              }
+          });
+      });
+  }
+
+  Future<void> _continueWithRewardedAd() async {
+      bool rewarded = false;
+      await AdService().showRewarded(onReward: () {
+          rewarded = true;
+      });
+      if (!mounted) return;
+      if (rewarded) {
+          setState(() {
+              _showTimeUpUI = false;
+              _remainingSeconds += _rewardExtraSeconds;
+          });
+          _resumeTimer();
+      } else {
+          // Ad not available or skipped: fall back to restarting the level.
+          setState(() {
+              _showTimeUpUI = false;
+          });
+          _resetGame();
+      }
   }
 
   String _formatTime() {
@@ -259,32 +334,65 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             Center(
                 child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _BouncingButton(
-                        onTap: (_hintUsed || _isHintAnimating || !_isGameActive) ? () {} : _useHint,
-                        child: Container(
-                            width: 58, height: 58,
-                            decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: const Color(0xFF2A2A1A),
-                                border: Border.all(
-                                    color: _hintUsed ? Colors.grey : Colors.amberAccent, 
-                                    width: 3
-                                ),
-                                boxShadow: [
-                                    if (!_hintUsed) BoxShadow(
-                                        color: Colors.amberAccent.withOpacity(0.4), 
-                                        blurRadius: 12, 
-                                        spreadRadius: 2
-                                    )
-                                ]
+                    child: Builder(builder: (context) {
+                        final bool isColor = widget.level.gameType == GameType.colorDots;
+                        // After the free hint, Color levels can earn an extra hint via a rewarded ad.
+                        final bool extraHintMode = _hintUsed && isColor;
+                        final bool enabled = _isGameActive && !_isHintAnimating &&
+                            (!_hintUsed || extraHintMode);
+                        VoidCallback onTap;
+                        if (!enabled) {
+                            onTap = () {};
+                        } else if (!_hintUsed) {
+                            onTap = _useHint;
+                        } else {
+                            onTap = _useExtraHintViaAd;
+                        }
+                        final Color accent = !_hintUsed
+                            ? Colors.amberAccent
+                            : (extraHintMode ? Colors.lightGreenAccent : Colors.grey);
+                        return _BouncingButton(
+                            onTap: onTap,
+                            child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                    Container(
+                                        width: 58, height: 58,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: const Color(0xFF2A2A1A),
+                                            border: Border.all(color: accent, width: 3),
+                                            boxShadow: [
+                                                if (enabled) BoxShadow(
+                                                    color: accent.withValues(alpha: 0.4),
+                                                    blurRadius: 12,
+                                                    spreadRadius: 2,
+                                                )
+                                            ],
+                                        ),
+                                        child: Icon(
+                                            Icons.lightbulb_rounded,
+                                            color: accent,
+                                            size: 32,
+                                        ),
+                                    ),
+                                    if (extraHintMode)
+                                        Positioned(
+                                            right: -2, bottom: -2,
+                                            child: Container(
+                                                padding: const EdgeInsets.all(3),
+                                                decoration: const BoxDecoration(
+                                                    color: Colors.black,
+                                                    shape: BoxShape.circle,
+                                                ),
+                                                child: const Icon(Icons.play_circle_fill,
+                                                    color: Colors.lightGreenAccent, size: 18),
+                                            ),
+                                        ),
+                                ],
                             ),
-                            child: Icon(
-                                Icons.lightbulb_rounded,
-                                color: _hintUsed ? Colors.grey : Colors.amberAccent,
-                                size: 32,
-                            ),
-                        ),
-                    ),
+                        );
+                    }),
                 ),
             ),
             // Custom Larger Restart Button (Magenta, New Shape)
@@ -301,7 +409,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                 border: Border.all(color: Colors.pinkAccent, width: 3),
                                 boxShadow: [
                                     BoxShadow(
-                                        color: Colors.pinkAccent.withOpacity(0.4), 
+                                        color: Colors.pinkAccent.withValues(alpha: 0.4), 
                                         blurRadius: 12, 
                                         spreadRadius: 2
                                     )
@@ -343,7 +451,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                         height: gridSize,
                                         decoration: BoxDecoration(
                                             borderRadius: BorderRadius.circular(16),
-                                            boxShadow: [BoxShadow(color: Colors.cyanAccent.withOpacity(0.1), blurRadius: 40, spreadRadius: -10)]
+                                            boxShadow: [BoxShadow(color: Colors.cyanAccent.withValues(alpha: 0.1), blurRadius: 40, spreadRadius: -10)]
                                         ),
                                         // Pass the explicit size down
                                         child: Stack(
@@ -370,7 +478,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                     // Footer Level Info
                                     Text(
                                         "LEVEL ${widget.level.id}",
-                                        style: TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 18, letterSpacing: 2),
+                                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 18, letterSpacing: 2),
                                     )
                                 ],
                             );
@@ -398,7 +506,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             if (_showWinUI) _buildWinOverlay(),
             
             // 7. Ad Overlay
-            if (_showAdOverlay) _buildAdOverlay(),
+            if (_showTimeUpUI) _buildTimeUpOverlay(),
 
             // 8. Level Announcement Overlay
             if (_showLevelAnnouncement) _buildLevelAnnouncementOverlay(),
@@ -429,6 +537,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   void _triggerConfetti() {
+      SoundService().playWin();
       // Explosion from center
       final r = math.Random();
       final double cx = MediaQuery.of(context).size.width / 2;
@@ -454,6 +563,22 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   // Removed legacy method
 
+  /// Computes stars from the remaining-time ratio. Guards against a zero
+  /// [_totalTime] (which would make the ratio NaN/infinite).
+  int _starsForRemainingTime() {
+    if (_totalTime <= 0) return 1;
+    final double ratio = _remainingSeconds / _totalTime;
+    if (ratio > 0.70) return 3;
+    if (ratio > 0.40) return 2;
+    return 1;
+  }
+
+  /// Persists the earned stars the moment a level is won so progress is never
+  /// lost if the player leaves before pressing CONTINUE. saveStars only ever
+  /// upgrades the stored value, so re-saving on CONTINUE is harmless.
+  void _persistProgress() {
+    GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
+  }
 
   void _checkWin() {
     // OPERATION PATH MODE
@@ -461,10 +586,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       if (widget.level.validateOperationPath(_numberPath)) {
         _stopGame();
         
-        double ratio = _remainingSeconds / _totalTime;
-        if (ratio > 0.70) _earnedStars = 3;
-        else if (ratio > 0.40) _earnedStars = 2;
-        else _earnedStars = 1;
+        _earnedStars = _starsForRemainingTime();
+        _persistProgress();
         
         setState(() {
           _showWinUI = true;
@@ -474,6 +597,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         // NEW: Check if path reached target but failed validation (wrong value or incomplete grid)
         if (_numberPath.isNotEmpty && _numberPath.last == widget.level.targetNode) {
           _stopGame();
+          SoundService().playError();
           setState(() {
             _showFailedUI = true;
           });
@@ -488,6 +612,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
       
       // Check if all cells are filled
       if (_playerNumbers.length == totalCells) {
+        // The drawn path must be a Hamiltonian path: it visits every cell on
+        // the grid exactly once. Without this check, fixed clue cells that are
+        // pre-seeded into _playerNumbers could stay off the path while the board
+        // still counts as "full".
+        final bool pathCoversBoard = _numberPath.length == totalCells &&
+            _numberPath.toSet().length == totalCells;
+
         // Check if path is sequential from startValue
         bool isSequential = true;
         int startVal = widget.level.startNode != null ? widget.level.startValue : 1;
@@ -500,7 +631,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           }
         }
         
-        if (isSequential) {
+        if (pathCoversBoard && isSequential) {
           // --- BUG FIX: Check if the LAST point on path is actually the END value ---
           if (_numberPath.isNotEmpty) {
               final lastPt = _numberPath.last;
@@ -511,16 +642,22 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
           _stopGame();
           
-          // Calculate stars based on remaining time
-          double ratio = _remainingSeconds / _totalTime;
-          if (ratio > 0.70) _earnedStars = 3;
-          else if (ratio > 0.40) _earnedStars = 2;
-          else _earnedStars = 1;
+          _earnedStars = _starsForRemainingTime();
+          _persistProgress();
           
           setState(() {
             _showWinUI = true;
           });
           _triggerConfetti();
+        } else {
+          // Board is full but the path is invalid (skipped cells / not
+          // sequential): surface the failure instead of leaving the player in
+          // limbo with no feedback.
+          _stopGame();
+          SoundService().playError();
+          setState(() {
+            _showFailedUI = true;
+          });
         }
       }
       return;
@@ -529,6 +666,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     // COLOR DOT MODE (original logic)
     bool allConnected = true;
     Set<GridPoint> filled = {};
+    int totalPathCells = 0;
 
     widget.level.dotPositions.forEach((color, nodes) {
         if (!_paths.containsKey(color)) { allConnected = false; return; }
@@ -540,6 +678,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         // Check if path is complete and lock it
         if (startOk || reverseOk) {
             if (!_lockedPaths.contains(color)) {
+                SoundService().playConnect();
                 setState(() {
                     _lockedPaths.add(color);
                 });
@@ -549,25 +688,21 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         }
         
         filled.addAll(path);
+        totalPathCells += path.length;
     });
 
     if (!allConnected) return;
 
-    bool boardFull = filled.length == (widget.level.rows * widget.level.cols);
+    // Flow-Free rule: paths must be cell-disjoint. If the summed path lengths
+    // exceed the unique covered cells, two paths overlap and the board is not a
+    // valid solution even when every cell happens to be touched.
+    final bool disjoint = totalPathCells == filled.length;
+    bool boardFull = disjoint && filled.length == (widget.level.rows * widget.level.cols);
     
     if (boardFull) {
         _stopGame();
-        // Score Calculation
-        // Score Calculation
-        // Stars based on remaining time percentage? Or just completion within limit (3 stars always?)
-        // Prompt implies "change timer to countdown", let's keep star logic simple for now:
-        // If you finish, you get stars. Maybe quicker = more stars?
-        // Let's use remaining time ratio.
-        double ratio = _remainingSeconds / _totalTime;
-        // Custom Star Logic (Balanced for short times)
-        if (ratio > 0.70) _earnedStars = 3; // > 70% time left
-        else if (ratio > 0.40) _earnedStars = 2; // > 40% time left
-        else _earnedStars = 1;
+        _earnedStars = _starsForRemainingTime();
+        _persistProgress();
 
         setState(() {
             _showWinUI = true;
@@ -576,6 +711,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     } else {
         // All connected but board NOT full -> Show warning then Ad
         _stopGame();
+        SoundService().playError();
         setState(() {
             _showBoardNotFullWarning = true;
         });
@@ -585,24 +721,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 setState(() {
                     _showBoardNotFullWarning = false;
                 });
-                _watchAdToRestart();
+                _resetGame();
             }
         });
     }
-  }
-
-  List<int> _getStarThresholds(int levelId) {
-    if (levelId <= 1) return [5, 10];
-    if (levelId <= 3) return [10, 20];
-    if (levelId <= 6) return [15, 25];
-    if (levelId <= 10) return [30, 50];  // 6x6
-    if (levelId <= 13) return [50, 90];  // 7x7
-    if (levelId <= 16) return [80, 150]; // 8x8
-    if (levelId <= 17) return [130, 240]; // 9x9
-    if (levelId <= 30) return [60, 100]; // 6x6 (L21-30)
-    if (levelId <= 40) return [90, 150]; // 7x7 (L31-40)
-    if (levelId <= 50) return [120, 200]; // 8x8 (L41-50)
-    return [200, 400]; // Fallback
   }
 
   Widget _buildWinOverlay() {
@@ -610,7 +732,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           children: [
               // Darken BG
               Positioned.fill(
-                  child: Container(color: Colors.black.withOpacity(0.7)),
+                  child: Container(color: Colors.black.withValues(alpha: 0.7)),
               ),
               Center(
                   child: TweenAnimationBuilder<double>(
@@ -628,7 +750,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                       borderRadius: BorderRadius.circular(25),
                                       border: Border.all(color: Colors.white24, width: 1),
                                       boxShadow: [
-                                          BoxShadow(color: Colors.purpleAccent.withOpacity(0.5), blurRadius: 50, spreadRadius: 0)
+                                          BoxShadow(color: Colors.purpleAccent.withValues(alpha: 0.5), blurRadius: 50, spreadRadius: 0)
                                       ]
                                   ),
                                   child: Column(
@@ -670,9 +792,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                       onTap: () async {
                                                           // 1. Save progress
                                                           await GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
-                                                          
-                                                          // 2. Load next level if exists
-                                                          if (widget.levelId < 50 && mounted) {
+
+                                                          // 1b. Occasionally show an interstitial (skipped if ads removed)
+                                                          await AdService().onLevelCompleted();
+                                                          if (!mounted) return;
+
+                                                          // 2. Load next level if one exists on THIS island. Each
+                                                          // island has its own level count (Logic Core has 35, not
+                                                          // 50), so using a per-island count avoids advancing past
+                                                          // the last level into a fallback of the wrong game type.
+                                                          final int islandLevelCount =
+                                                              GameDataManager.islandLevelCounts[widget.islandId] ?? 50;
+                                                          if (widget.levelId < islandLevelCount && mounted) {
                                                               final nextLevelId = widget.levelId + 1;
                                                               
                                                               // NEW: Show Level Announcement First
@@ -725,7 +856,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                               borderRadius: BorderRadius.circular(30),
                                                               border: Border.all(color: Colors.black, width: 2),
                                                               boxShadow: [
-                                                                  BoxShadow(color: Colors.black.withOpacity(0.3), offset: const Offset(0, 4), blurRadius: 4)
+                                                                  BoxShadow(color: Colors.black.withValues(alpha: 0.3), offset: const Offset(0, 4), blurRadius: 4)
                                                               ]
                                                           ),
                                                           child: const Text(
@@ -752,7 +883,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           children: [
               Positioned.fill(
                   child: Container(
-                      color: Colors.black.withOpacity(0.9),
+                      color: Colors.black.withValues(alpha: 0.9),
                       child: Center(
                           child: TweenAnimationBuilder<double>(
                               tween: Tween(begin: 0.0, end: 1.0),
@@ -767,7 +898,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                               Text(
                                                   "LEVEL",
                                                   style: TextStyle(
-                                                      color: Colors.white.withOpacity(0.7),
+                                                      color: Colors.white.withValues(alpha: 0.7),
                                                       fontSize: 32,
                                                       fontWeight: FontWeight.w300,
                                                       letterSpacing: 10,
@@ -781,8 +912,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                       fontSize: 120,
                                                       fontWeight: FontWeight.w900,
                                                       shadows: [
-                                                          Shadow(color: Colors.cyanAccent.withOpacity(0.8), blurRadius: 40),
-                                                          Shadow(color: Colors.cyanAccent.withOpacity(0.5), blurRadius: 80),
+                                                          Shadow(color: Colors.cyanAccent.withValues(alpha: 0.8), blurRadius: 40),
+                                                          Shadow(color: Colors.cyanAccent.withValues(alpha: 0.5), blurRadius: 80),
                                                       ]
                                                   ),
                                               ),
@@ -805,7 +936,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                Positioned.fill(
                    child: BackdropFilter(
                        filter: ui.ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-                       child: Container(color: const Color(0xFF001A04).withOpacity(0.75)), // Deep Green/Black tint
+                       child: Container(color: const Color(0xFF001A04).withValues(alpha: 0.75)), // Deep Green/Black tint
                    ),
                ),
                Center(
@@ -839,14 +970,14 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                            ),
                                            boxShadow: [
                                                // 1. Bright Core Glow
-                                               BoxShadow(color: const Color(0xFF76FF03).withOpacity(0.6), blurRadius: 20, spreadRadius: 0),
+                                               BoxShadow(color: const Color(0xFF76FF03).withValues(alpha: 0.6), blurRadius: 20, spreadRadius: 0),
                                                // 2. Wide Ambient Glow
-                                               BoxShadow(color: Colors.greenAccent.withOpacity(0.4), blurRadius: 40, spreadRadius: 10),
+                                               BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.4), blurRadius: 40, spreadRadius: 10),
                                                // 3. Bottom Depth Shadow
-                                               BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 15, offset: const Offset(0, 8)),
+                                               BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 15, offset: const Offset(0, 8)),
                                            ],
                                            // Matching Green Border
-                                           border: Border.all(color: const Color(0xFFB2FF59).withOpacity(0.9), width: 3), 
+                                           border: Border.all(color: const Color(0xFFB2FF59).withValues(alpha: 0.9), width: 3), 
                                        ),
                                        child: Container(
                                            // Inner subtle gradient for 3D feel
@@ -856,9 +987,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                                    begin: Alignment.topCenter,
                                                    end: Alignment.bottomCenter,
                                                    colors: [
-                                                       Colors.white.withOpacity(0.3),
+                                                       Colors.white.withValues(alpha: 0.3),
                                                        Colors.transparent,
-                                                       Colors.black.withOpacity(0.1),
+                                                       Colors.black.withValues(alpha: 0.1),
                                                    ]
                                                )
                                            ),
@@ -886,49 +1017,94 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   
 
   
-  Future<void> _watchAdToRestart() async {
-    setState(() {
-        _showAdOverlay = true;
-    });
-    
-    // Mock ad delay
-    await Future.delayed(const Duration(seconds: 2));
-    
-    if (mounted) {
-        setState(() {
-            _showAdOverlay = false;
-        });
-        _resetGame();
-    }
-  }
-
-  Widget _buildAdOverlay() {
-      return Stack(
-          children: [
-              Positioned.fill(
-                  child: Container(
-                      color: Colors.black,
-                      child: Center(
-                          child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                  const Icon(Icons.play_circle_fill, color: Colors.orangeAccent, size: 80),
-                                  const SizedBox(height: 20),
-                                  const Text(
-                                      "REKLAM İZLENİYOR...",
-                                      style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+  Widget _buildTimeUpOverlay() {
+      final bool canWatch = AdService().isRewardedReady;
+      return Center(
+          child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 40),
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+              decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: Colors.orangeAccent, width: 3),
+                  boxShadow: [
+                      BoxShadow(color: Colors.orangeAccent.withValues(alpha: 0.4), blurRadius: 28)
+                  ],
+              ),
+              child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                      const Icon(Icons.timer_off_rounded, color: Colors.orangeAccent, size: 72),
+                      const SizedBox(height: 16),
+                      const Text(
+                          "TIME'S UP!",
+                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 2),
+                      ),
+                      const SizedBox(height: 24),
+                      // Only show the rewarded "continue" button when an ad is
+                      // actually ready; otherwise show a clear unavailable state
+                      // instead of a dead, greyed-out button.
+                      if (canWatch)
+                          _BouncingButton(
+                              onTap: _continueWithRewardedAd,
+                              child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                  decoration: BoxDecoration(
+                                      gradient: const LinearGradient(colors: [Color(0xFF00E676), Color(0xFF00B0FF)]),
+                                      borderRadius: BorderRadius.circular(16),
                                   ),
-                                  const SizedBox(height: 10),
-                                  const SizedBox(
-                                      width: 200,
-                                      child: LinearProgressIndicator(color: Colors.orangeAccent, backgroundColor: Colors.white10),
-                                  )
-                              ],
+                                  child: const Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                          Icon(Icons.play_circle_fill, color: Colors.white),
+                                          SizedBox(width: 10),
+                                          Text("WATCH AD  +30s",
+                                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                      ],
+                                  ),
+                              ),
+                          )
+                      else
+                          Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.08),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.white24),
+                              ),
+                              child: const Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                      Icon(Icons.hourglass_empty_rounded, color: Colors.white54, size: 18),
+                                      SizedBox(width: 10),
+                                      Text("No ad available right now",
+                                          style: TextStyle(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: 15)),
+                                  ],
+                              ),
+                          ),
+                      const SizedBox(height: 12),
+                      _BouncingButton(
+                          onTap: () {
+                              setState(() => _showTimeUpUI = false);
+                              _resetGame();
+                          },
+                          child: Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              decoration: BoxDecoration(
+                                  color: Colors.pinkAccent,
+                                  borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: const Text("RESTART",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                           ),
                       ),
-                  ),
+                  ],
               ),
-          ],
+          ),
       );
   }
 
@@ -939,10 +1115,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
               decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.9),
+                  color: Colors.red.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
-                      BoxShadow(color: Colors.black.withOpacity(0.5), blurRadius: 20)
+                      BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20)
                   ],
               ),
               child: const Column(
@@ -969,11 +1145,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 30),
               decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.9),
+                  color: Colors.black.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(30),
                   border: Border.all(color: Colors.redAccent, width: 3),
                   boxShadow: [
-                      BoxShadow(color: Colors.redAccent.withOpacity(0.5), blurRadius: 30)
+                      BoxShadow(color: Colors.redAccent.withValues(alpha: 0.5), blurRadius: 30)
                   ],
               ),
               child: Column(
@@ -1006,7 +1182,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                                   color: Colors.redAccent,
                                   borderRadius: BorderRadius.circular(15),
                                   boxShadow: [
-                                      BoxShadow(color: Colors.redAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4))
+                                      BoxShadow(color: Colors.redAccent.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
                                   ],
                               ),
                               child: const Text(
@@ -1024,10 +1200,22 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _resetGame() {
       _stopGame();
+      _inactivityTimer?.cancel();
+      _hintTimer?.cancel();
+      _pausedByLifecycle = false;
       setState(() {
           _paths.clear();
           _numberPath.clear(); // Clear number path
+          _activeColor = null;
+          // Clear every transient/overlay flag so a stale fail/time-up/win
+          // overlay can never linger over a freshly reset board.
           _showWinUI = false;
+          _showFailedUI = false;
+          _showTimeUpUI = false;
+          _showBoardNotFullWarning = false;
+          _showLevelAnnouncement = false;
+          _showHint = false;
+          _earnedStars = 0;
           _hasStarted = false; // SHOW START BUTTON
           _confettiParticles.clear();
           _lockedPaths.clear();
@@ -1053,9 +1241,18 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
   
   // Hint System - BFS Pathfinding
-  Future<void> _useHint() async {
-      if (_hintUsed || _isHintAnimating) return;
-      
+
+  /// Reveals (animates) a solution hint. For colour levels it draws the first
+  /// incomplete colour's path; for number/operation levels it advances the
+  /// player's path a few steps along a real solution. Returns true if a hint
+  /// was shown.
+  Future<bool> _revealHint() async {
+      if (widget.level.gameType == GameType.numberPath) {
+          return _revealNumberHint();
+      }
+      if (widget.level.gameType == GameType.operationPath) {
+          return _revealOperationHint();
+      }
       // Find first incomplete color
       DotColor? targetColor;
       widget.level.dotPositions.forEach((color, nodes) {
@@ -1063,37 +1260,126 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               targetColor = color;
           }
       });
-      
-      if (targetColor == null) return;
-      
+
+      if (targetColor == null) return false;
+
       final nodes = widget.level.dotPositions[targetColor]!;
       final path = _findPath(nodes[0], nodes[1], targetColor!);
-      
-      if (path == null || path.isEmpty) return;
-      
-      // Mark hint as used
-      await GameDataManager().markHintUsed(widget.islandId, widget.levelId);
+
+      if (path == null || path.isEmpty) return false;
+
       setState(() {
-          _hintUsed = true;
           _isHintAnimating = true;
       });
-      
+
       // Animate path drawing
       _paths[targetColor!] = [path.first];
       for (int i = 1; i < path.length; i++) {
           await Future.delayed(const Duration(milliseconds: 100));
-          if (!mounted) return;
+          if (!mounted) return true;
           setState(() {
               _paths[targetColor!]!.add(path[i]);
           });
       }
-      
+
       setState(() {
           _isHintAnimating = false;
       });
-      
+
       // Check win after hint completes
       _checkWin();
+      return true;
+  }
+
+  /// Number hint: solves the puzzle on a background isolate and advances the
+  /// player's path a few steps along a real solution (correcting wrong moves).
+  Future<bool> _revealNumberHint() async {
+      setState(() => _isHintAnimating = true);
+      final solution = await PuzzleSolver.solveNumberPath(widget.levelId, widget.islandId);
+      if (!mounted) return true;
+      if (solution == null || solution.isEmpty) {
+          setState(() => _isHintAnimating = false);
+          return false;
+      }
+
+      // How far the current path already matches the solution.
+      int prefix = 0;
+      while (prefix < _numberPath.length &&
+             prefix < solution.length &&
+             _numberPath[prefix] == solution[prefix]) {
+          prefix++;
+      }
+      final int revealTo = math.min(solution.length, math.max(prefix + 4, 4));
+      final int startVal = widget.level.startNode != null ? widget.level.startValue : 1;
+
+      _numberPath = [];
+      _playerNumbers = Map.from(widget.level.fixedNumbers ?? {});
+      for (int i = 0; i < revealTo; i++) {
+          await Future.delayed(const Duration(milliseconds: 80));
+          if (!mounted) return true;
+          setState(() {
+              _numberPath.add(solution[i]);
+              _playerNumbers[solution[i]] = startVal + i;
+          });
+      }
+
+      setState(() => _isHintAnimating = false);
+      _checkWin();
+      return true;
+  }
+
+  /// Operation hint: solves on a background isolate and advances the player's
+  /// path a few steps along a valid start->target solution.
+  Future<bool> _revealOperationHint() async {
+      setState(() => _isHintAnimating = true);
+      final solution = await PuzzleSolver.solveOperationPath(widget.levelId, widget.islandId);
+      if (!mounted) return true;
+      if (solution == null || solution.isEmpty) {
+          setState(() => _isHintAnimating = false);
+          return false;
+      }
+
+      int prefix = 0;
+      while (prefix < _numberPath.length &&
+             prefix < solution.length &&
+             _numberPath[prefix] == solution[prefix]) {
+          prefix++;
+      }
+      // Never auto-complete to the target via a hint; leave the final cell.
+      final int revealTo =
+          math.min(solution.length - 1, math.max(prefix + 4, 4)).clamp(0, solution.length);
+
+      _numberPath = [];
+      for (int i = 0; i < revealTo; i++) {
+          await Future.delayed(const Duration(milliseconds: 80));
+          if (!mounted) return true;
+          setState(() {
+              _numberPath.add(solution[i]);
+          });
+      }
+
+      setState(() => _isHintAnimating = false);
+      return true;
+  }
+
+  /// Free, once-per-level hint.
+  Future<void> _useHint() async {
+      if (_hintUsed || _isHintAnimating) return;
+      final shown = await _revealHint();
+      if (shown) {
+          await GameDataManager().markHintUsed(widget.islandId, widget.levelId);
+          if (mounted) setState(() => _hintUsed = true);
+      }
+  }
+
+  /// Extra hint earned by watching a rewarded ad (Color island only).
+  Future<void> _useExtraHintViaAd() async {
+      if (_isHintAnimating || !_isGameActive) return;
+      final earned = await AdService().showRewarded(onReward: () {});
+      if (!mounted) return;
+      if (earned) {
+          await _revealHint();
+      }
   }
   
   List<GridPoint>? _findPath(GridPoint start, GridPoint end, DotColor color) {
@@ -1228,6 +1514,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _handleInputStart(DragStartDetails details, double size) {
   _resetInactivityTimer(); // Reset on input
+  SoundService().playTap();
   
   GridPoint p = _getGridPoint(details.localPosition, size);
   
@@ -1517,7 +1804,7 @@ class _SpaceBackgroundPainter extends CustomPainter {
         canvas.drawRect(rect, bgPaint);
         for (var p in particles) {
             double dy = (p.y + (animValue * p.speed)) % 1.0;
-            canvas.drawCircle(Offset(p.x * size.width, dy * size.height), p.size, Paint()..color = Colors.white.withOpacity(p.opacity * 0.5));
+            canvas.drawCircle(Offset(p.x * size.width, dy * size.height), p.size, Paint()..color = Colors.white.withValues(alpha: p.opacity * 0.5));
         }
     }
     @override bool shouldRepaint(covariant _SpaceBackgroundPainter old) => true;
@@ -1533,7 +1820,7 @@ class _ConfettiPainter extends CustomPainter {
             canvas.save();
              canvas.translate(p.x, p.y);
             canvas.rotate(p.rotation * math.pi / 180);
-            canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.6), Paint()..color = p.color.withOpacity(p.opacity));
+            canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: p.size, height: p.size * 0.6), Paint()..color = p.color.withValues(alpha: p.opacity));
             canvas.restore();
         }
     }
@@ -1549,7 +1836,7 @@ class _NeonGridPainter extends CustomPainter {
         final double cellW = size.width / cols;
         final double cellH = size.height / rows;
         final Paint linePaint = Paint()
-            ..color = Colors.white.withOpacity(0.4) // Increased visibility for larger grids
+            ..color = Colors.white.withValues(alpha: 0.4) // Increased visibility for larger grids
             ..strokeWidth = 3.0 // Thicker lines
             ..style = PaintingStyle.stroke;
         for(int i=0; i<=cols; i++) canvas.drawLine(Offset(i * cellW, 0), Offset(i * cellW, size.height), linePaint);
@@ -1562,7 +1849,6 @@ class _NeonPathPainter extends CustomPainter {
     final Map<DotColor, List<GridPoint>> paths;
     final double cellSize;
     final double flowPhase;
-    final List<GridPoint>? hintPath;
     final Set<DotColor> lockedPaths;
     final List<GridPoint>? numberPath; // NEW: For number path rendering
     final Map<GridPoint, int>? playerNumbers; // NEW: For gradient colors
@@ -1572,7 +1858,6 @@ class _NeonPathPainter extends CustomPainter {
         required this.paths, 
         required this.cellSize, 
         required this.flowPhase,
-        this.hintPath,
         this.lockedPaths = const {},
         this.numberPath, // NEW
         this.playerNumbers, // NEW
@@ -1593,23 +1878,6 @@ class _NeonPathPainter extends CustomPainter {
         }
         
         // COLOR DOT MODE - Original rendering
-        // Draw Hint Path
-        if (hintPath != null && hintPath!.length > 1) {
-            final Path hPath = Path();
-            for(int i=0; i<hintPath!.length; i++) {
-                final Offset center = Offset((hintPath![i].col * cellSize) + (cellSize/2), (hintPath![i].row * cellSize) + (cellSize/2));
-                if (i==0) hPath.moveTo(center.dx, center.dy); else hPath.lineTo(center.dx, center.dy);
-            }
-            
-            // Dashed Line Effect
-            final Path dashedPath = _createDashedPath(hPath, 10, 10);
-            
-            // Neon Amber Color for Hint
-            final Color hintColor = const Color(0xFFFFD740); // Amber Accent 200
-            canvas.drawPath(dashedPath, Paint()..color = hintColor.withOpacity(0.4)..strokeWidth = cellSize * 0.2..style = PaintingStyle.stroke..strokeCap = StrokeCap.round);
-            canvas.drawPath(dashedPath, Paint()..color = hintColor.withOpacity(0.2)..strokeWidth = cellSize * 0.4..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
-        }
-
         paths.forEach((color, points) {
             if (points.length < 2) return;
             final Path path = Path();
@@ -1624,19 +1892,19 @@ class _NeonPathPainter extends CustomPainter {
             // Enhanced glow for locked paths
             if (isLocked) {
                 // Extra bright outer glow - Reduced from 0.9 and 20 blur
-                canvas.drawPath(path, Paint()..color = color.color.withOpacity(0.8)..strokeWidth = cellSize * 0.5..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+                canvas.drawPath(path, Paint()..color = color.color.withValues(alpha: 0.8)..strokeWidth = cellSize * 0.5..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
                 // Solid core - Reduced from 0.4
                 canvas.drawPath(path, Paint()..color = color.color..strokeWidth = cellSize * 0.25..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
                 // Bright highlight - Reduced from 0.15
-                canvas.drawPath(path, Paint()..color = Colors.white.withOpacity(0.7)..strokeWidth = cellSize * 0.1..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
+                canvas.drawPath(path, Paint()..color = Colors.white.withValues(alpha: 0.7)..strokeWidth = cellSize * 0.1..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round);
             } else {
                 // Normal path rendering
                 // Reduced from 0.6 and 12 blur
-                canvas.drawPath(path, Paint()..color = color.color.withOpacity(0.5)..strokeWidth = cellSize * 0.4..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
+                canvas.drawPath(path, Paint()..color = color.color.withValues(alpha: 0.5)..strokeWidth = cellSize * 0.4..style = PaintingStyle.stroke..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6));
                 // Core - Reduced from 0.3
                 canvas.drawPath(path, Paint()..color=color.color..strokeWidth=cellSize*0.2..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
                 // Highlight - Reduced from 0.1
-                canvas.drawPath(path, Paint()..color=Colors.white.withOpacity(0.5)..strokeWidth=cellSize*0.06..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
+                canvas.drawPath(path, Paint()..color=Colors.white.withValues(alpha: 0.5)..strokeWidth=cellSize*0.06..style=PaintingStyle.stroke..strokeCap=StrokeCap.round..strokeJoin=StrokeJoin.round);
             }
         });
     }
@@ -1706,8 +1974,6 @@ class _NeonPathPainter extends CustomPainter {
             }
             
             // Create gradient shader using absolute points to avoid division by zero in Alignment
-            final Rect bounds = path.getBounds();
-            // Create gradient shader using absolute points to avoid division by zero in Alignment
             if (firstPoint == null || lastPoint == null || firstPoint == lastPoint) continue;
             
             final Shader gradientShader = ui.Gradient.linear(
@@ -1737,7 +2003,7 @@ class _NeonPathPainter extends CustomPainter {
             
             // Draw highlight
             final Paint highlightPaint = Paint()
-                ..color = Colors.white.withOpacity(0.5)
+                ..color = Colors.white.withValues(alpha: 0.5)
                 ..strokeWidth = cellSize * 0.06
                 ..style = PaintingStyle.stroke
                 ..strokeCap = StrokeCap.round
@@ -1762,7 +2028,6 @@ class _NeonPathPainter extends CustomPainter {
                 case OperationType.subtract: return Colors.pinkAccent;
                 case OperationType.multiply: return Colors.orangeAccent;
                 case OperationType.divide: return Colors.purpleAccent;
-                default: return Colors.tealAccent;
             }
         }
 
@@ -1796,7 +2061,7 @@ class _NeonPathPainter extends CustomPainter {
                 ..strokeJoin = StrokeJoin.round;
 
             if (o1 == o2) {
-                glowPaint.color = c1.withOpacity(0.5);
+                glowPaint.color = c1.withValues(alpha: 0.5);
                 corePaint.color = c1;
             } else {
                 final Shader gradientShader = ui.Gradient.linear(o1, o2, [c1, c2]);
@@ -1812,7 +2077,7 @@ class _NeonPathPainter extends CustomPainter {
 
             // Highlight
             canvas.drawPath(segmentPath, Paint()
-                ..color = Colors.white.withOpacity(0.5)
+                ..color = Colors.white.withValues(alpha: 0.5)
                 ..strokeWidth = cellSize * 0.06
                 ..style = PaintingStyle.stroke
                 ..strokeCap = StrokeCap.round
@@ -1820,21 +2085,7 @@ class _NeonPathPainter extends CustomPainter {
         }
     }
 
-    Path _createDashedPath(Path source, double dashWidth, double dashSpace) {
-        final Path dest = Path();
-        for (final ui.PathMetric metric in source.computeMetrics()) {
-            double distance = 0;
-            while (distance < metric.length) {
-                final double len = math.min(dashWidth, metric.length - distance);
-                dest.addPath(metric.extractPath(distance, distance + len), Offset.zero);
-                distance += dashWidth;
-                distance += dashSpace;
-            }
-        }
-        return dest;
-    }
-
-    @override bool shouldRepaint(_NeonPathPainter old) => old.flowPhase != flowPhase || old.hintPath != hintPath || old.numberPath != numberPath;
+    @override bool shouldRepaint(_NeonPathPainter old) => old.flowPhase != flowPhase || old.numberPath != numberPath;
 }
 class _NeonNodePainter extends CustomPainter {
     final GameLevel level;
@@ -1889,9 +2140,6 @@ class _NeonNodePainter extends CustomPainter {
             );
             if (!center.dx.isFinite || !center.dy.isFinite) return;
             
-            // Determine if this is a fixed number or player number
-            final bool isFixed = level.fixedNumbers?.containsKey(gridPoint) ?? false;
-            
             // Assign color based on number (cycling through palette)
             final Color bgColor = numberColors[(number - 1) % numberColors.length];
             final double glowSize = (cellSize * 0.4) + (pulseValue * (cellSize * 0.05));
@@ -1901,7 +2149,7 @@ class _NeonNodePainter extends CustomPainter {
             canvas.drawCircle(
                 center, 
                 glowSize, 
-                Paint()..color = bgColor.withOpacity(0.5)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
+                Paint()..color = bgColor.withValues(alpha: 0.5)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10)
             );
             
             // Solid circle
@@ -1919,7 +2167,7 @@ class _NeonNodePainter extends CustomPainter {
                     center, 
                     cellSize * 0.45, 
                     Paint()
-                        ..color = Colors.white.withOpacity(0.5 + (0.5 * pulseValue))
+                        ..color = Colors.white.withValues(alpha: 0.5 + (0.5 * pulseValue))
                         ..style = PaintingStyle.stroke
                         ..strokeWidth = 3.0
                 );
@@ -1955,7 +2203,7 @@ class _NeonNodePainter extends CustomPainter {
                     width: cellSize*0.25, 
                     height: cellSize*0.12
                 ), 
-                Paint()..color = Colors.white.withOpacity(0.4)
+                Paint()..color = Colors.white.withValues(alpha: 0.4)
             );
             
             // Draw number text
@@ -2018,7 +2266,6 @@ class _NeonNodePainter extends CustomPainter {
                     case OperationType.subtract: color = Colors.pinkAccent; break;
                     case OperationType.multiply: color = Colors.orangeAccent; break;
                     case OperationType.divide: color = Colors.purpleAccent; break;
-                    default: color = Colors.tealAccent;
                 }
             } else {
                 color = Colors.tealAccent;
@@ -2028,7 +2275,7 @@ class _NeonNodePainter extends CustomPainter {
             canvas.drawCircle(
                 center, 
                 cellSize * 0.4, 
-                Paint()..color = color.withOpacity(0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
+                Paint()..color = color.withValues(alpha: 0.3)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8)
             );
 
             // Ring
@@ -2052,11 +2299,11 @@ class _NeonNodePainter extends CustomPainter {
                 final RRect rRect = RRect.fromRectAndRadius(squareRect, const Radius.circular(12));
                 
                 // 1. Subtle Background Fill
-                canvas.drawRRect(rRect, Paint()..color = color.withOpacity(0.08));
+                canvas.drawRRect(rRect, Paint()..color = color.withValues(alpha: 0.08));
                 
                 // 2. Glowing Square Border
                 canvas.drawRRect(rRect, Paint()
-                    ..color = color.withOpacity(0.4)
+                    ..color = color.withValues(alpha: 0.4)
                     ..style = PaintingStyle.stroke
                     ..strokeWidth = 2.5
                     ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4));
@@ -2068,7 +2315,7 @@ class _NeonNodePainter extends CustomPainter {
                     style: TextStyle(
                         fontFamily: 'MaterialIcons',
                         fontSize: cellSize * 0.2, // Slightly larger icon
-                        color: color.withOpacity(0.9),
+                        color: color.withValues(alpha: 0.9),
                     ),
                 );
                 final iconPainter = TextPainter(text: iconSpan, textDirection: TextDirection.ltr);
@@ -2120,7 +2367,7 @@ class _NeonNodePainter extends CustomPainter {
                 final valSpan = TextSpan(
                     text: '$currentVal',
                     style: TextStyle(
-                        color: color.withOpacity(0.9), // Match operation color
+                        color: color.withValues(alpha: 0.9), // Match operation color
                         fontSize: cellSize * 0.22,
                         fontWeight: FontWeight.w900,
                         shadows: [
@@ -2140,9 +2387,9 @@ class _NeonNodePainter extends CustomPainter {
             for (var node in nodes) {
                 final Offset center = Offset((node.col * cellSize) + (cellSize/2), (node.row * cellSize) + (cellSize/2));
                 double glowSize = (cellSize * 0.35) + (pulseValue * (cellSize * 0.05));
-                canvas.drawCircle(center, glowSize, Paint()..color = color.color.withOpacity(0.6)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
+                canvas.drawCircle(center, glowSize, Paint()..color = color.color.withValues(alpha: 0.6)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
                 canvas.drawCircle(center, cellSize * 0.25, Paint()..color = color.color);
-                canvas.drawOval(Rect.fromCenter(center: center - Offset(0, cellSize*0.15), width: cellSize*0.3, height: cellSize*0.15), Paint()..color = Colors.white.withOpacity(0.3));
+                canvas.drawOval(Rect.fromCenter(center: center - Offset(0, cellSize*0.15), width: cellSize*0.3, height: cellSize*0.15), Paint()..color = Colors.white.withValues(alpha: 0.3));
             }
         });
     }
