@@ -1,108 +1,126 @@
 {
   "island": "3",
   "type": "operationPath",
-  "generatedAt": "2026-06-21T23:37:21.086871",
+  "generatedAt": "2026-06-22T00:11:25.191969",
   "levels": [
     {
       "id": 36,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 208,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 325,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
           [
-            0,
+            1,
             3
           ],
           [
-            1,
+            3,
             1
           ]
         ]
       },
       "startNode": [
-        0,
+        1,
         3
       ],
-      "startValue": 14,
+      "startValue": 30,
       "targetNode": [
-        1,
+        3,
         1
       ],
-      "targetValue": 26,
+      "targetValue": 23,
       "operations": [
         {
-          "r": 1,
-          "c": 3,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 2,
-          "c": 3,
-          "type": "add",
-          "operand": 6
-        },
-        {
-          "r": 3,
-          "c": 3,
-          "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 3,
-          "c": 2,
-          "type": "multiply",
-          "operand": 2
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 3,
-          "c": 0,
-          "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 1
-        },
-        {
-          "r": 2,
-          "c": 1,
-          "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 2,
-          "c": 2,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "subtract",
-          "operand": 3
-        },
-        {
           "r": 0,
-          "c": 2,
+          "c": 3,
           "type": "add",
           "operand": 5
         },
         {
           "r": 0,
+          "c": 4,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "add",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 4,
           "c": 1,
           "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "add",
           "operand": 7
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "multiply",
+          "operand": 2
         },
         {
           "r": 0,
@@ -111,30 +129,241 @@
           "operand": 6
         },
         {
-          "r": 1,
-          "c": 0,
+          "r": 0,
+          "c": 1,
           "type": "subtract",
-          "operand": 2
+          "operand": 8
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "subtract",
+          "operand": 1
         },
         {
           "r": 1,
           "c": 1,
-          "type": "divide",
-          "operand": 3
+          "type": "add",
+          "operand": 1
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 2,
+          "c": 2,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 3,
+          "c": 2,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "add",
+          "operand": 2
         }
       ]
     },
     {
       "id": 37,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 207,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 324,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
           [
             3,
-            0
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ]
+      },
+      "startNode": [
+        3,
+        3
+      ],
+      "startValue": 12,
+      "targetNode": [
+        1,
+        3
+      ],
+      "targetValue": 14,
+      "operations": [
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "divide",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 0,
+          "c": 1,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 0,
+          "c": 0,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 2,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 1,
+          "c": 1,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 2,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 1,
+          "c": 3,
+          "type": "subtract",
+          "operand": 3
+        }
+      ]
+    },
+    {
+      "id": 38,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 323,
+      "gameType": "operationPath",
+      "dotPositions": {
+        "green": [
+          [
+            1,
+            3
           ],
           [
             0,
@@ -143,597 +372,167 @@
         ]
       },
       "startNode": [
-        3,
-        0
+        1,
+        3
       ],
-      "startValue": 6,
+      "startValue": 8,
       "targetNode": [
         0,
         2
       ],
-      "targetValue": 3,
+      "targetValue": 10,
       "operations": [
         {
-          "r": 3,
-          "c": 1,
-          "type": "multiply",
+          "r": 0,
+          "c": 3,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "subtract",
           "operand": 3
         },
         {
-          "r": 3,
-          "c": 2,
+          "r": 2,
+          "c": 4,
           "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
           "operand": 6
         },
         {
           "r": 3,
           "c": 3,
           "type": "add",
-          "operand": 6
+          "operand": 7
         },
         {
           "r": 2,
           "c": 3,
-          "type": "subtract",
+          "type": "add",
           "operand": 2
         },
         {
           "r": 2,
           "c": 2,
           "type": "add",
-          "operand": 1
+          "operand": 6
         },
         {
-          "r": 2,
+          "r": 3,
+          "c": 2,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 4,
           "c": 1,
           "type": "subtract",
-          "operand": 5
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 1
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "add",
-          "operand": 5
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "add",
           "operand": 8
         },
         {
-          "r": 0,
-          "c": 1,
-          "type": "subtract",
-          "operand": 5
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 2,
+          "r": 4,
+          "c": 0,
           "type": "divide",
           "operand": 3
         },
         {
+          "r": 3,
+          "c": 0,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "add",
+          "operand": 2
+        },
+        {
           "r": 1,
-          "c": 3,
+          "c": 0,
           "type": "subtract",
           "operand": 7
         },
         {
           "r": 0,
-          "c": 3,
-          "type": "divide",
-          "operand": 4
-        },
-        {
-          "r": 0,
-          "c": 2,
-          "type": "add",
-          "operand": 2
-        }
-      ]
-    },
-    {
-      "id": 38,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 207,
-      "gameType": "operationPath",
-      "dotPositions": {
-        "green": [
-          [
-            2,
-            1
-          ],
-          [
-            3,
-            3
-          ]
-        ]
-      },
-      "startNode": [
-        2,
-        1
-      ],
-      "startValue": 7,
-      "targetNode": [
-        3,
-        3
-      ],
-      "targetValue": 50,
-      "operations": [
-        {
-          "r": 3,
-          "c": 1,
-          "type": "multiply",
-          "operand": 2
-        },
-        {
-          "r": 3,
           "c": 0,
           "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "add",
-          "operand": 1
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "divide",
-          "operand": 3
-        },
-        {
-          "r": 0,
-          "c": 1,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "add",
-          "operand": 3
-        },
-        {
-          "r": 0,
-          "c": 2,
-          "type": "subtract",
-          "operand": 1
-        },
-        {
-          "r": 0,
-          "c": 3,
-          "type": "add",
-          "operand": 1
-        },
-        {
-          "r": 1,
-          "c": 3,
-          "type": "subtract",
           "operand": 5
         },
         {
-          "r": 2,
-          "c": 3,
+          "r": 0,
+          "c": 1,
           "type": "subtract",
           "operand": 2
         },
         {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 8
+          "r": 1,
+          "c": 1,
+          "type": "add",
+          "operand": 7
         },
         {
-          "r": 3,
+          "r": 1,
           "c": 2,
-          "type": "multiply",
-          "operand": 3
+          "type": "add",
+          "operand": 6
         },
         {
-          "r": 3,
-          "c": 3,
+          "r": 0,
+          "c": 2,
           "type": "subtract",
-          "operand": 1
+          "operand": 7
         }
       ]
     },
     {
       "id": 39,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 206,
-      "gameType": "operationPath",
-      "dotPositions": {
-        "green": [
-          [
-            1,
-            1
-          ],
-          [
-            2,
-            1
-          ]
-        ]
-      },
-      "startNode": [
-        1,
-        1
-      ],
-      "startValue": 27,
-      "targetNode": [
-        2,
-        1
-      ],
-      "targetValue": 118,
-      "operations": [
-        {
-          "r": 1,
-          "c": 0,
-          "type": "add",
-          "operand": 5
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "add",
-          "operand": 6
-        },
-        {
-          "r": 0,
-          "c": 1,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 0,
-          "c": 2,
-          "type": "add",
-          "operand": 5
-        },
-        {
-          "r": 0,
-          "c": 3,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 1,
-          "c": 3,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "subtract",
-          "operand": 1
-        },
-        {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 6
-        },
-        {
-          "r": 2,
-          "c": 3,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 3,
-          "c": 3,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 3,
-          "c": 2,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 3,
-          "c": 0,
-          "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 2,
-          "c": 1,
-          "type": "add",
-          "operand": 6
-        }
-      ]
-    },
-    {
-      "id": 40,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 205,
-      "gameType": "operationPath",
-      "dotPositions": {
-        "green": [
-          [
-            2,
-            2
-          ],
-          [
-            2,
-            1
-          ]
-        ]
-      },
-      "startNode": [
-        2,
-        2
-      ],
-      "startValue": 26,
-      "targetNode": [
-        2,
-        1
-      ],
-      "targetValue": 98,
-      "operations": [
-        {
-          "r": 3,
-          "c": 2,
-          "type": "subtract",
-          "operand": 9
-        },
-        {
-          "r": 3,
-          "c": 3,
-          "type": "add",
-          "operand": 5
-        },
-        {
-          "r": 2,
-          "c": 3,
-          "type": "add",
-          "operand": 6
-        },
-        {
-          "r": 1,
-          "c": 3,
-          "type": "divide",
-          "operand": 4
-        },
-        {
-          "r": 0,
-          "c": 3,
-          "type": "add",
-          "operand": 9
-        },
-        {
-          "r": 0,
-          "c": 2,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "add",
-          "operand": 9
-        },
-        {
-          "r": 0,
-          "c": 1,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "subtract",
-          "operand": 6
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "subtract",
-          "operand": 4
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 4
-        },
-        {
-          "r": 3,
-          "c": 0,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "subtract",
-          "operand": 3
-        },
-        {
-          "r": 2,
-          "c": 1,
-          "type": "add",
-          "operand": 2
-        }
-      ]
-    },
-    {
-      "id": 41,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 204,
-      "gameType": "operationPath",
-      "dotPositions": {
-        "green": [
-          [
-            3,
-            1
-          ],
-          [
-            1,
-            0
-          ]
-        ]
-      },
-      "startNode": [
-        3,
-        1
-      ],
-      "startValue": 20,
-      "targetNode": [
-        1,
-        0
-      ],
-      "targetValue": 19,
-      "operations": [
-        {
-          "r": 3,
-          "c": 0,
-          "type": "add",
-          "operand": 9
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 2,
-          "c": 1,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 9
-        },
-        {
-          "r": 3,
-          "c": 2,
-          "type": "add",
-          "operand": 6
-        },
-        {
-          "r": 3,
-          "c": 3,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 2,
-          "c": 3,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 1,
-          "c": 3,
-          "type": "add",
-          "operand": 9
-        },
-        {
-          "r": 0,
-          "c": 3,
-          "type": "subtract",
-          "operand": 9
-        },
-        {
-          "r": 0,
-          "c": 2,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "add",
-          "operand": 7
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 0,
-          "c": 1,
-          "type": "add",
-          "operand": 8
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "subtract",
-          "operand": 4
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "subtract",
-          "operand": 5
-        }
-      ]
-    },
-    {
-      "id": 42,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 204,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 321,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
@@ -743,7 +542,7 @@
           ],
           [
             3,
-            2
+            3
           ]
         ]
       },
@@ -751,376 +550,1111 @@
         1,
         3
       ],
-      "startValue": 7,
+      "startValue": 25,
       "targetNode": [
         3,
-        2
+        3
       ],
-      "targetValue": 14,
+      "targetValue": 44,
       "operations": [
         {
           "r": 0,
           "c": 3,
-          "type": "subtract",
-          "operand": 6
+          "type": "multiply",
+          "operand": 3
         },
         {
           "r": 0,
+          "c": 4,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "add",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 4,
           "c": 2,
           "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "subtract",
           "operand": 5
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 0,
+          "c": 0,
+          "type": "subtract",
+          "operand": 8
         },
         {
           "r": 0,
           "c": 1,
           "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 1,
+          "c": 1,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 2,
+          "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 2,
+          "c": 2,
+          "type": "add",
           "operand": 7
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "add",
+          "operand": 8
+        }
+      ]
+    },
+    {
+      "id": 40,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 320,
+      "gameType": "operationPath",
+      "dotPositions": {
+        "green": [
+          [
+            4,
+            2
+          ],
+          [
+            1,
+            1
+          ]
+        ]
+      },
+      "startNode": [
+        4,
+        2
+      ],
+      "startValue": 21,
+      "targetNode": [
+        1,
+        1
+      ],
+      "targetValue": 39,
+      "operations": [
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "divide",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 2,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
+          "operand": 1
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "divide",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 2,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 3,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "subtract",
+          "operand": 9
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 0,
+          "c": 1,
+          "type": "add",
+          "operand": 5
+        },
+        {
+          "r": 0,
+          "c": 0,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 1,
+          "type": "subtract",
+          "operand": 7
+        }
+      ]
+    },
+    {
+      "id": 41,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 319,
+      "gameType": "operationPath",
+      "dotPositions": {
+        "green": [
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            3
+          ]
+        ]
+      },
+      "startNode": [
+        2,
+        4
+      ],
+      "startValue": 12,
+      "targetNode": [
+        3,
+        3
+      ],
+      "targetValue": 43,
+      "operations": [
+        {
+          "r": 1,
+          "c": 4,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 1,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 0,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 1,
+          "type": "add",
+          "operand": 9
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 3,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 2,
+          "c": 2,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 2,
+          "type": "divide",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "subtract",
+          "operand": 9
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "add",
+          "operand": 4
+        }
+      ]
+    },
+    {
+      "id": 42,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 318,
+      "gameType": "operationPath",
+      "dotPositions": {
+        "green": [
+          [
+            2,
+            2
+          ],
+          [
+            4,
+            0
+          ]
+        ]
+      },
+      "startNode": [
+        2,
+        2
+      ],
+      "startValue": 24,
+      "targetNode": [
+        4,
+        0
+      ],
+      "targetValue": 29,
+      "operations": [
+        {
+          "r": 2,
+          "c": 1,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 0,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 1,
+          "c": 0,
+          "type": "add",
+          "operand": 6
         },
         {
           "r": 0,
           "c": 0,
           "type": "multiply",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "add",
-          "operand": 7
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
-          "operand": 9
-        },
-        {
-          "r": 3,
-          "c": 0,
-          "type": "subtract",
-          "operand": 2
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "subtract",
           "operand": 3
         },
         {
-          "r": 2,
+          "r": 0,
           "c": 1,
           "type": "add",
-          "operand": 2
+          "operand": 7
         },
         {
           "r": 1,
           "c": 1,
-          "type": "add",
-          "operand": 7
+          "type": "divide",
+          "operand": 2
         },
         {
           "r": 1,
           "c": 2,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "add",
+          "operand": 9
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "add",
+          "operand": 6
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "add",
+          "operand": 9
+        },
+        {
+          "r": 1,
+          "c": 4,
           "type": "add",
           "operand": 1
         },
         {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 5
+          "r": 1,
+          "c": 3,
+          "type": "add",
+          "operand": 9
         },
         {
           "r": 2,
           "c": 3,
           "type": "subtract",
-          "operand": 3
+          "operand": 1
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "divide",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "add",
+          "operand": 5
         },
         {
           "r": 3,
           "c": 3,
           "type": "add",
-          "operand": 2
+          "operand": 1
         },
         {
           "r": 3,
           "c": 2,
           "type": "subtract",
-          "operand": 9
+          "operand": 4
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "add",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 1,
+          "type": "subtract",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
+          "operand": 8
         }
       ]
     },
     {
       "id": 43,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 203,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 317,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
           [
             1,
-            0
+            1
           ],
           [
-            2,
-            2
+            4,
+            4
           ]
         ]
       },
       "startNode": [
         1,
-        0
+        1
       ],
-      "startValue": 20,
+      "startValue": 7,
       "targetNode": [
-        2,
-        2
+        4,
+        4
       ],
-      "targetValue": 70,
+      "targetValue": 3,
       "operations": [
+        {
+          "r": 1,
+          "c": 0,
+          "type": "add",
+          "operand": 5
+        },
         {
           "r": 0,
           "c": 0,
-          "type": "divide",
-          "operand": 4
+          "type": "add",
+          "operand": 5
         },
         {
           "r": 0,
           "c": 1,
           "type": "add",
-          "operand": 3
+          "operand": 5
         },
         {
           "r": 0,
           "c": 2,
-          "type": "subtract",
-          "operand": 4
+          "type": "divide",
+          "operand": 2
         },
         {
-          "r": 0,
+          "r": 1,
+          "c": 2,
+          "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 1,
           "c": 3,
           "type": "add",
           "operand": 8
         },
         {
-          "r": 1,
+          "r": 0,
           "c": 3,
-          "type": "add",
-          "operand": 3
+          "type": "subtract",
+          "operand": 9
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "subtract",
+          "operand": 2
         },
         {
           "r": 1,
-          "c": 2,
+          "c": 4,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 2,
+          "c": 4,
           "type": "add",
-          "operand": 3
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "subtract",
-          "operand": 4
+          "operand": 1
         },
         {
           "r": 2,
-          "c": 1,
-          "type": "subtract",
-          "operand": 6
-        },
-        {
-          "r": 2,
-          "c": 0,
-          "type": "subtract",
+          "c": 3,
+          "type": "divide",
           "operand": 5
         },
         {
-          "r": 3,
-          "c": 0,
-          "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 3,
+          "r": 2,
           "c": 2,
           "type": "multiply",
           "operand": 3
         },
         {
-          "r": 3,
-          "c": 3,
+          "r": 2,
+          "c": 1,
           "type": "add",
           "operand": 4
         },
         {
           "r": 2,
-          "c": 3,
+          "c": 0,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 0,
+          "type": "multiply",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 4,
+          "c": 1,
           "type": "add",
           "operand": 6
         },
         {
-          "r": 2,
+          "r": 3,
+          "c": 1,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 3,
           "c": 2,
           "type": "subtract",
-          "operand": 3
+          "operand": 1
+        },
+        {
+          "r": 4,
+          "c": 2,
+          "type": "add",
+          "operand": 5
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "subtract",
+          "operand": 4
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "subtract",
+          "operand": 6
         }
       ]
     },
     {
       "id": 44,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 202,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 316,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
           [
-            3,
-            1
+            2,
+            0
           ],
           [
             3,
-            2
+            1
           ]
         ]
       },
       "startNode": [
+        2,
+        0
+      ],
+      "startValue": 30,
+      "targetNode": [
         3,
         1
       ],
-      "startValue": 15,
-      "targetNode": [
-        3,
-        2
-      ],
-      "targetValue": 85,
+      "targetValue": 10,
       "operations": [
         {
-          "r": 3,
+          "r": 1,
           "c": 0,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 0,
+          "c": 0,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 0,
+          "c": 1,
+          "type": "subtract",
+          "operand": 9
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "multiply",
+          "operand": 2
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "add",
+          "operand": 5
+        },
+        {
+          "r": 2,
+          "c": 4,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 3,
+          "c": 4,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 4,
+          "c": 4,
+          "type": "subtract",
+          "operand": 1
+        },
+        {
+          "r": 4,
+          "c": 3,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 3,
+          "c": 3,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 2,
+          "c": 3,
+          "type": "divide",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 3,
+          "type": "add",
+          "operand": 1
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "subtract",
+          "operand": 2
+        },
+        {
+          "r": 1,
+          "c": 1,
           "type": "divide",
           "operand": 3
         },
         {
           "r": 2,
-          "c": 0,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 1,
-          "c": 0,
-          "type": "add",
-          "operand": 7
-        },
-        {
-          "r": 0,
-          "c": 0,
-          "type": "add",
-          "operand": 5
-        },
-        {
-          "r": 0,
           "c": 1,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 2,
+          "c": 2,
           "type": "add",
           "operand": 8
         },
         {
-          "r": 0,
+          "r": 3,
           "c": 2,
-          "type": "multiply",
-          "operand": 3
-        },
-        {
-          "r": 0,
-          "c": 3,
-          "type": "subtract",
-          "operand": 9
-        },
-        {
-          "r": 1,
-          "c": 3,
           "type": "subtract",
           "operand": 1
         },
         {
-          "r": 1,
+          "r": 4,
           "c": 2,
-          "type": "add",
-          "operand": 4
-        },
-        {
-          "r": 1,
-          "c": 1,
-          "type": "add",
-          "operand": 2
-        },
-        {
-          "r": 2,
-          "c": 1,
           "type": "subtract",
+          "operand": 6
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "divide",
+          "operand": 5
+        },
+        {
+          "r": 4,
+          "c": 0,
+          "type": "add",
           "operand": 3
         },
         {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 2,
-          "c": 3,
+          "r": 3,
+          "c": 0,
           "type": "add",
-          "operand": 4
+          "operand": 3
         },
         {
           "r": 3,
-          "c": 3,
+          "c": 1,
           "type": "add",
-          "operand": 7
-        },
-        {
-          "r": 3,
-          "c": 2,
-          "type": "add",
-          "operand": 7
+          "operand": 3
         }
       ]
     },
     {
       "id": 45,
-      "rows": 4,
-      "cols": 4,
-      "timeLimit": 201,
+      "rows": 5,
+      "cols": 5,
+      "timeLimit": 314,
       "gameType": "operationPath",
       "dotPositions": {
         "green": [
           [
-            1,
-            1
+            0,
+            0
           ],
           [
-            2,
+            3,
             1
           ]
         ]
       },
       "startNode": [
-        1,
-        1
+        0,
+        0
       ],
-      "startValue": 26,
+      "startValue": 21,
       "targetNode": [
-        2,
+        3,
         1
       ],
-      "targetValue": 16,
+      "targetValue": 75,
       "operations": [
+        {
+          "r": 0,
+          "c": 1,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 0,
+          "c": 2,
+          "type": "add",
+          "operand": 7
+        },
+        {
+          "r": 0,
+          "c": 3,
+          "type": "add",
+          "operand": 1
+        },
+        {
+          "r": 0,
+          "c": 4,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 1,
+          "c": 4,
+          "type": "add",
+          "operand": 1
+        },
+        {
+          "r": 1,
+          "c": 3,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 1,
+          "c": 2,
+          "type": "divide",
+          "operand": 5
+        },
+        {
+          "r": 1,
+          "c": 1,
+          "type": "subtract",
+          "operand": 2
+        },
         {
           "r": 1,
           "c": 0,
@@ -1128,88 +1662,94 @@
           "operand": 2
         },
         {
-          "r": 0,
+          "r": 2,
           "c": 0,
-          "type": "subtract",
-          "operand": 9
+          "type": "multiply",
+          "operand": 3
         },
         {
-          "r": 0,
+          "r": 2,
           "c": 1,
-          "type": "add",
-          "operand": 1
+          "type": "multiply",
+          "operand": 3
         },
         {
-          "r": 0,
+          "r": 2,
           "c": 2,
+          "type": "add",
+          "operand": 2
+        },
+        {
+          "r": 2,
+          "c": 3,
           "type": "add",
           "operand": 3
         },
         {
-          "r": 0,
-          "c": 3,
+          "r": 2,
+          "c": 4,
+          "type": "subtract",
+          "operand": 5
+        },
+        {
+          "r": 3,
+          "c": 4,
           "type": "add",
           "operand": 5
         },
         {
-          "r": 1,
+          "r": 4,
+          "c": 4,
+          "type": "subtract",
+          "operand": 8
+        },
+        {
+          "r": 4,
           "c": 3,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 1,
-          "c": 2,
-          "type": "subtract",
-          "operand": 6
-        },
-        {
-          "r": 2,
-          "c": 2,
-          "type": "subtract",
-          "operand": 7
-        },
-        {
-          "r": 2,
-          "c": 3,
-          "type": "subtract",
+          "type": "multiply",
           "operand": 2
         },
         {
           "r": 3,
           "c": 3,
-          "type": "subtract",
-          "operand": 6
+          "type": "add",
+          "operand": 2
         },
         {
           "r": 3,
           "c": 2,
           "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 3,
-          "c": 1,
-          "type": "subtract",
-          "operand": 8
-        },
-        {
-          "r": 3,
-          "c": 0,
-          "type": "add",
           "operand": 5
         },
         {
-          "r": 2,
+          "r": 4,
+          "c": 2,
+          "type": "add",
+          "operand": 8
+        },
+        {
+          "r": 4,
+          "c": 1,
+          "type": "add",
+          "operand": 3
+        },
+        {
+          "r": 4,
           "c": 0,
           "type": "add",
           "operand": 9
         },
         {
-          "r": 2,
+          "r": 3,
+          "c": 0,
+          "type": "subtract",
+          "operand": 3
+        },
+        {
+          "r": 3,
           "c": 1,
           "type": "subtract",
-          "operand": 6
+          "operand": 5
         }
       ]
     },

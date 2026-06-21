@@ -28,7 +28,9 @@ class GameDataManager {
   };
 
   /// Fraction of the previous island that must be completed to unlock the next.
-  static const double _unlockFraction = 0.5;
+  /// Islands now hold 100 levels each, so 0.25 keeps the gate at ~25 completed
+  /// levels (the same feel as the original 50-level islands at 0.5).
+  static const double _unlockFraction = 0.25;
 
   Future<void> init() async {
     if (_initialized) return;

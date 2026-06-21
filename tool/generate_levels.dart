@@ -73,26 +73,23 @@ void _generateNumberPack({
   stdout.writeln('Wrote ${levels.length} levels -> $outPath');
 }
 
-/// Grid size difficulty curve for Number levels 51-100.
+/// Grid size for Number levels 51-100. Continues the expert tier from the
+/// hand-made levels (46-50 are already 10x10) without dropping difficulty.
 int _numberGridSize(int levelId) {
-  if (levelId <= 60) return 6;
-  if (levelId <= 72) return 7;
-  if (levelId <= 86) return 8;
-  if (levelId <= 95) return 9;
+  if (levelId <= 75) return 9;
   return 10;
 }
 
-/// Fraction of cells that get a clue. Higher levels => fewer clues => harder.
+/// Fraction of cells that get a clue.
 double _clueRatio(int levelId) {
-  // 51 -> ~0.33, 100 -> ~0.16 (linear)
   final t = ((levelId - 51) / (100 - 51)).clamp(0.0, 1.0);
-  return 0.33 - (0.17 * t);
+  return 0.30 - (0.12 * t); // 51 -> ~0.30, 100 -> ~0.18
 }
 
-/// Time budget per cell in seconds (shrinks slightly as levels rise).
+/// Time budget per cell in seconds (generous; shrinks slightly as levels rise).
 double _numberSecPerCell(int levelId) {
   final t = ((levelId - 51) / (100 - 51)).clamp(0.0, 1.0);
-  return 4.5 - (1.2 * t); // 51 -> 4.5s/cell, 100 -> 3.3s/cell
+  return 5.5 - (1.0 * t); // 51 -> 5.5s/cell, 100 -> 4.5s/cell
 }
 
 Map<String, dynamic> _buildNumberLevel(int levelId, int size, Random rng) {
@@ -349,12 +346,10 @@ void _generateOperationPack({
   stdout.writeln('Wrote ${levels.length} levels -> $outPath');
 }
 
-/// Operation grids stay small so the (exponential) hint solver always finds a
-/// solution within its in-app time budget. Difficulty rises via op complexity.
-int _operationGridSize(int levelId) {
-  if (levelId <= 45) return 4;
-  return 5;
-}
+/// Operation grids stay at 5x5 (the hand-made tier already reached 5x5 by level
+/// 35) so the exponential hint solver always finds a solution within its in-app
+/// time budget. Difficulty rises via operation complexity instead of grid size.
+int _operationGridSize(int levelId) => 5;
 
 Map<String, dynamic> _buildOperationLevel(int levelId, int size, Random rng) {
   final total = size * size;
@@ -592,11 +587,10 @@ void _generateColorPack({
   stdout.writeln('Wrote ${levels.length} levels -> $outPath');
 }
 
+/// Color grids continue the expert tier (hand-made 46-50 are already 9x9).
 int _colorGridSize(int levelId) {
-  if (levelId <= 65) return 6;
-  if (levelId <= 80) return 7;
-  if (levelId <= 92) return 8;
-  return 9;
+  if (levelId <= 75) return 9;
+  return 10;
 }
 
 /// Number of colors (flow pairs). More colors -> shorter paths.
