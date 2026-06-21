@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/island_model.dart';
-import '../models/level_model.dart';
 import '../services/game_data_manager.dart';
+import '../services/island_catalog.dart';
 import '../widgets/ad_banner.dart';
 import 'level_selection_screen.dart';
 import 'settings_screen.dart';
@@ -58,62 +58,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           );
       }
 
-      final data = GameDataManager();
-
-      final island1 = IslandModel(
-          id: "1",
-          name: "COLOR REALM",
-          backgroundImagePath: "assets/images/islands/color_island_bg.png",
-          iconAssetPath: "assets/images/islands/color_island_icon.png",
-          primaryColor: const Color(0xFF00E5FF),
-          isLocked: !data.isIslandUnlocked("1"),
-          levels: List.generate(50, (i) => LevelModel(
-              id: i + 1, assetPath: '', starsEarned: data.getStars("1", i+1),
-              isLocked: !data.isLevelUnlocked("1", i + 1),
-          )),
-      );
-
-      final island2 = IslandModel(
-          id: "2",
-          name: "NUMBER NEXUS",
-          backgroundImagePath: "assets/images/islands/number_island_bg.png",
-          iconAssetPath: "assets/images/islands/number_island_icon.png",
-          primaryColor: const Color(0xFFD500F9),
-          isLocked: !data.isIslandUnlocked("2"),
-           levels: List.generate(50, (i) => LevelModel(
-              id: i + 1, assetPath: '', starsEarned: data.getStars("2", i+1),
-              isLocked: !data.isLevelUnlocked("2", i + 1),
-          )),
-          dotAssetPath: "assets/images/dots/number_dot.png",
-      );
-
-      final island3 = IslandModel(
-          id: "3",
-          name: "LOGIC CORE",
-          backgroundImagePath: "assets/images/islands/operation_island_bg.png",
-          iconAssetPath: "assets/images/islands/operation_island_icon.png",
-          primaryColor: const Color(0xFF00E676),
-          isLocked: !data.isIslandUnlocked("3"),
-          levels: List.generate(35, (i) => LevelModel(
-              id: i + 1, assetPath: '', starsEarned: data.getStars("3", i+1),
-              isLocked: !data.isLevelUnlocked("3", i + 1),
-          )),
-          dotAssetPath: "assets/images/dots/operation_dot.png",
-      );
-
-      // Ocean is a "coming soon" island: always locked and has no levels yet.
-      final island4 = IslandModel(
-          id: "4",
-          name: "OCEAN DEPTHS",
-          backgroundImagePath: "assets/images/islands/ocean_island_bg.png",
-          iconAssetPath: "assets/images/islands/ocean_island_icon.png",
-          primaryColor: const Color(0xFF18B6FF),
-          isLocked: true,
-          levels: const [],
-      );
-
       setState(() {
-          islands = [island1, island2, island3, island4];
+          islands = IslandCatalog.all();
       });
   }
 
@@ -274,7 +220,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                   const SizedBox(height: 12),
                   // Centered title with neon glow, below the icons row.
                   Text(
-                      "LUMINA PATH",
+                      "DOT WEAVER",
                       textAlign: TextAlign.center,
                       style: GoogleFonts.orbitron(
                           fontSize: 28,

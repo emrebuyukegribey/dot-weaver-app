@@ -6,9 +6,11 @@ import 'dart:collection';
 import '../models/game_level_model.dart';
 import '../services/ad_service.dart';
 import '../services/game_data_manager.dart';
+import '../services/island_catalog.dart';
 import '../services/level_generator.dart';
 import '../services/puzzle_solver.dart';
 import '../services/sound_service.dart';
+import 'level_selection_screen.dart';
 
 class GameScreen extends StatefulWidget {
   final GameLevel level;
@@ -74,6 +76,8 @@ class _GameScreenState extends State<GameScreen>
   bool _showLevelAnnouncement = false;
   bool _showBoardNotFullWarning = false;
   bool _showTimeUpUI = false; // NEW: time-up dialog (watch ad +30s / restart)
+  bool _showIslandComplete = false; // NEW: island finished celebration before next island
+  String _nextIslandName = "";
   int _targetLevelId = 0;
 
   // Hint System
@@ -242,6 +246,31 @@ class _GameScreenState extends State<GameScreen>
               }
           });
       });
+  }
+
+  /// Freezes the countdown while a full-screen ad is on screen. This is
+  /// independent of the app-lifecycle hook because ad SDKs don't always emit a
+  /// reliable background/foreground event (especially on iOS).
+  void _pauseTimerForAd() {
+      if (_gameTimer != null) {
+          _gameTimer?.cancel();
+          _gameTimer = null;
+      }
+  }
+
+  /// Restarts the countdown after an ad closes, but only if the game is still in
+  /// a live, playable state.
+  void _resumeTimerAfterAd() {
+      if (!mounted) return;
+      _pausedByLifecycle = false;
+      final bool canResume = _isGameActive &&
+          _hasStarted &&
+          _remainingSeconds > 0 &&
+          _gameTimer == null &&
+          !_showWinUI &&
+          !_showFailedUI &&
+          !_showTimeUpUI;
+      if (canResume) _resumeTimer();
   }
 
   Future<void> _continueWithRewardedAd() async {
@@ -516,6 +545,9 @@ class _GameScreenState extends State<GameScreen>
 
             // 10. Failed Overlay (New)
             if (_showFailedUI) _buildFailedOverlay(),
+
+            // 11. Island Complete celebration (before sailing to next island)
+            if (_showIslandComplete) _buildIslandCompleteOverlay(),
         ],
       ),
     );
@@ -709,22 +741,104 @@ class _GameScreenState extends State<GameScreen>
         });
         _triggerConfetti();
     } else {
-        // All connected but board NOT full -> Show warning then Ad
-        _stopGame();
-        SoundService().playError();
+        // All pairs connected but the board isn't fully covered yet. Show a
+        // gentle nudge without wiping the player's progress so they can keep
+        // adjusting their paths.
+        SoundService().playTap();
         setState(() {
             _showBoardNotFullWarning = true;
         });
-        
-        Future.delayed(const Duration(milliseconds: 1500), () {
+
+        Future.delayed(const Duration(milliseconds: 1600), () {
             if (mounted) {
                 setState(() {
                     _showBoardNotFullWarning = false;
                 });
-                _resetGame();
             }
         });
     }
+  }
+
+  /// Called from the win overlay's CONTINUE button on the final level of an
+  /// island. Plays an "island complete" celebration and then sails to the next
+  /// island's level map. If there is no next playable island, simply returns to
+  /// the current island map.
+  Future<void> _goToNextIslandOrExit() async {
+      final nextIsland = IslandCatalog.nextPlayable(widget.islandId);
+
+      if (nextIsland == null) {
+          if (mounted) Navigator.pop(context, _earnedStars);
+          return;
+      }
+
+      // Capture the navigator before any awaits/pops invalidate this context.
+      final navigator = Navigator.of(context);
+
+      setState(() {
+          _nextIslandName = nextIsland.name;
+          _showIslandComplete = true;
+      });
+      SoundService().playWin();
+
+      await Future.delayed(const Duration(milliseconds: 2600));
+      if (!mounted) return;
+
+      // Pop back to the world map (first route) then open the next island so
+      // the back button returns to the world map rather than this game screen.
+      navigator.popUntil((route) => route.isFirst);
+      navigator.push(
+          PageRouteBuilder(
+              transitionDuration: const Duration(milliseconds: 700),
+              pageBuilder: (_, __, ___) => LevelSelectionScreen(island: nextIsland),
+              transitionsBuilder: (ctx, anim, _, child) =>
+                  FadeTransition(opacity: anim, child: child),
+          ),
+      );
+  }
+
+  Widget _buildIslandCompleteOverlay() {
+      return Stack(
+          children: [
+              Positioned.fill(child: Container(color: Colors.black.withValues(alpha: 0.85))),
+              Center(
+                  child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeOutBack,
+                      builder: (context, t, child) => Transform.scale(
+                          scale: 0.7 + (0.3 * t.clamp(0.0, 1.0)),
+                          child: Opacity(opacity: t.clamp(0.0, 1.0), child: child),
+                      ),
+                      child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                  const Icon(Icons.emoji_events_rounded, color: Color(0xFFFFD54F), size: 90),
+                                  const SizedBox(height: 20),
+                                  const Text(
+                                      "ADA TAMAMLANDI!",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 1.5),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                      "Sıradaki ada açılıyor:\n$_nextIslandName",
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(color: Colors.white70, fontSize: 18, height: 1.4),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  const SizedBox(
+                                      width: 30, height: 30,
+                                      child: CircularProgressIndicator(strokeWidth: 3, color: Color(0xFFFFD54F)),
+                                  ),
+                              ],
+                          ),
+                      ),
+                  ),
+              ),
+          ],
+      );
   }
 
   Widget _buildWinOverlay() {
@@ -842,7 +956,9 @@ class _GameScreenState extends State<GameScreen>
                                                                   ),
                                                               );
                                                           } else {
-                                                              Navigator.pop(context, _earnedStars);
+                                                              // Last level of this island finished. If a next
+                                                              // playable island exists, celebrate and sail to it.
+                                                              await _goToNextIslandOrExit();
                                                           }
                                                       },
                                                       child: Container(
@@ -1111,30 +1227,45 @@ class _GameScreenState extends State<GameScreen>
   // Removed legacy _buildGameOverOverlay 
 
   Widget _buildBoardNotFullOverlay() {
+      const Color accent = Color(0xFF4FC3F7); // soft sky blue
       return Center(
-          child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
-              decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                      BoxShadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 20)
-                  ],
+          child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.0, end: 1.0),
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutBack,
+              builder: (context, t, child) => Transform.scale(
+                  scale: 0.85 + (0.15 * t.clamp(0.0, 1.0)),
+                  child: Opacity(opacity: t.clamp(0.0, 1.0), child: child),
               ),
-              child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.white, size: 50),
-                      SizedBox(height: 10),
-                      Text(
-                          "MASA TAMAMLANMADI!",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
-                      ),
-                      Text(
-                          "Tüm kareleri doldurmalısın!",
-                          style: TextStyle(color: Colors.white70, fontSize: 16),
-                      ),
-                  ],
+              child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 40),
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+                  decoration: BoxDecoration(
+                      color: const Color(0xFF1B2330).withValues(alpha: 0.96),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.5),
+                      boxShadow: [
+                          BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 30, spreadRadius: -4),
+                          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20),
+                      ],
+                  ),
+                  child: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                          Icon(Icons.lightbulb_outline_rounded, color: accent, size: 44),
+                          SizedBox(height: 12),
+                          Text(
+                              "Az kaldı!",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                          ),
+                          SizedBox(height: 6),
+                          Text(
+                              "Kazanmak için tüm kareleri\ndoldurman gerekiyor.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.35),
+                          ),
+                      ],
+                  ),
               ),
           ),
       );
@@ -1375,8 +1506,10 @@ class _GameScreenState extends State<GameScreen>
   /// Extra hint earned by watching a rewarded ad (Color island only).
   Future<void> _useExtraHintViaAd() async {
       if (_isHintAnimating || !_isGameActive) return;
+      _pauseTimerForAd();
       final earned = await AdService().showRewarded(onReward: () {});
       if (!mounted) return;
+      _resumeTimerAfterAd();
       if (earned) {
           await _revealHint();
       }
