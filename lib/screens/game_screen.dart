@@ -1426,7 +1426,7 @@ class _GameScreenState extends State<GameScreen>
   /// player's path a few steps along a real solution (correcting wrong moves).
   Future<bool> _revealNumberHint() async {
       setState(() => _isHintAnimating = true);
-      final solution = await PuzzleSolver.solveNumberPath(widget.levelId, widget.islandId);
+      final solution = await PuzzleSolver.solveNumberPath(widget.level);
       if (!mounted) return true;
       if (solution == null || solution.isEmpty) {
           setState(() => _isHintAnimating = false);
@@ -1463,7 +1463,7 @@ class _GameScreenState extends State<GameScreen>
   /// path a few steps along a valid start->target solution.
   Future<bool> _revealOperationHint() async {
       setState(() => _isHintAnimating = true);
-      final solution = await PuzzleSolver.solveOperationPath(widget.levelId, widget.islandId);
+      final solution = await PuzzleSolver.solveOperationPath(widget.level);
       if (!mounted) return true;
       if (solution == null || solution.isEmpty) {
           setState(() => _isHintAnimating = false);

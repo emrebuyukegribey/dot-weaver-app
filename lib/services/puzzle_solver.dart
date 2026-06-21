@@ -1,23 +1,23 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/game_level_model.dart';
-import 'level_generator.dart';
 
 /// Runtime solver used to power the in-game hint for the numberPath and
 /// operationPath islands. Solving runs on a background isolate (via [compute])
 /// so the UI never blocks, and returns the full solution path as an ordered
 /// list of [GridPoint]s (or null if no solution was found within the budget).
+///
+/// The level is passed in as serialized data so the background isolate never
+/// needs to reach for assets or shared static state (which it cannot access).
 class PuzzleSolver {
   /// Solves a numberPath level. Returns the ordered path from the start cell
   /// through every cell, or null on failure/timeout.
   static Future<List<GridPoint>?> solveNumberPath(
-    int levelId,
-    String islandId, {
+    GameLevel level, {
     int budgetMs = 5000,
   }) async {
     final raw = await compute(_solveNumberEntry, {
-      'levelId': levelId,
-      'islandId': islandId,
+      'level': level.toJson(),
       'budgetMs': budgetMs,
     });
     return _toPoints(raw);
@@ -26,13 +26,11 @@ class PuzzleSolver {
   /// Solves an operationPath level. Returns the ordered path from start to
   /// target, or null on failure/timeout.
   static Future<List<GridPoint>?> solveOperationPath(
-    int levelId,
-    String islandId, {
+    GameLevel level, {
     int budgetMs = 5000,
   }) async {
     final raw = await compute(_solveOperationEntry, {
-      'levelId': levelId,
-      'islandId': islandId,
+      'level': level.toJson(),
       'budgetMs': budgetMs,
     });
     return _toPoints(raw);
@@ -49,18 +47,12 @@ class PuzzleSolver {
 // ---------------------------------------------------------------------------
 
 List<List<int>>? _solveNumberEntry(Map<String, dynamic> args) {
-  final level = LevelGenerator.generate(
-    args['levelId'] as int,
-    islandId: args['islandId'] as String,
-  );
+  final level = GameLevel.fromJson(Map<String, dynamic>.from(args['level'] as Map));
   return _solveNumber(level, args['budgetMs'] as int);
 }
 
 List<List<int>>? _solveOperationEntry(Map<String, dynamic> args) {
-  final level = LevelGenerator.generate(
-    args['levelId'] as int,
-    islandId: args['islandId'] as String,
-  );
+  final level = GameLevel.fromJson(Map<String, dynamic>.from(args['level'] as Map));
   return _solveOperation(level, args['budgetMs'] as int);
 }
 

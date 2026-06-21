@@ -1,6 +1,42 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import '../models/game_level_model.dart';
 
 class LevelGenerator {
+  /// Procedurally pre-generated levels loaded from JSON assets at startup,
+  /// keyed by islandId -> (levelId -> level). These extend the hand-made levels
+  /// (e.g. Number Nexus 51-100) without bloating the source with literals.
+  static final Map<String, Map<int, GameLevel>> _generated = {};
+
+  /// Loads the baked level packs. Call once during app startup (before the
+  /// first level can be opened). Safe to call multiple times.
+  static Future<void> init() async {
+    if (_generated.isNotEmpty) return;
+    const packs = {
+      '1': 'assets/levels/color.json',
+      '2': 'assets/levels/number.json',
+      '3': 'assets/levels/operation.json',
+    };
+    for (final entry in packs.entries) {
+      try {
+        final raw = await rootBundle.loadString(entry.value);
+        final decoded = jsonDecode(raw) as Map<String, dynamic>;
+        final levels = (decoded['levels'] as List);
+        final map = <int, GameLevel>{};
+        for (final item in levels) {
+          final level = GameLevel.fromJson(Map<String, dynamic>.from(item as Map));
+          map[level.id] = level;
+        }
+        _generated[entry.key] = map;
+      } catch (_) {
+        // Missing/!valid pack: fall back to hand-made levels only.
+      }
+    }
+  }
+
+  static GameLevel? _generatedLevel(String islandId, int levelId) =>
+      _generated[islandId]?[levelId];
+
   static final Map<int, List<DotColor>> levelConfigs = {
     1: [DotColor.red, DotColor.blue],
     2: [DotColor.red, DotColor.blue, DotColor.yellow],
@@ -61,6 +97,12 @@ class LevelGenerator {
 
   // Generate level based on island context
   static GameLevel generate(int levelId, {String? islandId}) {
+    // Procedurally pre-generated packs take priority for their island/range.
+    if (islandId != null) {
+      final pre = _generatedLevel(islandId, levelId);
+      if (pre != null) return pre;
+    }
+
     if (islandId == "2" || islandId == 2.toString()) {
       return generateNumberLevel(levelId);
     }

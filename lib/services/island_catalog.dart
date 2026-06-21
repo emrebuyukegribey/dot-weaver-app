@@ -35,7 +35,7 @@ class IslandCatalog {
       backgroundImagePath: "assets/images/islands/color_island_bg.png",
       iconAssetPath: "assets/images/islands/color_island_icon.png",
       colorValue: 0xFF00E5FF,
-      levelCount: 50,
+      levelCount: 100,
     ),
     _IslandMeta(
       id: "2",
@@ -43,7 +43,7 @@ class IslandCatalog {
       backgroundImagePath: "assets/images/islands/number_island_bg.png",
       iconAssetPath: "assets/images/islands/number_island_icon.png",
       colorValue: 0xFFD500F9,
-      levelCount: 50,
+      levelCount: 100,
       dotAssetPath: "assets/images/dots/number_dot.png",
     ),
     _IslandMeta(
@@ -52,7 +52,7 @@ class IslandCatalog {
       backgroundImagePath: "assets/images/islands/operation_island_bg.png",
       iconAssetPath: "assets/images/islands/operation_island_icon.png",
       colorValue: 0xFF00E676,
-      levelCount: 35,
+      levelCount: 100,
       dotAssetPath: "assets/images/dots/operation_dot.png",
     ),
     _IslandMeta(

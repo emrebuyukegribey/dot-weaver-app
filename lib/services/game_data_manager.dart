@@ -16,9 +16,9 @@ class GameDataManager {
   /// Playable islands and their level counts. Ocean ("4") is a "coming soon"
   /// island and intentionally has 0 levels so it stays locked.
   static const Map<String, int> islandLevelCounts = {
-    "1": 50, // Color Realm
-    "2": 50, // Number Nexus
-    "3": 35, // Logic Core
+    "1": 100, // Color Realm (1-50 hand-made + 51-100 generated)
+    "2": 100, // Number Nexus (1-50 hand-made + 51-100 generated)
+    "3": 100, // Logic Core (1-35 hand-made + 36-100 generated)
   };
 
   /// Previous island that must be progressed to unlock a given island.

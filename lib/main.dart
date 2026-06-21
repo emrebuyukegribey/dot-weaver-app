@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'services/ad_service.dart';
 import 'services/game_data_manager.dart';
+import 'services/level_generator.dart';
 import 'services/purchase_service.dart';
 import 'services/sound_service.dart';
 import 'screens/world_map_screen.dart';
@@ -12,6 +13,8 @@ import 'screens/world_map_screen.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GameDataManager().init();
+  // Load procedurally pre-generated level packs (Number 51-100, etc.).
+  await LevelGenerator.init();
   // Pre-load sound effects (non-blocking for the UI; safe to fire-and-forget).
   SoundService().init();
   runApp(const MyApp());
