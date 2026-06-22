@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dot Weaver · Support</title>
+  <style>
+    :root { --bg:#0a0a18; --line:#23233a; --cyan:#22d3ee; --txt:#e7e7f5; --muted:#9a9ab5; }
+    body { margin:0; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.6; }
+    .wrap { max-width:720px; margin:0 auto; padding:28px 20px 60px; }
+    header { display:flex; align-items:center; gap:12px; border-bottom:1px solid var(--line); padding-bottom:16px; margin-bottom:8px; }
+    h1 { font-size:22px; margin:0; } h2 { font-size:17px; color:var(--cyan); margin:24px 0 6px; }
+    a { color:var(--cyan); } .toggle { margin-left:auto; display:flex; gap:6px; }
+    .toggle button { background:#1e1e34; color:var(--txt); border:1px solid var(--line); padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:600; }
+    .toggle button.active { background:var(--cyan); color:#062a30; border-color:var(--cyan); }
+    .lang { display:none; } .lang.active { display:block; }
+    .card { background:#141426; border:1px solid var(--line); border-radius:12px; padding:14px 18px; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Dot Weaver — Support</h1>
+      <div class="toggle"><button data-l="en">EN</button><button data-l="tr">TR</button></div>
+    </header>
+
+    <section id="en" class="lang">
+      <div class="card">Need help? Email us at <b><a href="mailto:sovedigital@gmail.com">sovedigital@gmail.com</a></b> and we'll get back to you.</div>
+      <h2>Common questions</h2>
+      <p><b>I bought "Remove Ads" but still see ads.</b><br>Open <b>Settings → Remove Ads → Restore</b>. Make sure you're signed in to the same App Store / Google Play account used for the purchase.</p>
+      <p><b>How do I change my leaderboard name?</b><br><b>Settings → Account → Username</b>.</p>
+      <p><b>How is my data handled?</b><br>See our <a href="/dotweaver/privacy">Privacy Policy</a>. To delete your leaderboard data, email us your <b>Device ID</b> (Settings → Account).</p>
+      <p><b>The leaderboard isn't loading.</b><br>It needs an internet connection. The single-player game works offline.</p>
+      <p>Links: <a href="/dotweaver/privacy">Privacy Policy</a> · <a href="/dotweaver/terms">Terms of Service</a></p>
+    </section>
+
+    <section id="tr" class="lang">
+      <div class="card">Yardıma mı ihtiyacın var? <b><a href="mailto:sovedigital@gmail.com">sovedigital@gmail.com</a></b> adresine yaz, sana dönelim.</div>
+      <h2>Sık sorulanlar</h2>
+      <p><b>"Reklamları Kaldır"ı aldım ama hâlâ reklam görüyorum.</b><br><b>Ayarlar → Reklamları Kaldır → Geri Yükle</b>'ye dokun. Satın alımı yaptığın App Store / Google Play hesabıyla oturum açtığından emin ol.</p>
+      <p><b>Lider tablosu adımı nasıl değiştiririm?</b><br><b>Ayarlar → Hesap → Kullanıcı adı</b>.</p>
+      <p><b>Verilerim nasıl işleniyor?</b><br><a href="/dotweaver/privacy">Gizlilik Politikası</a>'na bakın. Lider tablosu verinizi silmek için <b>Cihaz Kimliğinizi</b> (Ayarlar → Hesap) e-postayla gönderin.</p>
+      <p><b>Lider tablosu yüklenmiyor.</b><br>İnternet bağlantısı gerekir. Tek oyunculu oyun çevrimdışı çalışır.</p>
+      <p>Bağlantılar: <a href="/dotweaver/privacy">Gizlilik Politikası</a> · <a href="/dotweaver/terms">Kullanım Koşulları</a></p>
+    </section>
+  </div>
+  <script>
+    function setLang(l){
+      document.querySelectorAll('.lang').forEach(s=>s.classList.toggle('active', s.id===l));
+      document.querySelectorAll('.toggle button').forEach(b=>b.classList.toggle('active', b.dataset.l===l));
+      document.documentElement.lang=l;
+    }
+    document.querySelectorAll('.toggle button').forEach(b=>b.onclick=()=>setLang(b.dataset.l));
+    setLang((navigator.language||'en').toLowerCase().startsWith('tr')?'tr':'en');
+  </script>
+</body>
+</html>

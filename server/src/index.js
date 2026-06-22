@@ -226,6 +226,7 @@ app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public
 // ---- legal pages (public) ---------------------------------------------------
 app.get('/privacy', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'privacy.html')));
 app.get('/terms', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'terms.html')));
+app.get('/support', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'support.html')));
 
 // ---- start ------------------------------------------------------------------
 
