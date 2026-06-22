@@ -18,22 +18,27 @@ enum DotColor {
 }
 
 extension DotColorExtension on DotColor {
+  /// Hand-tuned, perceptually-separated palette (bright on the dark board).
+  /// The default Material *Accent* colors were too close at higher levels —
+  /// blue≈indigo, cyan≈teal, yellow≈amber, red≈pink — so these spread the hues
+  /// (and re-purpose amber as a lime, indigo as a violet) to stay distinguishable
+  /// even when many colors appear together.
   Color get color {
     switch (this) {
-      case DotColor.red: return Colors.redAccent;
-      case DotColor.blue: return Colors.blueAccent;
-      case DotColor.green: return Colors.greenAccent;
-      case DotColor.yellow: return Colors.yellowAccent;
-      case DotColor.purple: return Colors.purpleAccent;
-      case DotColor.orange: return Colors.orangeAccent;
-      case DotColor.pink: return Colors.pinkAccent;
-      case DotColor.teal: return Colors.tealAccent;
-      case DotColor.amber: return Colors.amberAccent;
-      case DotColor.indigo: return Colors.indigoAccent;
-      case DotColor.cyan: return Colors.cyanAccent;
+      case DotColor.red: return const Color(0xFFFF4438);     // red
+      case DotColor.orange: return const Color(0xFFFF8A00);  // orange
+      case DotColor.amber: return const Color(0xFFB6F500);   // lime / chartreuse
+      case DotColor.yellow: return const Color(0xFFFFE600);  // yellow
+      case DotColor.green: return const Color(0xFF2BD94B);   // green
+      case DotColor.teal: return const Color(0xFF00E5C0);    // teal / aqua
+      case DotColor.cyan: return const Color(0xFF18C8FF);    // sky / cyan
+      case DotColor.blue: return const Color(0xFF2D7DFF);    // blue
+      case DotColor.indigo: return const Color(0xFF8C5BFF);  // violet
+      case DotColor.purple: return const Color(0xFFD64BFF);  // magenta-purple
+      case DotColor.pink: return const Color(0xFFFF4D88);    // rose pink
       case DotColor.white: return Colors.white;
-      case DotColor.grey: return Colors.grey;
-      case DotColor.black: return Colors.black;
+      case DotColor.grey: return const Color(0xFFAEBFCB);
+      case DotColor.black: return const Color(0xFF5A6B78);
     }
   }
 }
