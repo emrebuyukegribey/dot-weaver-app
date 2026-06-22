@@ -13,7 +13,7 @@ const int _promoEveryN = 10;
 /// DEBUG ONLY: when true, the modal is allowed to appear even if no purchasable
 /// product is configured (the store-availability gate is skipped) so it can be
 /// previewed on an emulator/simulator. MUST be false for release builds.
-const bool _debugForcePromo = true;
+const bool _debugForcePromo = false;
 
 /// Shows the "Remove Ads" upsell modal occasionally, respecting a cadence so the
 /// user isn't nagged. Call this on a level completion ONLY when an interstitial
