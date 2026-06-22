@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../services/device_id_service.dart';
 import '../services/game_data_manager.dart';
 import '../services/purchase_service.dart';
 
@@ -19,6 +21,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late bool _soundEnabled;
   String _version = '';
+  String _deviceId = '';
   bool _busy = false;
 
   @override
@@ -26,6 +29,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.initState();
     _soundEnabled = GameDataManager().soundEnabled;
     _loadVersion();
+    _loadDeviceId();
+  }
+
+  Future<void> _loadDeviceId() async {
+    final id = await DeviceIdService().getDeviceId();
+    if (mounted) setState(() => _deviceId = id);
+  }
+
+  void _copyDeviceId() {
+    if (_deviceId.isEmpty) return;
+    Clipboard.setData(ClipboardData(text: _deviceId));
+    _showSnack('Device ID copied.');
   }
 
   Future<void> _loadVersion() async {
@@ -149,6 +164,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _version,
                         style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
                       ),
+                    ),
+                    const Divider(color: Colors.white12, height: 1),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.perm_device_information_rounded, color: Colors.cyanAccent),
+                      title: _tileText('Device ID'),
+                      subtitle: Text(
+                        _deviceId.isEmpty ? '…' : _deviceId,
+                        style: GoogleFonts.robotoMono(color: Colors.white54, fontSize: 12),
+                      ),
+                      trailing: const Icon(Icons.copy_rounded, color: Colors.white54, size: 18),
+                      onTap: _copyDeviceId,
                     ),
                   ],
                 ),

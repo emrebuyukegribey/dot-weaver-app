@@ -10,6 +10,7 @@ import '../services/island_catalog.dart';
 import '../services/level_generator.dart';
 import '../services/puzzle_solver.dart';
 import '../services/sound_service.dart';
+import '../widgets/remove_ads_promo.dart';
 import 'level_selection_screen.dart';
 
 class GameScreen extends StatefulWidget {
@@ -908,8 +909,15 @@ class _GameScreenState extends State<GameScreen>
                                                           await GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
 
                                                           // 1b. Occasionally show an interstitial (skipped if ads removed)
-                                                          await AdService().onLevelCompleted();
+                                                          final bool interstitialShown = await AdService().onLevelCompleted();
                                                           if (!mounted) return;
+
+                                                          // 1c. If no interstitial showed, occasionally offer "Remove Ads"
+                                                          // (cadence-limited; no-op if already ad-free).
+                                                          if (!interstitialShown) {
+                                                              await maybeShowRemoveAdsPromo(context);
+                                                              if (!mounted) return;
+                                                          }
 
                                                           // 2. Load next level if one exists on THIS island. Each
                                                           // island has its own level count (Logic Core has 35, not

@@ -44,6 +44,8 @@ class GameDataManager {
   String _getHintKey(String islandId, int levelId) => 'hint_used_${islandId}_$levelId';
   static const String _kRemoveAds = 'remove_ads';
   static const String _kSoundEnabled = 'sound_enabled';
+  static const String _kPromoCompletions = 'promo_completions_since_shown';
+  static const String _kPromoShownCount = 'promo_shown_count';
 
   // --- Stars ---
   int getStars(String islandId, int levelId) {
@@ -152,6 +154,21 @@ class GameDataManager {
 
   Future<void> setRemoveAds(bool value) async {
     await _prefs.setBool(_kRemoveAds, value);
+  }
+
+  /// Cadence tracking for the "Remove Ads" upsell modal so it appears only
+  /// occasionally. [promoCompletions] counts ad-free level completions since the
+  /// modal was last shown; [promoShownCount] is how many times it has been shown.
+  int get promoCompletions => _prefs.getInt(_kPromoCompletions) ?? 0;
+  int get promoShownCount => _prefs.getInt(_kPromoShownCount) ?? 0;
+
+  Future<void> incrementPromoCompletions() async {
+    await _prefs.setInt(_kPromoCompletions, promoCompletions + 1);
+  }
+
+  Future<void> markPromoShown() async {
+    await _prefs.setInt(_kPromoCompletions, 0);
+    await _prefs.setInt(_kPromoShownCount, promoShownCount + 1);
   }
 
   // --- Settings ---

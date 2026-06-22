@@ -138,34 +138,37 @@ class AdService {
   }
 
   /// Records a level completion and shows an interstitial once the cadence is
-  /// reached (and ads are allowed). Returns when the ad is dismissed.
-  Future<void> onLevelCompleted() async {
-    if (!_adsAllowed) return;
+  /// reached (and ads are allowed). Returns true if an interstitial was actually
+  /// shown (so callers can avoid stacking another popup on top of it).
+  Future<bool> onLevelCompleted() async {
+    if (!_adsAllowed) return false;
     _completionsSinceInterstitial++;
-    if (_completionsSinceInterstitial < interstitialEveryNCompletions) return;
+    if (_completionsSinceInterstitial < interstitialEveryNCompletions) return false;
     _completionsSinceInterstitial = 0;
-    await _showInterstitial();
+    return _showInterstitial();
   }
 
-  Future<void> _showInterstitial() async {
+  /// Returns true if the interstitial was shown and dismissed; false if there
+  /// was no ad ready to show.
+  Future<bool> _showInterstitial() async {
     final ad = _interstitial;
     if (ad == null) {
       _loadInterstitial();
-      return;
+      return false;
     }
-    final c = Completer<void>();
+    final c = Completer<bool>();
     ad.fullScreenContentCallback = FullScreenContentCallback(
       onAdDismissedFullScreenContent: (ad) {
         ad.dispose();
         _interstitial = null;
         _loadInterstitial();
-        if (!c.isCompleted) c.complete();
+        if (!c.isCompleted) c.complete(true);
       },
       onAdFailedToShowFullScreenContent: (ad, error) {
         ad.dispose();
         _interstitial = null;
         _loadInterstitial();
-        if (!c.isCompleted) c.complete();
+        if (!c.isCompleted) c.complete(false);
       },
     );
     await ad.show();
