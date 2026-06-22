@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../l10n/app_localizations.dart';
 import '../services/game_data_manager.dart';
 import '../services/purchase_service.dart';
 
@@ -68,8 +69,8 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
       Navigator.of(context).pop();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Purchase could not be started. Please try again.'),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).purchaseCouldNotStart),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -78,6 +79,7 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     final price = PurchaseService().removeAdsPrice;
     return Dialog(
       backgroundColor: Colors.transparent,
@@ -109,7 +111,7 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
             ),
             const SizedBox(height: 16),
             Text(
-              'GO AD-FREE',
+              t.removeAdsPromoTitle,
               style: GoogleFonts.orbitron(
                 color: Colors.white,
                 fontSize: 22,
@@ -119,14 +121,14 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Enjoy Dot Weaver with no banners and no interruptions.',
+              t.removeAdsPromoSubtitle,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(color: Colors.white70, fontSize: 14),
             ),
             const SizedBox(height: 18),
-            _benefit('Remove the bottom banner'),
-            _benefit('No full-screen ads between levels'),
-            _benefit('One-time purchase, forever'),
+            _benefit(t.benefitNoBanner),
+            _benefit(t.benefitNoInterstitial),
+            _benefit(t.benefitOneTime),
             const SizedBox(height: 22),
             SizedBox(
               width: double.infinity,
@@ -145,7 +147,7 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                       )
                     : Text(
-                        price.isNotEmpty ? 'Remove Ads  •  $price' : 'Remove Ads',
+                        price.isNotEmpty ? t.removeAdsWithPrice(price) : t.removeAds,
                         style: GoogleFonts.orbitron(fontWeight: FontWeight.w700, fontSize: 15),
                       ),
               ),
@@ -153,7 +155,7 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
             TextButton(
               onPressed: _busy ? null : () => Navigator.of(context).pop(),
               child: Text(
-                'Maybe later',
+                t.maybeLater,
                 style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13),
               ),
             ),

@@ -4,8 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/app_localizations.dart';
+import '../services/api_service.dart';
 import '../services/device_id_service.dart';
 import '../services/game_data_manager.dart';
+import '../services/locale_controller.dart';
 import '../services/purchase_service.dart';
 
 /// _TODO_REAL_IDS: replace with your hosted privacy policy URL before release.
@@ -22,12 +25,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
   late bool _soundEnabled;
   String _version = '';
   String _deviceId = '';
+  String _username = '';
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
     _soundEnabled = GameDataManager().soundEnabled;
+    _username = GameDataManager().username;
     _loadVersion();
     _loadDeviceId();
   }
@@ -40,7 +45,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _copyDeviceId() {
     if (_deviceId.isEmpty) return;
     Clipboard.setData(ClipboardData(text: _deviceId));
-    _showSnack('Device ID copied.');
+    _showSnack(AppLocalizations.of(context).deviceIdCopied);
   }
 
   Future<void> _loadVersion() async {
@@ -60,31 +65,119 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _buyRemoveAds() async {
+    final t = AppLocalizations.of(context);
     setState(() => _busy = true);
     final ps = PurchaseService();
     final started = await ps.buyRemoveAds();
     if (mounted) setState(() => _busy = false);
     if (!started && mounted) {
-      _showSnack(ps.storeAvailable
-          ? 'Purchase could not be started. Please try again.'
-          : 'Store is unavailable right now.');
+      _showSnack(ps.storeAvailable ? t.purchaseCouldNotStart : t.storeUnavailable);
     }
   }
 
   Future<void> _restore() async {
+    final t = AppLocalizations.of(context);
     setState(() => _busy = true);
     await PurchaseService().restorePurchases();
     if (mounted) {
       setState(() => _busy = false);
-      _showSnack('Restore requested. Purchases will update automatically.');
+      _showSnack(t.restoreRequested);
     }
   }
 
   Future<void> _openPrivacy() async {
+    final t = AppLocalizations.of(context);
     final uri = Uri.parse(kPrivacyPolicyUrl);
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!ok && mounted) _showSnack('Could not open the privacy policy.');
+    if (!ok && mounted) _showSnack(t.couldNotOpenPrivacy);
   }
+
+  Future<void> _editUsername() async {
+    final t = AppLocalizations.of(context);
+    final controller = TextEditingController(text: _username);
+    final name = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF141426),
+        title: Text(t.changeUsername, style: GoogleFonts.orbitron(color: Colors.white, fontSize: 16)),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          maxLength: 16,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            counterStyle: const TextStyle(color: Colors.white38),
+            hintText: t.usernameInvalid,
+            hintStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+            enabledBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.white24)),
+            focusedBorder: const UnderlineInputBorder(borderSide: BorderSide(color: Colors.cyanAccent)),
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(t.cancel)),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+            child: Text(t.save),
+          ),
+        ],
+      ),
+    );
+    if (name == null || name.isEmpty || name == _username) return;
+
+    setState(() => _busy = true);
+    final err = await ApiService().setUsername(name);
+    if (!mounted) return;
+    setState(() {
+      _busy = false;
+      if (err == null) _username = GameDataManager().username;
+    });
+    _showSnack(switch (err) {
+      null => t.usernameUpdated,
+      'taken' => t.usernameTaken,
+      'invalid' => t.usernameInvalid,
+      _ => t.usernameOffline,
+    });
+  }
+
+  Future<void> _pickLanguage() async {
+    final t = AppLocalizations.of(context);
+    final current = GameDataManager().localeCode; // null | 'en' | 'tr'
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: const Color(0xFF141426),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _langTile(ctx, t.languageSystem, '__system__', current == null),
+            _langTile(ctx, t.languageEnglish, 'en', current == 'en'),
+            _langTile(ctx, t.languageTurkish, 'tr', current == 'tr'),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (choice == null) return;
+    await LocaleController().setLocale(choice == '__system__' ? null : choice);
+    if (mounted) setState(() {});
+  }
+
+  Widget _langTile(BuildContext ctx, String label, String value, bool selected) {
+    return ListTile(
+      title: Text(label, style: GoogleFonts.poppins(color: Colors.white, fontSize: 15)),
+      trailing: selected ? const Icon(Icons.check_rounded, color: Colors.cyanAccent) : null,
+      onTap: () => Navigator.pop(ctx, value),
+    );
+  }
+
+  String _languageLabel(AppLocalizations t) => switch (GameDataManager().localeCode) {
+        'en' => t.languageEnglish,
+        'tr' => t.languageTurkish,
+        _ => t.languageSystem,
+      };
 
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -98,6 +191,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final t = AppLocalizations.of(context);
     return Scaffold(
       backgroundColor: const Color(0xFF050510),
       appBar: AppBar(
@@ -105,7 +199,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
-          'SETTINGS',
+          t.settingsTitle,
           style: GoogleFonts.orbitron(
             fontWeight: FontWeight.w800,
             letterSpacing: 2,
@@ -125,32 +219,67 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              _sectionTitle('MONETIZATION'),
-              _buildRemoveAdsCard(),
+              _sectionTitle(t.sectionMonetization),
+              _buildRemoveAdsCard(t),
               const SizedBox(height: 24),
-              _sectionTitle('PREFERENCES'),
+              _sectionTitle(t.sectionAccount),
               _buildCard(
-                child: SwitchListTile(
-                  value: _soundEnabled,
-                  onChanged: _toggleSound,
-                  activeThumbColor: Colors.cyanAccent,
+                child: ListTile(
                   contentPadding: EdgeInsets.zero,
-                  secondary: Icon(
-                    _soundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
-                    color: Colors.cyanAccent,
+                  leading: const Icon(Icons.person_rounded, color: Colors.cyanAccent),
+                  title: _tileText(t.username),
+                  subtitle: Text(
+                    _username.isEmpty ? '—' : _username,
+                    style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
                   ),
-                  title: _tileText('Sound effects'),
+                  trailing: const Icon(Icons.edit_rounded, color: Colors.white54, size: 18),
+                  onTap: _busy ? null : _editUsername,
                 ),
               ),
               const SizedBox(height: 24),
-              _sectionTitle('ABOUT'),
+              _sectionTitle(t.sectionPreferences),
+              _buildCard(
+                child: Column(
+                  children: [
+                    SwitchListTile(
+                      value: _soundEnabled,
+                      onChanged: _toggleSound,
+                      activeThumbColor: Colors.cyanAccent,
+                      contentPadding: EdgeInsets.zero,
+                      secondary: Icon(
+                        _soundEnabled ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+                        color: Colors.cyanAccent,
+                      ),
+                      title: _tileText(t.soundEffects),
+                    ),
+                    const Divider(color: Colors.white12, height: 1),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.language_rounded, color: Colors.cyanAccent),
+                      title: _tileText(t.language),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(_languageLabel(t),
+                              style: GoogleFonts.poppins(color: Colors.white54, fontSize: 13)),
+                          const SizedBox(width: 4),
+                          const Icon(Icons.chevron_right_rounded, color: Colors.white38),
+                        ],
+                      ),
+                      onTap: _pickLanguage,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              _sectionTitle(t.sectionAbout),
               _buildCard(
                 child: Column(
                   children: [
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.privacy_tip_rounded, color: Colors.cyanAccent),
-                      title: _tileText('Privacy policy'),
+                      title: _tileText(t.privacyPolicy),
                       trailing: const Icon(Icons.open_in_new_rounded,
                           color: Colors.white54, size: 18),
                       onTap: _openPrivacy,
@@ -159,7 +288,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.info_outline_rounded, color: Colors.cyanAccent),
-                      title: _tileText('Version'),
+                      title: _tileText(t.version),
                       trailing: Text(
                         _version,
                         style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
@@ -169,7 +298,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.perm_device_information_rounded, color: Colors.cyanAccent),
-                      title: _tileText('Device ID'),
+                      title: _tileText(t.deviceId),
                       subtitle: Text(
                         _deviceId.isEmpty ? '…' : _deviceId,
                         style: GoogleFonts.robotoMono(color: Colors.white54, fontSize: 12),
@@ -187,7 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildRemoveAdsCard() {
+  Widget _buildRemoveAdsCard(AppLocalizations t) {
     return ValueListenableBuilder<bool>(
       valueListenable: PurchaseService().adsRemoved,
       builder: (context, removed, _) {
@@ -197,7 +326,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               children: [
                 const Icon(Icons.verified_rounded, color: Colors.greenAccent),
                 const SizedBox(width: 12),
-                Expanded(child: _tileText('Ads removed. Thank you!')),
+                Expanded(child: _tileText(t.adsRemovedThanks)),
               ],
             ),
           );
@@ -211,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 children: [
                   const Icon(Icons.block_rounded, color: Colors.amberAccent),
                   const SizedBox(width: 12),
-                  Expanded(child: _tileText('Remove Ads')),
+                  Expanded(child: _tileText(t.removeAds)),
                   if (price.isNotEmpty)
                     Text(
                       price,
@@ -240,7 +369,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               child: CircularProgressIndicator(
                                   strokeWidth: 2, color: Colors.white),
                             )
-                          : const Text('Buy'),
+                          : Text(t.buy),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -252,7 +381,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         side: const BorderSide(color: Colors.white24),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
-                      child: const Text('Restore'),
+                      child: Text(t.restore),
                     ),
                   ),
                 ],

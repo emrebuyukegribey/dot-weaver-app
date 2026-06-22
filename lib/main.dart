@@ -3,10 +3,12 @@ import 'dart:io' show Platform;
 import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/material.dart';
 
+import 'l10n/app_localizations.dart';
 import 'services/ad_service.dart';
 import 'services/api_service.dart';
 import 'services/game_data_manager.dart';
 import 'services/level_generator.dart';
+import 'services/locale_controller.dart';
 import 'services/purchase_service.dart';
 import 'services/sound_service.dart';
 import 'screens/world_map_screen.dart';
@@ -53,15 +55,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Dot Weaver',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: LocaleController().locale,
+      builder: (context, locale, _) => MaterialApp(
+        onGenerateTitle: (ctx) => AppLocalizations.of(ctx).appTitle,
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          useMaterial3: true,
+        ),
+        locale: locale,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        navigatorObservers: [routeObserver],
+        home: const WorldMapScreen(),
       ),
-      navigatorObservers: [routeObserver],
-      home: const WorldMapScreen(),
     );
   }
 }

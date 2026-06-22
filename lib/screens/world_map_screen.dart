@@ -2,10 +2,12 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../l10n/app_localizations.dart';
 import '../models/island_model.dart';
 import '../services/game_data_manager.dart';
 import '../services/island_catalog.dart';
 import '../widgets/ad_banner.dart';
+import 'leaderboard_screen.dart';
 import 'level_selection_screen.dart';
 import 'settings_screen.dart';
 
@@ -61,6 +63,21 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       setState(() {
           islands = IslandCatalog.all();
       });
+  }
+
+  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.6),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 24),
+      ),
+    );
   }
 
   @override
@@ -199,21 +216,23 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                   ],
                               ),
                           ),
-                          GestureDetector(
-                              onTap: () {
-                                  Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                                  );
-                              },
-                              child: Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                      color: Colors.black.withValues(alpha: 0.6),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                          Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                  _circleIconButton(
+                                      icon: Icons.leaderboard_rounded,
+                                      onTap: () => Navigator.of(context).push(
+                                          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                                      ),
                                   ),
-                                  child: const Icon(Icons.settings_rounded, color: Colors.white, size: 24),
-                              ),
+                                  const SizedBox(width: 10),
+                                  _circleIconButton(
+                                      icon: Icons.settings_rounded,
+                                      onTap: () => Navigator.of(context).push(
+                                          MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                                      ),
+                                  ),
+                              ],
                           ),
                       ],
                   ),
@@ -271,8 +290,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                       ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                               content: Text(needed > 0
-                                  ? "Complete $needed more level(s) to unlock ${island.name}"
-                                  : "Complete previous islands to unlock ${island.name}"),
+                                  ? AppLocalizations.of(context).islandUnlockNeed(needed, island.name)
+                                  : AppLocalizations.of(context).islandUnlockPrev(island.name)),
                               backgroundColor: Colors.redAccent.withValues(alpha: 0.8),
                               behavior: SnackBarBehavior.floating,
                           )
@@ -382,7 +401,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                                             const Icon(Icons.lock_rounded, color: Colors.white, size: 44),
                                                             const SizedBox(height: 8),
                                                             Text(
-                                                                "LOCKED",
+                                                                AppLocalizations.of(context).locked,
                                                                 style: GoogleFonts.orbitron(
                                                                     color: Colors.white,
                                                                     fontSize: 14,
@@ -412,7 +431,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
                                                         const Icon(Icons.lock_clock, color: Colors.white70, size: 18),
                                                         const SizedBox(width: 8),
                                                         Text(
-                                                            "COMING SOON",
+                                                            AppLocalizations.of(context).comingSoon,
                                                             style: GoogleFonts.orbitron(
                                                                 color: Colors.white,
                                                                 fontSize: 14,

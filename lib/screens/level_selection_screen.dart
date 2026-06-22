@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
+import '../l10n/app_localizations.dart';
 import 'dart:math' as math;
 import '../models/level_model.dart';
 import '../models/game_level_model.dart'; // Ensure DotColor is imported
@@ -543,7 +544,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       return GestureDetector(
           onTapUp: (details) {
               if (level.isLocked) {
-                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Level Locked! Complete previous levels.")));
+                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).levelLocked)));
                    return;
               }
               _handleLevelTap(level, details);

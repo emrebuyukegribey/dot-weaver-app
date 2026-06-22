@@ -81,6 +81,76 @@ app.get('/api/v1/entitlements/:deviceId', async (req, res) => {
   }
 });
 
+// Global leaderboard by total stars. `deviceId` (optional) marks the caller's
+// row and returns their rank. Device IDs of others are never exposed.
+app.get('/api/v1/leaderboard', async (req, res) => {
+  try {
+    const limit = Math.min(parseInt(req.query.limit || '100', 10) || 100, 200);
+    const deviceId = req.query.deviceId || null;
+
+    const top = await pool.query(
+      `SELECT username, total_stars, device_id
+         FROM devices
+        WHERE username IS NOT NULL
+        ORDER BY total_stars DESC, first_seen ASC
+        LIMIT $1`,
+      [limit]
+    );
+
+    let you = null;
+    if (deviceId) {
+      const me = await pool.query(
+        'SELECT username, total_stars FROM devices WHERE device_id = $1',
+        [deviceId]
+      );
+      if (me.rowCount > 0) {
+        const rank = await pool.query(
+          'SELECT count(*) + 1 AS rank FROM devices WHERE total_stars > $1',
+          [me.rows[0].total_stars]
+        );
+        you = {
+          rank: Number(rank.rows[0].rank),
+          username: me.rows[0].username,
+          totalStars: me.rows[0].total_stars,
+        };
+      }
+    }
+
+    res.json({
+      top: top.rows.map((r, i) => ({
+        rank: i + 1,
+        username: r.username,
+        totalStars: r.total_stars,
+        isYou: deviceId != null && r.device_id === deviceId,
+      })),
+      you,
+    });
+  } catch (e) {
+    console.error('leaderboard error:', e.message);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+// Rename: 3-16 chars, letters/digits/underscore, unique.
+app.put('/api/v1/devices/:deviceId/username', async (req, res) => {
+  try {
+    const name = (req.body?.username || '').trim();
+    if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) {
+      return res.status(400).json({ error: 'invalid', message: '3-16 letters, digits or _' });
+    }
+    const r = await pool.query(
+      'UPDATE devices SET username = $1 WHERE device_id = $2 RETURNING username',
+      [name, req.params.deviceId]
+    );
+    if (r.rowCount === 0) return res.status(404).json({ error: 'not found' });
+    res.json({ username: r.rows[0].username });
+  } catch (e) {
+    if (e.code === '23505') return res.status(409).json({ error: 'taken' });
+    console.error('rename error:', e.message);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
 // ---- admin API (token protected) --------------------------------------------
 
 app.get('/api/v1/admin/stats', requireAdmin, async (_req, res) => {

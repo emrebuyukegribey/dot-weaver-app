@@ -45,6 +45,8 @@ class GameDataManager {
   static const String _kRemoveAds = 'remove_ads';
   static const String _kRemotePremium = 'remote_premium';
   static const String _kSoundEnabled = 'sound_enabled';
+  static const String _kUsername = 'username';
+  static const String _kLocaleCode = 'locale_code';
   static const String _kPromoCompletions = 'promo_completions_since_shown';
   static const String _kPromoShownCount = 'promo_shown_count';
 
@@ -191,6 +193,27 @@ class GameDataManager {
 
   Future<void> setSoundEnabled(bool value) async {
     await _prefs.setBool(_kSoundEnabled, value);
+  }
+
+  /// Leaderboard username (cached from the backend heartbeat).
+  String get username => _prefs.getString(_kUsername) ?? '';
+
+  Future<void> setUsername(String value) async {
+    await _prefs.setString(_kUsername, value);
+  }
+
+  /// Language override: 'en' / 'tr', or null/empty to follow the device locale.
+  String? get localeCode {
+    final c = _prefs.getString(_kLocaleCode);
+    return (c == null || c.isEmpty) ? null : c;
+  }
+
+  Future<void> setLocaleCode(String? value) async {
+    if (value == null || value.isEmpty) {
+      await _prefs.remove(_kLocaleCode);
+    } else {
+      await _prefs.setString(_kLocaleCode, value);
+    }
   }
 
   // --- Helpers ---
