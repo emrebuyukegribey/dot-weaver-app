@@ -194,6 +194,17 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
       });
   }
 
+  /// Maps an island background to its pre-blurred variant
+  /// (e.g. ".../color_island_bg.png" -> ".../color_island_bg_blur.png").
+  /// Used only for the level map background so the soft look needs no
+  /// runtime blur filter (which causes ghosting of the scrolling node numbers).
+  String _blurredBgPath(String path) {
+    if (path.endsWith('_bg.png')) {
+      return path.replaceFirst('_bg.png', '_bg_blur.png');
+    }
+    return path;
+  }
+
   Offset _getLevelPosition(int index, double width) {
     final double xCenter = width / 2;
     // Increase amplitude to 40% (total 80% width usage) to make it less vertical
@@ -227,36 +238,49 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
 
           return Stack(
             children: [
-              // Background
-              Container(
-                decoration: BoxDecoration(
-                  image: widget.island.backgroundImagePath.contains('assets') 
-                     ? DecorationImage(image: AssetImage(widget.island.backgroundImagePath), fit: BoxFit.cover)
-                     : null,
-                  gradient: widget.island.backgroundImagePath.contains('assets') ? null : RadialGradient(
-                    center: Alignment.center,
-                    radius: 1.2,
-                    colors: [widget.island.primaryColor.withValues(alpha: 0.8), Colors.black],
+              // Background.
+              // ROOT CAUSE of the "ghost numbers": the background image is fixed
+              // (it does not scroll). The scrolling level map covers/reveals parts
+              // of it, and the empty area above level 1 (scrolled to the top) exposes
+              // the image's busy top region — which on the Number/Operation islands
+              // contains large baked-in numbers, and on the Color island contains
+              // panel/light details that read as faint digits.
+              // Fix: use a heavily pre-blurred background asset (*_bg_blur.png, blur
+              // baked in offline) plus a dim overlay, so the image becomes a soft
+              // color wash with no recognizable numbers/shapes. No runtime blur
+              // filter is used (that also caused compositing ghosting while scrolling).
+              Positioned.fill(
+                child: RepaintBoundary(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      image: widget.island.backgroundImagePath.contains('assets')
+                         ? DecorationImage(image: AssetImage(_blurredBgPath(widget.island.backgroundImagePath)), fit: BoxFit.cover)
+                         : null,
+                      gradient: widget.island.backgroundImagePath.contains('assets') ? null : RadialGradient(
+                        center: Alignment.center,
+                        radius: 1.2,
+                        colors: [widget.island.primaryColor.withValues(alpha: 0.8), Colors.black],
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        // Animated Particles
+                        Positioned.fill(
+                          child: AnimatedBuilder(
+                            animation: _bgController,
+                            builder: (context, child) => CustomPaint(
+                              painter: _BackgroundEffectPainter(particles: _particles),
+                            ),
+                          ),
+                        ),
+                        // Dim overlay: pushes the background back so it stays subtle.
+                        Positioned.fill(
+                          child: Container(color: Colors.black.withValues(alpha: 0.4)),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                 child: Stack(
-                     children: [
-                         // Animated Particles (Below Blur)
-                         Positioned.fill(
-                             child: AnimatedBuilder(
-                                 animation: _bgController,
-                                 builder: (context, child) => CustomPaint(
-                                     painter: _BackgroundEffectPainter(particles: _particles),
-                                 ),
-                             ),
-                         ),
-                         // Blur
-                         BackdropFilter(
-                             filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10), // Increased blur for softer look
-                             child: Container(color: Colors.black.withValues(alpha: 0.3)),
-                         ),
-                     ],
-                 ), 
               ),
 
               SafeArea(
@@ -302,7 +326,11 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                     ),
 
                     // Level Map
+                    // RepaintBoundary isolates the scrolling layer from the animated
+                    // background so the two don't share a raster (part of the fix for
+                    // the ghost-number trailing under Impeller).
                     Expanded(
+                      child: RepaintBoundary(
                       child: SingleChildScrollView(
                         controller: _scrollController,
                         physics: const BouncingScrollPhysics(),
@@ -332,9 +360,15 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                                      ...List.generate(visibleCount, (index) {
                                          final pos = currentPositions[index];
                                          return Positioned(
-                                            left: pos.dx - 40, 
+                                            left: pos.dx - 40,
                                             top: pos.dy - 40,
-                                            child: _buildLevelItemWrapper(_levels[index], index),
+                                            // RepaintBoundary caches each node's raster so the
+                                            // per-frame floating animation re-blits a cached
+                                            // texture instead of re-rasterizing the number text,
+                                            // which (under Impeller) leaves faint ghost trails.
+                                            child: RepaintBoundary(
+                                              child: _buildLevelItemWrapper(_levels[index], index),
+                                            ),
                                          );
                                      }),
                                   ],
@@ -342,6 +376,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                             },
                           ),
                         ),
+                      ),
                       ),
                     ),
                   ],
