@@ -42,7 +42,7 @@ class AdService {
   /// Show an interstitial after this many level completions.
   static const int interstitialEveryNCompletions = 3;
 
-  bool get _adsAllowed => !GameDataManager().removeAds;
+  bool get _adsAllowed => !GameDataManager().adFree;
 
   /// Initialises the Mobile Ads SDK after gathering UMP consent. Safe to call
   /// multiple times.

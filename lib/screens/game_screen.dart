@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'dart:collection';
 import '../models/game_level_model.dart';
 import '../services/ad_service.dart';
+import '../services/api_service.dart';
 import '../services/game_data_manager.dart';
 import '../services/island_catalog.dart';
 import '../services/level_generator.dart';
@@ -907,6 +908,9 @@ class _GameScreenState extends State<GameScreen>
                                                       onTap: () async {
                                                           // 1. Save progress
                                                           await GameDataManager().saveStars(widget.islandId, widget.levelId, _earnedStars);
+
+                                                          // 1a. Publish updated stars/plays to the backend (fire-and-forget, offline-safe)
+                                                          ApiService().heartbeat();
 
                                                           // 1b. Occasionally show an interstitial (skipped if ads removed)
                                                           final bool interstitialShown = await AdService().onLevelCompleted();

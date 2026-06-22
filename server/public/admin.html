@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dot Weaver · Admin</title>
+  <style>
+    :root { --bg:#0a0a18; --card:#141426; --line:#23233a; --cyan:#22d3ee; --txt:#e7e7f5; --muted:#8a8aa5; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:var(--bg); color:var(--txt); }
+    header { padding:18px 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    h1 { font-size:18px; margin:0; letter-spacing:1px; }
+    .wrap { padding:24px; max-width:1000px; margin:0 auto; }
+    input { background:#1e1e34; border:1px solid var(--line); color:var(--txt); padding:9px 12px; border-radius:8px; font-size:14px; }
+    button { background:var(--cyan); color:#062a30; border:0; padding:9px 16px; border-radius:8px; font-weight:700; cursor:pointer; }
+    button.secondary { background:#2a2a45; color:var(--txt); }
+    .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin:18px 0 26px; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:16px; }
+    .card .n { font-size:28px; font-weight:800; }
+    .card .l { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:1px; margin-top:4px; }
+    table { width:100%; border-collapse:collapse; background:var(--card); border-radius:14px; overflow:hidden; }
+    th,td { text-align:left; padding:10px 14px; border-bottom:1px solid var(--line); font-size:14px; }
+    th { color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:1px; }
+    .mono { font-family: ui-monospace, Menlo, monospace; font-size:12px; color:var(--muted); }
+    .pill { padding:2px 8px; border-radius:999px; font-size:11px; font-weight:700; }
+    .pill.yes { background:#10381f; color:#52e08a; }
+    .pill.no { background:#2a2a45; color:var(--muted); }
+    h2 { font-size:14px; color:var(--muted); text-transform:uppercase; letter-spacing:1px; margin:28px 0 10px; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .grow { flex:1; min-width:220px; }
+    #msg { margin-left:auto; font-size:13px; color:var(--muted); }
+    a.copy { color:var(--cyan); cursor:pointer; text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🟦 DOT WEAVER · ADMIN</h1>
+    <div class="row" style="margin-left:auto">
+      <input id="token" type="password" placeholder="Admin token" class="grow" />
+      <button onclick="saveToken()">Connect</button>
+      <span id="msg"></span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="cards">
+      <div class="card"><div class="n" id="s-devices">–</div><div class="l">Users</div></div>
+      <div class="card"><div class="n" id="s-active">–</div><div class="l">Active today</div></div>
+      <div class="card"><div class="n" id="s-plays">–</div><div class="l">Levels played</div></div>
+      <div class="card"><div class="n" id="s-premium">–</div><div class="l">Premium</div></div>
+    </div>
+
+    <h2>Grant / revoke premium</h2>
+    <div class="row">
+      <input id="g-device" placeholder="Device ID" class="grow" />
+      <input id="g-note" placeholder="Note (optional)" />
+      <button onclick="grant(true)">Grant premium</button>
+      <button class="secondary" onclick="grant(false)">Revoke</button>
+    </div>
+
+    <h2>Top players (by stars)</h2>
+    <table>
+      <thead><tr><th>#</th><th>Username</th><th>Stars</th><th>Premium</th><th>Device ID</th></tr></thead>
+      <tbody id="top"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let token = localStorage.getItem('dw_admin_token') || '';
+    $('token').value = token;
+
+    function headers() { return { 'Content-Type': 'application/json', 'x-admin-token': token }; }
+    function msg(t) { $('msg').textContent = t; }
+
+    async function api(pathname, opts) {
+      const res = await fetch(pathname, { ...opts, headers: { ...headers(), ...(opts && opts.headers) } });
+      if (res.status === 401) { msg('Invalid token'); throw new Error('unauthorized'); }
+      return res.json();
+    }
+
+    function saveToken() {
+      token = $('token').value.trim();
+      localStorage.setItem('dw_admin_token', token);
+      refresh();
+    }
+
+    async function refresh() {
+      try {
+        const s = await api('/api/v1/admin/stats');
+        $('s-devices').textContent = s.totalDevices;
+        $('s-active').textContent = s.activeToday;
+        $('s-plays').textContent = s.totalPlays;
+        $('s-premium').textContent = s.premiumCount;
+        $('top').innerHTML = s.topPlayers.map((p, i) =>
+          `<tr><td>${i + 1}</td><td>${esc(p.username || '—')}</td><td>${p.total_stars}</td>` +
+          `<td><span class="pill ${p.premium ? 'yes' : 'no'}">${p.premium ? 'YES' : 'no'}</span></td>` +
+          `<td class="mono"><a class="copy" onclick="pick('${esc(p.device_id)}')">${esc(p.device_id)}</a></td></tr>`
+        ).join('');
+        msg('Connected · ' + new Date().toLocaleTimeString());
+      } catch (e) { /* msg already set */ }
+    }
+
+    function pick(id) { $('g-device').value = id; }
+    function esc(s) { return String(s).replace(/[&<>"']/g, (c) => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+
+    async function grant(premium) {
+      const deviceId = $('g-device').value.trim();
+      if (!deviceId) { msg('Enter a device ID'); return; }
+      try {
+        await api('/api/v1/admin/entitlements', {
+          method: 'POST',
+          body: JSON.stringify({ deviceId, premium, note: $('g-note').value.trim() || undefined }),
+        });
+        msg(premium ? 'Granted premium' : 'Revoked');
+        refresh();
+      } catch (e) {}
+    }
+
+    if (token) refresh();
+  </script>
+</body>
+</html>

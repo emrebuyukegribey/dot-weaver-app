@@ -23,10 +23,10 @@ class PurchaseService {
   ProductDetails? _removeAdsProduct;
   bool _available = false;
 
-  /// Notifies listeners (e.g. settings screen) when the ad-removal state or
-  /// store availability changes.
+  /// Notifies listeners (e.g. settings screen, banner) when the ad-removal state
+  /// changes. Reflects the unified [GameDataManager.adFree] (IAP OR remote grant).
   final ValueNotifier<bool> adsRemoved =
-      ValueNotifier<bool>(GameDataManager().removeAds);
+      ValueNotifier<bool>(GameDataManager().adFree);
 
   bool get storeAvailable => _available;
   ProductDetails? get removeAdsProduct => _removeAdsProduct;
@@ -78,6 +78,18 @@ class PurchaseService {
     await GameDataManager().setRemoveAds(true);
     adsRemoved.value = true;
     AdService().onAdsRemoved();
+  }
+
+  /// Applies a server-granted entitlement (from the admin panel) for this device.
+  /// Updates the cached flag and notifies listeners. An existing IAP purchase is
+  /// preserved (the unified [GameDataManager.adFree] is an OR), so a remote
+  /// `false` never re-enables ads for someone who paid.
+  Future<void> applyRemoteEntitlement(bool premium) async {
+    if (GameDataManager().remotePremium == premium) return;
+    await GameDataManager().setRemotePremium(premium);
+    final adFree = GameDataManager().adFree;
+    adsRemoved.value = adFree;
+    if (adFree) AdService().onAdsRemoved();
   }
 
   /// Starts the purchase flow for "Remove Ads". Returns false if it could not

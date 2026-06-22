@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${PGUSER:-dotweaver}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-dotweaver}
+      POSTGRES_DB: ${PGDATABASE:-dotweaver}
+    volumes:
+      - dotweaver_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-dotweaver}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      PGHOST: db
+      PGUSER: ${PGUSER:-dotweaver}
+      PGPASSWORD: ${PGPASSWORD:-dotweaver}
+      PGDATABASE: ${PGDATABASE:-dotweaver}
+      ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+    # Bind to localhost only; put nginx in front for TLS + public exposure.
+    # Host port 8090 (predgo already uses 8080); container still listens on 8080.
+    ports:
+      - "127.0.0.1:8090:8080"
+
+volumes:
+  dotweaver_pgdata:

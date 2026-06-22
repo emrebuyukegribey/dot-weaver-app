@@ -43,6 +43,7 @@ class GameDataManager {
   String _getIslandUnlockKey(String islandId) => 'island_unlocked_$islandId';
   String _getHintKey(String islandId, int levelId) => 'hint_used_${islandId}_$levelId';
   static const String _kRemoveAds = 'remove_ads';
+  static const String _kRemotePremium = 'remote_premium';
   static const String _kSoundEnabled = 'sound_enabled';
   static const String _kPromoCompletions = 'promo_completions_since_shown';
   static const String _kPromoShownCount = 'promo_shown_count';
@@ -150,11 +151,25 @@ class GameDataManager {
   }
 
   // --- Monetization ---
+  /// True when the user bought the "Remove Ads" IAP on this device.
   bool get removeAds => _prefs.getBool(_kRemoveAds) ?? false;
 
   Future<void> setRemoveAds(bool value) async {
     await _prefs.setBool(_kRemoveAds, value);
   }
+
+  /// True when premium was granted server-side (admin) for this device. Cached
+  /// locally so it survives offline launches.
+  bool get remotePremium => _prefs.getBool(_kRemotePremium) ?? false;
+
+  Future<void> setRemotePremium(bool value) async {
+    await _prefs.setBool(_kRemotePremium, value);
+  }
+
+  /// Single source of truth for "should the app be ad-free": either the IAP
+  /// purchase OR a server-granted entitlement. An IAP purchase is never undone
+  /// by a remote `false`.
+  bool get adFree => removeAds || remotePremium;
 
   /// Cadence tracking for the "Remove Ads" upsell modal so it appears only
   /// occasionally. [promoCompletions] counts ad-free level completions since the
