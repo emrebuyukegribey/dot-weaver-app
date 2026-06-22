@@ -20,18 +20,18 @@ class AdService {
 
   bool _initialized = false;
 
-  // --- Ad unit IDs (TEST). _TODO_REAL_IDS: replace before release. ---
+  // --- Ad unit IDs (real, AdMob pub-5299037737635972). ---
   static String get _bannerUnitId => Platform.isIOS
-      ? 'ca-app-pub-3940256099942544/2934735716'
-      : 'ca-app-pub-3940256099942544/6300978111';
+      ? 'ca-app-pub-5299037737635972/2902219836'
+      : 'ca-app-pub-5299037737635972/6406350573';
 
   static String get _interstitialUnitId => Platform.isIOS
-      ? 'ca-app-pub-3940256099942544/4411468910'
-      : 'ca-app-pub-3940256099942544/1033173712';
+      ? 'ca-app-pub-5299037737635972/9276056491'
+      : 'ca-app-pub-5299037737635972/2000467635';
 
   static String get _rewardedUnitId => Platform.isIOS
-      ? 'ca-app-pub-3940256099942544/1712485313'
-      : 'ca-app-pub-3940256099942544/5224354917';
+      ? 'ca-app-pub-5299037737635972/2738834237'
+      : 'ca-app-pub-5299037737635972/1617324250';
 
   InterstitialAd? _interstitial;
   RewardedAd? _rewarded;
