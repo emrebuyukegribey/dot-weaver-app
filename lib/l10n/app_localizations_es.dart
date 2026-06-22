@@ -164,6 +164,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get benefitOneTime => 'Compra única, para siempre';
 
   @override
+  String get benefitOffline => 'Juega sin conexión cuando quieras';
+
+  @override
   String get maybeLater => 'Quizá más tarde';
 
   @override

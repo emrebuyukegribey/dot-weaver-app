@@ -396,6 +396,12 @@ abstract class AppLocalizations {
   /// **'One-time purchase, forever'**
   String get benefitOneTime;
 
+  /// No description provided for @benefitOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Play offline, anytime'**
+  String get benefitOffline;
+
   /// No description provided for @maybeLater.
   ///
   /// In en, this message translates to:

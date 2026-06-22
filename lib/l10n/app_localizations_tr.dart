@@ -161,6 +161,9 @@ class AppLocalizationsTr extends AppLocalizations {
   String get benefitOneTime => 'Tek seferlik, kalıcı satın alma';
 
   @override
+  String get benefitOffline => 'İstediğin zaman çevrimdışı oyna';
+
+  @override
   String get maybeLater => 'Belki sonra';
 
   @override

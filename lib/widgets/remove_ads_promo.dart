@@ -128,6 +128,7 @@ class _RemoveAdsPromoDialogState extends State<_RemoveAdsPromoDialog> {
             const SizedBox(height: 18),
             _benefit(t.benefitNoBanner),
             _benefit(t.benefitNoInterstitial),
+            _benefit(t.benefitOffline),
             _benefit(t.benefitOneTime),
             const SizedBox(height: 22),
             SizedBox(
