@@ -223,6 +223,10 @@ app.post('/api/v1/admin/entitlements', requireAdmin, async (req, res) => {
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.get('/admin', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'admin.html')));
 
+// ---- legal pages (public) ---------------------------------------------------
+app.get('/privacy', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'privacy.html')));
+app.get('/terms', (_req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'terms.html')));
+
 // ---- start ------------------------------------------------------------------
 
 initDb()

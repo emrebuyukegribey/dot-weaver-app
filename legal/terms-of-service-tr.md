@@ -4,7 +4,7 @@
 
 Bu Koşullar, **Dot Weaver** mobil oyununu ("Uygulama") kullanımınızı düzenler.
 Uygulamayı indirerek veya kullanarak bu Koşulları kabul edersiniz. Kabul etmiyorsanız
-Uygulamayı kullanmayın. İletişim: **veyselsolak@gmail.com**.
+Uygulamayı kullanmayın. İletişim: **sovedigital@gmail.com**.
 
 ## Lisans
 Uygulamayı kişisel, ticari olmayan eğlence amacıyla kullanmanız için size kişisel,
@@ -51,4 +51,4 @@ Bu Koşullar, kanunlar ihtilafı kurallarına bakılmaksızın Türkiye Cumhuriy
 yasalarına tabidir.
 
 ## İletişim
-**veyselsolak@gmail.com**
+**sovedigital@gmail.com**

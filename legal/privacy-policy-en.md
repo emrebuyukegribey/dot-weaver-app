@@ -6,7 +6,7 @@ This Privacy Policy explains how the mobile game **Dot Weaver** ("the App", "we"
 "us") handles information when you use it. By using the App you agree to this policy.
 
 ## Who we are
-Dot Weaver is a puzzle game. Contact: **veyselsolak@gmail.com**.
+Dot Weaver is a puzzle game. Contact: **sovedigital@gmail.com**.
 
 ## Information we collect
 We do **not** ask you to create an account and we do **not** collect your name,
@@ -49,7 +49,7 @@ We do **not** sell your personal information.
 ## Data retention and deletion
 We keep leaderboard data while the App is in use. You may request deletion of your
 server-side data (leaderboard entry, username, entitlement) at any time by emailing
-**veyselsolak@gmail.com** with your **Device ID** (found in Settings → Account).
+**sovedigital@gmail.com** with your **Device ID** (found in Settings → Account).
 We will delete it within 30 days.
 
 ## Advertising choices
@@ -74,11 +74,11 @@ transfer and processing of data as described here.
 ## Your rights
 Depending on your region (e.g. GDPR, CCPA) you may have rights to access, correct or
 delete your data, and to opt out of personalized ads. To exercise them, contact us at
-**veyselsolak@gmail.com**.
+**sovedigital@gmail.com**.
 
 ## Changes
 We may update this policy. Material changes will be reflected by the "Last updated"
 date above.
 
 ## Contact
-**veyselsolak@gmail.com**
+**sovedigital@gmail.com**

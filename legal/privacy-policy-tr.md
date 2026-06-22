@@ -7,7 +7,7 @@ kullandığınızda bilgileri nasıl işlediğimizi açıklar. Uygulamayı kulla
 politikayı kabul etmiş olursunuz.
 
 ## Biz kimiz
-Dot Weaver bir bulmaca oyunudur. İletişim: **veyselsolak@gmail.com**.
+Dot Weaver bir bulmaca oyunudur. İletişim: **sovedigital@gmail.com**.
 
 ## Topladığımız bilgiler
 Sizden **hesap oluşturmanızı istemiyoruz**; adınızı, e-postanızı, telefon numaranızı,
@@ -52,7 +52,7 @@ Kişisel bilgilerinizi **satmıyoruz**.
 ## Veri saklama ve silme
 Lider tablosu verisini Uygulama kullanımda olduğu sürece saklarız. Sunucu tarafındaki
 verilerinizin (lider tablosu kaydı, kullanıcı adı, yetki) silinmesini istediğiniz
-zaman **veyselsolak@gmail.com** adresine **Cihaz Kimliğinizle** (Ayarlar → Hesap)
+zaman **sovedigital@gmail.com** adresine **Cihaz Kimliğinizle** (Ayarlar → Hesap)
 e-posta göndererek talep edebilirsiniz. 30 gün içinde sileriz.
 
 ## Reklam tercihleri
@@ -78,11 +78,11 @@ açıklandığı şekilde aktarılmasına ve işlenmesine onay verirsiniz.
 ## Haklarınız
 Bölgenize bağlı olarak (ör. KVKK, GDPR, CCPA) verilerinize erişme, düzeltme veya silme
 ve kişiselleştirilmiş reklamlardan çıkma haklarınız olabilir. Kullanmak için
-**veyselsolak@gmail.com** ile iletişime geçin.
+**sovedigital@gmail.com** ile iletişime geçin.
 
 ## Değişiklikler
 Bu politikayı güncelleyebiliriz. Önemli değişiklikler yukarıdaki "Son güncelleme"
 tarihine yansıtılır.
 
 ## İletişim
-**veyselsolak@gmail.com**
+**sovedigital@gmail.com**

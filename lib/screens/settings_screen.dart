@@ -11,8 +11,7 @@ import '../services/game_data_manager.dart';
 import '../services/locale_controller.dart';
 import '../services/purchase_service.dart';
 
-/// _TODO_REAL_IDS: replace with your hosted privacy policy URL before release.
-const String kPrivacyPolicyUrl = 'https://example.com/dot-weaver/privacy';
+const String kPrivacyPolicyUrl = 'https://predgo.app/dotweaver/privacy';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});

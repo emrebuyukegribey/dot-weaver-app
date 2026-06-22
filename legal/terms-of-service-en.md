@@ -4,7 +4,7 @@
 
 These Terms govern your use of the **Dot Weaver** mobile game ("the App"). By
 downloading or using the App you agree to these Terms. If you do not agree, do not
-use the App. Contact: **veyselsolak@gmail.com**.
+use the App. Contact: **sovedigital@gmail.com**.
 
 ## License
 We grant you a personal, non-exclusive, non-transferable, revocable license to use
@@ -49,4 +49,4 @@ These Terms are governed by the laws of the Republic of Türkiye, without regard
 conflict-of-law rules.
 
 ## Contact
-**veyselsolak@gmail.com**
+**sovedigital@gmail.com**
