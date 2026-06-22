@@ -52,5 +52,20 @@
   "purchaseCouldNotStart": "Satın alma başlatılamadı. Lütfen tekrar deneyin.",
   "storeUnavailable": "Mağaza şu an kullanılamıyor.",
   "restoreRequested": "Geri yükleme istendi. Satın alımlar otomatik güncellenecek.",
-  "couldNotOpenPrivacy": "Gizlilik politikası açılamadı."
+  "couldNotOpenPrivacy": "Gizlilik politikası açılamadı.",
+  "levelLabel": "BÖLÜM",
+  "levelComplete": "BÖLÜM TAMAMLANDI!",
+  "timeLeft": "Kalan Süre: {time}",
+  "continueButton": "DEVAM",
+  "islandComplete": "ADA TAMAMLANDI!",
+  "nextIslandUnlocking": "Sıradaki ada açılıyor:\n{island}",
+  "timesUp": "SÜRE DOLDU!",
+  "watchAdContinue": "REKLAM İZLE  +30sn",
+  "noAdAvailable": "Şu an reklam yok",
+  "restart": "YENİDEN BAŞLAT",
+  "failed": "BAŞARISIZ!",
+  "failReasonOperation": "Yanlış sonuç veya tablo dolu değil!",
+  "failReasonPath": "Yol hatalı!",
+  "playAgain": "TEKRAR OYNA",
+  "tutorialSwipe": "Sayıları bağlamak için kaydır"
 }

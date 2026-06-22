@@ -139,9 +139,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
     });
   }
 
+  /// Supported languages shown in their own native name. `null` = follow device.
+  static const Map<String, String> _languageNames = {
+    'en': 'English',
+    'tr': 'Türkçe',
+    'es': 'Español',
+    'de': 'Deutsch',
+    'fr': 'Français',
+    'pt': 'Português',
+    'it': 'Italiano',
+  };
+
   Future<void> _pickLanguage() async {
     final t = AppLocalizations.of(context);
-    final current = GameDataManager().localeCode; // null | 'en' | 'tr'
+    final current = GameDataManager().localeCode;
     final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: const Color(0xFF141426),
@@ -149,14 +160,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _langTile(ctx, t.languageSystem, '__system__', current == null),
-            _langTile(ctx, t.languageEnglish, 'en', current == 'en'),
-            _langTile(ctx, t.languageTurkish, 'tr', current == 'tr'),
-            const SizedBox(height: 8),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _langTile(ctx, t.languageSystem, '__system__', current == null),
+              for (final e in _languageNames.entries)
+                _langTile(ctx, e.value, e.key, current == e.key),
+              const SizedBox(height: 8),
+            ],
+          ),
         ),
       ),
     );
@@ -173,11 +186,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  String _languageLabel(AppLocalizations t) => switch (GameDataManager().localeCode) {
-        'en' => t.languageEnglish,
-        'tr' => t.languageTurkish,
-        _ => t.languageSystem,
-      };
+  String _languageLabel(AppLocalizations t) =>
+      _languageNames[GameDataManager().localeCode] ?? t.languageSystem;
 
   void _showSnack(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -224,16 +234,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
               const SizedBox(height: 24),
               _sectionTitle(t.sectionAccount),
               _buildCard(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(Icons.person_rounded, color: Colors.cyanAccent),
-                  title: _tileText(t.username),
-                  subtitle: Text(
-                    _username.isEmpty ? '—' : _username,
-                    style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
-                  ),
-                  trailing: const Icon(Icons.edit_rounded, color: Colors.white54, size: 18),
-                  onTap: _busy ? null : _editUsername,
+                child: Column(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.person_rounded, color: Colors.cyanAccent),
+                      title: _tileText(t.username),
+                      subtitle: Text(
+                        _username.isEmpty ? '—' : _username,
+                        style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
+                      ),
+                      trailing: const Icon(Icons.edit_rounded, color: Colors.white54, size: 18),
+                      onTap: _busy ? null : _editUsername,
+                    ),
+                    const Divider(color: Colors.white12, height: 1),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.perm_device_information_rounded, color: Colors.cyanAccent),
+                      title: _tileText(t.deviceId),
+                      subtitle: Text(
+                        _deviceId.isEmpty ? '…' : _deviceId,
+                        style: GoogleFonts.robotoMono(color: Colors.white54, fontSize: 12),
+                      ),
+                      trailing: const Icon(Icons.copy_rounded, color: Colors.white54, size: 18),
+                      onTap: _copyDeviceId,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 24),
@@ -293,18 +319,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         _version,
                         style: GoogleFonts.orbitron(color: Colors.white54, fontSize: 13),
                       ),
-                    ),
-                    const Divider(color: Colors.white12, height: 1),
-                    ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.perm_device_information_rounded, color: Colors.cyanAccent),
-                      title: _tileText(t.deviceId),
-                      subtitle: Text(
-                        _deviceId.isEmpty ? '…' : _deviceId,
-                        style: GoogleFonts.robotoMono(color: Colors.white54, fontSize: 12),
-                      ),
-                      trailing: const Icon(Icons.copy_rounded, color: Colors.white54, size: 18),
-                      onTap: _copyDeviceId,
                     ),
                   ],
                 ),

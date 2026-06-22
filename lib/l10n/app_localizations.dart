@@ -5,7 +5,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_pt.dart';
 import 'app_localizations_tr.dart';
 
 // ignore_for_file: type=lint
@@ -94,7 +99,12 @@ abstract class AppLocalizations {
 
   /// A list of this localizations delegate's supported locales.
   static const List<Locale> supportedLocales = <Locale>[
+    Locale('de'),
     Locale('en'),
+    Locale('es'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('pt'),
     Locale('tr'),
   ];
 
@@ -415,6 +425,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not open the privacy policy.'**
   String get couldNotOpenPrivacy;
+
+  /// No description provided for @levelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL'**
+  String get levelLabel;
+
+  /// No description provided for @levelComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'LEVEL COMPLETE!'**
+  String get levelComplete;
+
+  /// No description provided for @timeLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Time Left: {time}'**
+  String timeLeft(String time);
+
+  /// No description provided for @continueButton.
+  ///
+  /// In en, this message translates to:
+  /// **'CONTINUE'**
+  String get continueButton;
+
+  /// No description provided for @islandComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'ISLAND COMPLETE!'**
+  String get islandComplete;
+
+  /// No description provided for @nextIslandUnlocking.
+  ///
+  /// In en, this message translates to:
+  /// **'Next island unlocking:\n{island}'**
+  String nextIslandUnlocking(String island);
+
+  /// No description provided for @timesUp.
+  ///
+  /// In en, this message translates to:
+  /// **'TIME\'S UP!'**
+  String get timesUp;
+
+  /// No description provided for @watchAdContinue.
+  ///
+  /// In en, this message translates to:
+  /// **'WATCH AD  +30s'**
+  String get watchAdContinue;
+
+  /// No description provided for @noAdAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No ad available right now'**
+  String get noAdAvailable;
+
+  /// No description provided for @restart.
+  ///
+  /// In en, this message translates to:
+  /// **'RESTART'**
+  String get restart;
+
+  /// No description provided for @failed.
+  ///
+  /// In en, this message translates to:
+  /// **'FAILED!'**
+  String get failed;
+
+  /// No description provided for @failReasonOperation.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrong result or grid not full!'**
+  String get failReasonOperation;
+
+  /// No description provided for @failReasonPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Path is incorrect!'**
+  String get failReasonPath;
+
+  /// No description provided for @playAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'PLAY AGAIN'**
+  String get playAgain;
+
+  /// No description provided for @tutorialSwipe.
+  ///
+  /// In en, this message translates to:
+  /// **'Swipe to Connect Numbers'**
+  String get tutorialSwipe;
 }
 
 class _AppLocalizationsDelegate
@@ -427,8 +527,15 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en', 'tr'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+    'de',
+    'en',
+    'es',
+    'fr',
+    'it',
+    'pt',
+    'tr',
+  ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
@@ -437,8 +544,18 @@ class _AppLocalizationsDelegate
 AppLocalizations lookupAppLocalizations(Locale locale) {
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'pt':
+      return AppLocalizationsPt();
     case 'tr':
       return AppLocalizationsTr();
   }

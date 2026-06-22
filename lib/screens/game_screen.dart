@@ -3,6 +3,7 @@ import 'dart:async'; // For Timer
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 import 'dart:collection';
+import '../l10n/app_localizations.dart';
 import '../models/game_level_model.dart';
 import '../services/ad_service.dart';
 import '../services/api_service.dart';
@@ -818,14 +819,14 @@ class _GameScreenState extends State<GameScreen>
                               children: [
                                   const Icon(Icons.emoji_events_rounded, color: Color(0xFFFFD54F), size: 90),
                                   const SizedBox(height: 20),
-                                  const Text(
-                                      "ADA TAMAMLANDI!",
+                                  Text(
+                                      AppLocalizations.of(context).islandComplete,
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 1.5),
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 1.5),
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
-                                      "Sıradaki ada açılıyor:\n$_nextIslandName",
+                                      AppLocalizations.of(context).nextIslandUnlocking(_nextIslandName),
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(color: Colors.white70, fontSize: 18, height: 1.4),
                                   ),
@@ -872,9 +873,9 @@ class _GameScreenState extends State<GameScreen>
                                   child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                          const Text("LEVEL COMPLETE!", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, fontFamily: 'Comic Sans MS')),
+                                          Text(AppLocalizations.of(context).levelComplete, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, fontFamily: 'Comic Sans MS')),
                                           const SizedBox(height: 10),
-                                          Text("Time Left: ${_formatTime()}", style: const TextStyle(color: Colors.white70, fontSize: 18)),
+                                          Text(AppLocalizations.of(context).timeLeft(_formatTime()), style: const TextStyle(color: Colors.white70, fontSize: 18)),
                                           const SizedBox(height: 20),
                                           // Stars
                                           Row(
@@ -987,9 +988,9 @@ class _GameScreenState extends State<GameScreen>
                                                                   BoxShadow(color: Colors.black.withValues(alpha: 0.3), offset: const Offset(0, 4), blurRadius: 4)
                                                               ]
                                                           ),
-                                                          child: const Text(
-                                                              "CONTINUE", 
-                                                              style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)
+                                                          child: Text(
+                                                              AppLocalizations.of(context).continueButton,
+                                                              style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20)
                                                           ),
                                                       ),
                                                   )
@@ -1024,7 +1025,7 @@ class _GameScreenState extends State<GameScreen>
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                               Text(
-                                                  "LEVEL",
+                                                  AppLocalizations.of(context).levelLabel,
                                                   style: TextStyle(
                                                       color: Colors.white.withValues(alpha: 0.7),
                                                       fontSize: 32,
@@ -1164,9 +1165,9 @@ class _GameScreenState extends State<GameScreen>
                   children: [
                       const Icon(Icons.timer_off_rounded, color: Colors.orangeAccent, size: 72),
                       const SizedBox(height: 16),
-                      const Text(
-                          "TIME'S UP!",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 2),
+                      Text(
+                          AppLocalizations.of(context).timesUp,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 28, letterSpacing: 2),
                       ),
                       const SizedBox(height: 24),
                       // Only show the rewarded "continue" button when an ad is
@@ -1182,13 +1183,13 @@ class _GameScreenState extends State<GameScreen>
                                       gradient: const LinearGradient(colors: [Color(0xFF00E676), Color(0xFF00B0FF)]),
                                       borderRadius: BorderRadius.circular(16),
                                   ),
-                                  child: const Row(
+                                  child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
-                                          Icon(Icons.play_circle_fill, color: Colors.white),
-                                          SizedBox(width: 10),
-                                          Text("WATCH AD  +30s",
-                                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                          const Icon(Icons.play_circle_fill, color: Colors.white),
+                                          const SizedBox(width: 10),
+                                          Text(AppLocalizations.of(context).watchAdContinue,
+                                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                                       ],
                                   ),
                               ),
@@ -1202,13 +1203,13 @@ class _GameScreenState extends State<GameScreen>
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: Colors.white24),
                               ),
-                              child: const Row(
+                              child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                      Icon(Icons.hourglass_empty_rounded, color: Colors.white54, size: 18),
-                                      SizedBox(width: 10),
-                                      Text("No ad available right now",
-                                          style: TextStyle(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: 15)),
+                                      const Icon(Icons.hourglass_empty_rounded, color: Colors.white54, size: 18),
+                                      const SizedBox(width: 10),
+                                      Text(AppLocalizations.of(context).noAdAvailable,
+                                          style: const TextStyle(color: Colors.white54, fontWeight: FontWeight.w600, fontSize: 15)),
                                   ],
                               ),
                           ),
@@ -1225,9 +1226,9 @@ class _GameScreenState extends State<GameScreen>
                                   color: Colors.pinkAccent,
                                   borderRadius: BorderRadius.circular(16),
                               ),
-                              child: const Text("RESTART",
+                              child: Text(AppLocalizations.of(context).restart,
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                           ),
                       ),
                   ],
@@ -1300,15 +1301,15 @@ class _GameScreenState extends State<GameScreen>
                   children: [
                       const Icon(Icons.cancel_rounded, color: Colors.redAccent, size: 80),
                       const SizedBox(height: 20),
-                      const Text(
-                          "FAILED!",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: 2),
+                      Text(
+                          AppLocalizations.of(context).failed,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 32, letterSpacing: 2),
                       ),
                       const SizedBox(height: 10),
                       Text(
-                          widget.level.gameType == GameType.operationPath 
-                            ? "Wrong result or grid not full!" 
-                            : "Path is incorrect!",
+                          widget.level.gameType == GameType.operationPath
+                            ? AppLocalizations.of(context).failReasonOperation
+                            : AppLocalizations.of(context).failReasonPath,
                           style: const TextStyle(color: Colors.white70, fontSize: 18),
                       ),
                       const SizedBox(height: 30),
@@ -1328,9 +1329,9 @@ class _GameScreenState extends State<GameScreen>
                                       BoxShadow(color: Colors.redAccent.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))
                                   ],
                               ),
-                              child: const Text(
-                                  "PLAY AGAIN",
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                              child: Text(
+                                  AppLocalizations.of(context).playAgain,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
                               ),
                           ),
                       ),
@@ -1634,11 +1635,11 @@ class _GameScreenState extends State<GameScreen>
                                    child: Icon(Icons.touch_app, size: cellSize * 0.8, color: Colors.white, shadows: const [Shadow(color: Colors.black, blurRadius: 10)])
                                ),
                            ),
-                           const Align(
+                           Align(
                                 alignment: Alignment.bottomCenter,
                                 child: Padding(
-                                    padding: EdgeInsets.only(bottom: 20),
-                                    child: Text("Swipe to Connect Numbers", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                                    padding: const EdgeInsets.only(bottom: 20),
+                                    child: Text(AppLocalizations.of(context).tutorialSwipe, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                                 ),
                            )
                        ],

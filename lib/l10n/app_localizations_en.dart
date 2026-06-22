@@ -176,4 +176,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couldNotOpenPrivacy => 'Could not open the privacy policy.';
+
+  @override
+  String get levelLabel => 'LEVEL';
+
+  @override
+  String get levelComplete => 'LEVEL COMPLETE!';
+
+  @override
+  String timeLeft(String time) {
+    return 'Time Left: $time';
+  }
+
+  @override
+  String get continueButton => 'CONTINUE';
+
+  @override
+  String get islandComplete => 'ISLAND COMPLETE!';
+
+  @override
+  String nextIslandUnlocking(String island) {
+    return 'Next island unlocking:\n$island';
+  }
+
+  @override
+  String get timesUp => 'TIME\'S UP!';
+
+  @override
+  String get watchAdContinue => 'WATCH AD  +30s';
+
+  @override
+  String get noAdAvailable => 'No ad available right now';
+
+  @override
+  String get restart => 'RESTART';
+
+  @override
+  String get failed => 'FAILED!';
+
+  @override
+  String get failReasonOperation => 'Wrong result or grid not full!';
+
+  @override
+  String get failReasonPath => 'Path is incorrect!';
+
+  @override
+  String get playAgain => 'PLAY AGAIN';
+
+  @override
+  String get tutorialSwipe => 'Swipe to Connect Numbers';
 }

@@ -61,5 +61,26 @@
   "purchaseCouldNotStart": "Purchase could not be started. Please try again.",
   "storeUnavailable": "Store is unavailable right now.",
   "restoreRequested": "Restore requested. Purchases will update automatically.",
-  "couldNotOpenPrivacy": "Could not open the privacy policy."
+  "couldNotOpenPrivacy": "Could not open the privacy policy.",
+  "levelLabel": "LEVEL",
+  "levelComplete": "LEVEL COMPLETE!",
+  "timeLeft": "Time Left: {time}",
+  "@timeLeft": {
+    "placeholders": { "time": { "type": "String" } }
+  },
+  "continueButton": "CONTINUE",
+  "islandComplete": "ISLAND COMPLETE!",
+  "nextIslandUnlocking": "Next island unlocking:\n{island}",
+  "@nextIslandUnlocking": {
+    "placeholders": { "island": { "type": "String" } }
+  },
+  "timesUp": "TIME'S UP!",
+  "watchAdContinue": "WATCH AD  +30s",
+  "noAdAvailable": "No ad available right now",
+  "restart": "RESTART",
+  "failed": "FAILED!",
+  "failReasonOperation": "Wrong result or grid not full!",
+  "failReasonPath": "Path is incorrect!",
+  "playAgain": "PLAY AGAIN",
+  "tutorialSwipe": "Swipe to Connect Numbers"
 }

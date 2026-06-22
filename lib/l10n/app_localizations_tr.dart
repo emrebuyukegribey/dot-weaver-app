@@ -176,4 +176,53 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get couldNotOpenPrivacy => 'Gizlilik politikası açılamadı.';
+
+  @override
+  String get levelLabel => 'BÖLÜM';
+
+  @override
+  String get levelComplete => 'BÖLÜM TAMAMLANDI!';
+
+  @override
+  String timeLeft(String time) {
+    return 'Kalan Süre: $time';
+  }
+
+  @override
+  String get continueButton => 'DEVAM';
+
+  @override
+  String get islandComplete => 'ADA TAMAMLANDI!';
+
+  @override
+  String nextIslandUnlocking(String island) {
+    return 'Sıradaki ada açılıyor:\n$island';
+  }
+
+  @override
+  String get timesUp => 'SÜRE DOLDU!';
+
+  @override
+  String get watchAdContinue => 'REKLAM İZLE  +30sn';
+
+  @override
+  String get noAdAvailable => 'Şu an reklam yok';
+
+  @override
+  String get restart => 'YENİDEN BAŞLAT';
+
+  @override
+  String get failed => 'BAŞARISIZ!';
+
+  @override
+  String get failReasonOperation => 'Yanlış sonuç veya tablo dolu değil!';
+
+  @override
+  String get failReasonPath => 'Yol hatalı!';
+
+  @override
+  String get playAgain => 'TEKRAR OYNA';
+
+  @override
+  String get tutorialSwipe => 'Sayıları bağlamak için kaydır';
 }
