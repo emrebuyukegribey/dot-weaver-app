@@ -7,7 +7,7 @@
 class AppConfig {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'https://api.example.com',
+    defaultValue: 'https://predgo.app/dotweaver',
   );
 
   /// When false, the app never calls the backend (treated as fully offline).

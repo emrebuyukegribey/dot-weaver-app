@@ -87,7 +87,7 @@
 
     async function refresh() {
       try {
-        const s = await api('/api/v1/admin/stats');
+        const s = await api('api/v1/admin/stats');
         $('s-devices').textContent = s.totalDevices;
         $('s-active').textContent = s.activeToday;
         $('s-plays').textContent = s.totalPlays;
@@ -108,7 +108,7 @@
       const deviceId = $('g-device').value.trim();
       if (!deviceId) { msg('Enter a device ID'); return; }
       try {
-        await api('/api/v1/admin/entitlements', {
+        await api('api/v1/admin/entitlements', {
           method: 'POST',
           body: JSON.stringify({ deviceId, premium, note: $('g-note').value.trim() || undefined }),
         });
