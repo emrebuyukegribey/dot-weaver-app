@@ -1275,89 +1275,126 @@ class _GameScreenState extends State<GameScreen>
   // Removed legacy _buildGameOverOverlay 
 
   Widget _buildAlmostThereOverlay() {
-      const Color accent = Color(0xFF4FC3F7);
+      const Color accent = Colors.amberAccent;
       final t = AppLocalizations.of(context);
-      return Center(
-          child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 280),
-              curve: Curves.easeOutBack,
-              builder: (context, scale, child) => Transform.scale(
-                  scale: 0.85 + (0.15 * scale.clamp(0.0, 1.0)),
-                  child: Opacity(opacity: scale.clamp(0.0, 1.0), child: child),
+      return Stack(
+          children: [
+              Positioned.fill(
+                  child: Container(color: Colors.black.withValues(alpha: 0.75)),
               ),
-              child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 36),
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
-                  decoration: BoxDecoration(
-                      color: const Color(0xFF1B2330).withValues(alpha: 0.96),
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: accent.withValues(alpha: 0.45), width: 1.5),
-                      boxShadow: [
-                          BoxShadow(color: accent.withValues(alpha: 0.25), blurRadius: 30, spreadRadius: -4),
-                          BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20),
-                      ],
-                  ),
-                  child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                          const Icon(Icons.near_me_rounded, color: accent, size: 48),
-                          const SizedBox(height: 14),
-                          Text(
-                              t.almostThereTitle,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 22,
-                              ),
-                          ),
-                          const SizedBox(height: 10),
-                          Text(
-                              t.almostThereBody,
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 15,
-                                  height: 1.4,
-                              ),
-                          ),
-                          const SizedBox(height: 24),
-                          _BouncingButton(
-                              onTap: () {
-                                  setState(() => _showAlmostThereUI = false);
-                                  _resetGame();
-                              },
-                              child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                                  decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                          colors: [accent, accent.withValues(alpha: 0.75)],
-                                      ),
-                                      borderRadius: BorderRadius.circular(30),
-                                      boxShadow: [
-                                          BoxShadow(
-                                              color: accent.withValues(alpha: 0.35),
-                                              blurRadius: 16,
-                                              spreadRadius: 1,
-                                          ),
-                                      ],
+              Center(
+                  child: TweenAnimationBuilder<double>(
+                      tween: Tween(begin: 0.0, end: 1.0),
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.elasticOut,
+                      builder: (context, scale, child) => Transform.scale(
+                          scale: scale.clamp(0.0, 1.0),
+                          child: child,
+                      ),
+                      child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 40),
+                          padding: const EdgeInsets.symmetric(horizontal: 36, vertical: 32),
+                          decoration: BoxDecoration(
+                              color: const Color(0xFF1E1E2C),
+                              borderRadius: BorderRadius.circular(30),
+                              border: Border.all(color: accent, width: 3),
+                              boxShadow: [
+                                  BoxShadow(
+                                      color: accent.withValues(alpha: 0.45),
+                                      blurRadius: 32,
+                                      spreadRadius: 0,
                                   ),
-                                  child: Text(
-                                      t.restart,
+                              ],
+                          ),
+                          child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                  Container(
+                                      width: 88,
+                                      height: 88,
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: const Color(0xFF2A2A1A),
+                                          border: Border.all(color: accent, width: 3),
+                                          boxShadow: [
+                                              BoxShadow(
+                                                  color: accent.withValues(alpha: 0.35),
+                                                  blurRadius: 18,
+                                                  spreadRadius: 2,
+                                              ),
+                                          ],
+                                      ),
+                                      child: Icon(
+                                          Icons.star_half_rounded,
+                                          color: accent,
+                                          size: 52,
+                                          shadows: [
+                                              Shadow(
+                                                  color: accent.withValues(alpha: 0.8),
+                                                  blurRadius: 16,
+                                              ),
+                                          ],
+                                      ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  Text(
+                                      t.almostThereTitle,
+                                      textAlign: TextAlign.center,
                                       style: const TextStyle(
-                                          color: Colors.black,
+                                          color: Colors.white,
                                           fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                          letterSpacing: 1.2,
+                                          fontSize: 28,
+                                          letterSpacing: 2,
                                       ),
                                   ),
-                              ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                      t.almostThereBody,
+                                      textAlign: TextAlign.center,
+                                      style: const TextStyle(
+                                          color: Colors.white70,
+                                          fontSize: 18,
+                                          height: 1.35,
+                                      ),
+                                  ),
+                                  const SizedBox(height: 28),
+                                  _BouncingButton(
+                                      onTap: () {
+                                          setState(() => _showAlmostThereUI = false);
+                                          _resetGame();
+                                      },
+                                      child: Container(
+                                          width: double.infinity,
+                                          padding: const EdgeInsets.symmetric(vertical: 15),
+                                          decoration: BoxDecoration(
+                                              color: Colors.pinkAccent,
+                                              borderRadius: BorderRadius.circular(16),
+                                              boxShadow: [
+                                                  BoxShadow(
+                                                      color: Colors.pinkAccent.withValues(alpha: 0.4),
+                                                      blurRadius: 12,
+                                                      offset: const Offset(0, 4),
+                                                  ),
+                                              ],
+                                          ),
+                                          child: Text(
+                                              t.restart,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                  letterSpacing: 1.2,
+                                              ),
+                                          ),
+                                      ),
+                                  ),
+                              ],
                           ),
-                      ],
+                      ),
                   ),
               ),
-          ),
+          ],
       );
   }
 
