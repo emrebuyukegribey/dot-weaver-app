@@ -19,6 +19,11 @@ class AdService {
   factory AdService() => _instance;
 
   bool _initialized = false;
+  Future<void>? _initFuture;
+
+  /// Becomes true after [initialize] finishes. [AdBanner] waits on this so no
+  /// ad request fires before ATT on iOS.
+  final ValueNotifier<bool> ready = ValueNotifier(false);
 
   // --- Ad unit IDs (real, AdMob pub-5299037737635972). ---
   static String get _bannerUnitId => Platform.isIOS
@@ -44,20 +49,27 @@ class AdService {
 
   bool get _adsAllowed => !GameDataManager().adFree;
 
-  /// Initialises the Mobile Ads SDK after gathering UMP consent. Safe to call
-  /// multiple times.
+  /// Initialises the Mobile Ads SDK after gathering UMP consent. Call only after
+  /// [TrackingConsentService.requestIfNeeded] on iOS. Safe to call multiple times.
   Future<void> initialize() async {
     if (_initialized) return;
-    _initialized = true;
+    _initFuture ??= _doInitialize();
+    await _initFuture;
+  }
+
+  Future<void> _doInitialize() async {
     try {
       await _gatherConsent();
       await MobileAds.instance.initialize();
+      _initialized = true;
+      ready.value = true;
       if (_adsAllowed) {
         _loadInterstitial();
         _loadRewarded();
       }
     } catch (e) {
       debugPrint('AdService init failed: $e');
+      ready.value = true; // Unblock UI even if ads fail to init.
     }
   }
 
@@ -104,7 +116,7 @@ class AdService {
   /// Creates and loads a new anchored banner. Returns null when ads are
   /// disabled (purchased "remove ads"). Caller owns disposal.
   BannerAd? createBanner({void Function()? onLoaded}) {
-    if (!_adsAllowed) return null;
+    if (!_initialized || !_adsAllowed) return null;
     final ad = BannerAd(
       adUnitId: _bannerUnitId,
       size: AdSize.banner,

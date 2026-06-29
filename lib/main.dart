@@ -1,11 +1,6 @@
-import 'dart:io' show Platform;
-
-import 'package:app_tracking_transparency/app_tracking_transparency.dart';
 import 'package:flutter/material.dart';
 
 import 'l10n/app_localizations.dart';
-import 'services/ad_service.dart';
-import 'services/api_service.dart';
 import 'services/game_data_manager.dart';
 import 'services/level_generator.dart';
 import 'services/locale_controller.dart';
@@ -21,31 +16,10 @@ void main() async {
   // Pre-load sound effects (non-blocking for the UI; safe to fire-and-forget).
   SoundService().init();
   runApp(const MyApp());
-  // Initialise monetization after the first frame so the UI appears instantly.
+  // IAP restore only — ads + ATT start from [WorldMapScreen] once UI is visible.
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    _initMonetization();
+    PurchaseService().initialize();
   });
-}
-
-Future<void> _initMonetization() async {
-  // iOS App Tracking Transparency must be requested before initialising ads.
-  if (Platform.isIOS) {
-    try {
-      final status =
-          await AppTrackingTransparency.trackingAuthorizationStatus;
-      if (status == TrackingStatus.notDetermined) {
-        await AppTrackingTransparency.requestTrackingAuthorization();
-      }
-    } catch (_) {
-      // Non-fatal: continue without tracking authorization.
-    }
-  }
-  await PurchaseService().initialize();
-  await AdService().initialize();
-  // Heartbeat (fire-and-forget, offline-safe): reports stats and applies any
-  // server-granted entitlement. If premium is granted, PurchaseService.adsRemoved
-  // fires and the banner/interstitials are torn down — so we don't block ad init.
-  ApiService().heartbeat();
 }
 
 final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();

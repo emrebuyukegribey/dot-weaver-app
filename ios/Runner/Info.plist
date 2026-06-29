@@ -31,7 +31,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSUserTrackingUsageDescription</key>
-	<string>This identifier will be used to deliver personalized ads to you.</string>
+	<string>Dot Weaver uses this permission to show you more relevant ads. You can still play with less personalised ads if you decline.</string>
 	<key>SKAdNetworkItems</key>
 	<array>
 		<dict>

@@ -23,6 +23,12 @@ class _AdBannerState extends State<AdBanner> {
   void initState() {
     super.initState();
     PurchaseService().adsRemoved.addListener(_onAdsRemovedChanged);
+    AdService().ready.addListener(_onAdsReadyChanged);
+    if (AdService().ready.value) _createBanner();
+  }
+
+  void _onAdsReadyChanged() {
+    if (!mounted || !AdService().ready.value || _banner != null) return;
     _createBanner();
   }
 
@@ -47,6 +53,7 @@ class _AdBannerState extends State<AdBanner> {
   @override
   void dispose() {
     PurchaseService().adsRemoved.removeListener(_onAdsRemovedChanged);
+    AdService().ready.removeListener(_onAdsReadyChanged);
     _banner?.dispose();
     super.dispose();
   }

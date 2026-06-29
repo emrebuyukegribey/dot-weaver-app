@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../l10n/app_localizations.dart';
 import '../models/island_model.dart';
+import '../services/ad_service.dart';
+import '../services/api_service.dart';
 import '../services/game_data_manager.dart';
 import '../services/island_catalog.dart';
+import '../services/tracking_consent_service.dart';
 import '../widgets/ad_banner.dart';
 import 'leaderboard_screen.dart';
 import 'level_selection_screen.dart';
@@ -24,6 +27,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
   final List<AnimationController> _islandControllers = [];
 
   List<IslandModel> islands = [];
+  bool _monetizationStarted = false;
   
   @override
   void initState() {
@@ -37,6 +41,16 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
     )..repeat();
 
     _loadIslands();
+    // ATT must appear on a visible screen before any ad SDK call (Guideline 2.1).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _startMonetizationOnce());
+  }
+
+  Future<void> _startMonetizationOnce() async {
+    if (_monetizationStarted) return;
+    _monetizationStarted = true;
+    await TrackingConsentService.instance.requestIfNeeded();
+    await AdService().initialize();
+    ApiService().heartbeat();
   }
 
   @override
