@@ -99,6 +99,8 @@ class _GameScreenState extends State<GameScreen>
   static const int _maxUndoSnapshots = 30;
   final List<_ColorSnapshot> _colorUndoStack = [];
   bool _freeUndoUsed = false;
+  _ColorSnapshot? _gestureUndoBaseline;
+  bool _gestureModified = false;
 
   // Extra seconds granted per rewarded "continue" ad.
   static const int _rewardExtraSeconds = 30;
@@ -379,23 +381,33 @@ class _GameScreenState extends State<GameScreen>
             Center(
                 child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Builder(builder: (context) {
+                    child: ValueListenableBuilder<bool>(
+                        valueListenable: AdService().rewardedReady,
+                        builder: (context, adReady, _) {
                         final bool isColor = widget.level.gameType == GameType.colorDots;
-                        // After the free hint, Color levels can earn an extra hint via a rewarded ad.
                         final bool extraHintMode = _hintUsed && isColor;
-                        final bool enabled = _isGameActive && !_isHintAnimating &&
-                            (!_hintUsed || extraHintMode);
+                        final bool freeHintAvailable = !_hintUsed;
+                        final bool adHintReady = extraHintMode && adReady;
+                        final bool wantsAdHint = extraHintMode &&
+                            !adReady &&
+                            _isGameActive &&
+                            !_isHintAnimating;
+                        final bool enabled = _isGameActive &&
+                            !_isHintAnimating &&
+                            (freeHintAvailable || adHintReady);
                         VoidCallback onTap;
-                        if (!enabled) {
-                            onTap = () {};
-                        } else if (!_hintUsed) {
+                        if (freeHintAvailable && _isGameActive && !_isHintAnimating) {
                             onTap = _useHint;
-                        } else {
+                        } else if (adHintReady) {
                             onTap = _useExtraHintViaAd;
+                        } else if (wantsAdHint) {
+                            onTap = _showNoAdSnack;
+                        } else {
+                            onTap = () {};
                         }
-                        final Color accent = !_hintUsed
+                        final Color accent = freeHintAvailable && enabled
                             ? Colors.amberAccent
-                            : (extraHintMode ? Colors.lightGreenAccent : Colors.grey);
+                            : (adHintReady ? Colors.lightGreenAccent : Colors.grey);
                         return _BouncingButton(
                             onTap: onTap,
                             child: Stack(
@@ -421,7 +433,7 @@ class _GameScreenState extends State<GameScreen>
                                             size: 32,
                                         ),
                                     ),
-                                    if (extraHintMode)
+                                    if (extraHintMode && (adHintReady || wantsAdHint))
                                         Positioned(
                                             right: -2, bottom: -2,
                                             child: Container(
@@ -430,8 +442,11 @@ class _GameScreenState extends State<GameScreen>
                                                     color: Colors.black,
                                                     shape: BoxShape.circle,
                                                 ),
-                                                child: const Icon(Icons.play_circle_fill,
-                                                    color: Colors.lightGreenAccent, size: 18),
+                                                child: Icon(Icons.play_circle_fill,
+                                                    color: adHintReady
+                                                        ? Colors.lightGreenAccent
+                                                        : Colors.grey,
+                                                    size: 18),
                                             ),
                                         ),
                                 ],
@@ -491,6 +506,21 @@ class _GameScreenState extends State<GameScreen>
                             return Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
+                                    if (widget.level.gameType == GameType.colorDots && _hasStarted)
+                                        Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: SizedBox(
+                                                width: gridSize,
+                                                child: Align(
+                                                    alignment: Alignment.centerRight,
+                                                    child: ValueListenableBuilder<bool>(
+                                                        valueListenable: AdService().rewardedReady,
+                                                        builder: (_, adReady, __) =>
+                                                            _buildUndoButton(adReady),
+                                                    ),
+                                                ),
+                                            ),
+                                        ),
                                     Container(
                                         width: gridSize,
                                         height: gridSize,
@@ -516,9 +546,6 @@ class _GameScreenState extends State<GameScreen>
                                                 ),
                                                 
                                                 if (widget.level.id == 1 && _paths.isEmpty && _numberPath.isEmpty) _buildTutorialOverlay(gridSize / widget.level.cols),
-
-                                                if (widget.level.gameType == GameType.colorDots && _hasStarted)
-                                                    _buildUndoButton(),
                                             ],
                                         ),
                                     ),
@@ -1334,69 +1361,95 @@ class _GameScreenState extends State<GameScreen>
       );
   }
 
-  Widget _buildUndoButton() {
+  void _showNoAdSnack() {
+      final msg = AppLocalizations.of(context).noAdAvailable;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(msg),
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+          ),
+      );
+  }
+
+  Widget _buildUndoButton(bool adReady) {
+      final bool hasUndo = _colorUndoStack.isNotEmpty;
+      final bool needsAd = _freeUndoUsed && hasUndo;
       final bool canUndo = _isGameActive &&
           !_isHintAnimating &&
-          _colorUndoStack.isNotEmpty;
-      final bool adUndoMode = _freeUndoUsed && canUndo;
+          hasUndo &&
+          (!needsAd || adReady);
+      final bool wantsAdUndo = needsAd &&
+          hasUndo &&
+          !adReady &&
+          _isGameActive &&
+          !_isHintAnimating;
       final Color accent = canUndo
-          ? (adUndoMode ? Colors.lightGreenAccent : const Color(0xFF4FC3F7))
+          ? (needsAd ? Colors.lightGreenAccent : const Color(0xFF4FC3F7))
           : Colors.grey;
 
-      return Positioned(
-          top: 8,
-          right: 8,
-          child: _BouncingButton(
-              onTap: canUndo ? _useUndo : () {},
-              child: Semantics(
-                  label: AppLocalizations.of(context).undo,
-                  button: true,
-                  enabled: canUndo,
-                  child: Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                          Container(
-                              width: 46,
-                              height: 46,
-                              decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  color: Colors.black.withValues(alpha: 0.55),
-                                  border: Border.all(color: accent, width: 2.5),
-                                  boxShadow: canUndo
-                                      ? [
-                                          BoxShadow(
-                                              color: accent.withValues(alpha: 0.35),
-                                              blurRadius: 10,
-                                              spreadRadius: 1,
-                                          ),
-                                        ]
-                                      : null,
-                              ),
-                              child: Icon(
-                                  Icons.undo_rounded,
-                                  color: accent,
-                                  size: 26,
-                              ),
+      VoidCallback onTap;
+      if (canUndo) {
+          onTap = _useUndo;
+      } else if (wantsAdUndo) {
+          onTap = _showNoAdSnack;
+      } else {
+          onTap = () {};
+      }
+
+      return _BouncingButton(
+          onTap: onTap,
+          child: Semantics(
+              label: AppLocalizations.of(context).undo,
+              button: true,
+              enabled: canUndo || wantsAdUndo,
+              child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                      Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFF1A1A2A),
+                              border: Border.all(color: accent, width: 2.5),
+                              boxShadow: canUndo
+                                  ? [
+                                      BoxShadow(
+                                          color: accent.withValues(alpha: 0.35),
+                                          blurRadius: 10,
+                                          spreadRadius: 1,
+                                      ),
+                                    ]
+                                  : null,
                           ),
-                          if (adUndoMode)
-                              Positioned(
-                                  right: -2,
-                                  bottom: -2,
-                                  child: Container(
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: const BoxDecoration(
-                                          color: Colors.black,
-                                          shape: BoxShape.circle,
-                                      ),
-                                      child: const Icon(
-                                          Icons.play_circle_fill,
-                                          color: Colors.lightGreenAccent,
-                                          size: 16,
-                                      ),
+                          child: Icon(
+                              Icons.undo_rounded,
+                              color: accent,
+                              size: 26,
+                          ),
+                      ),
+                      if (needsAd && (canUndo || wantsAdUndo))
+                          Positioned(
+                              right: -2,
+                              bottom: -2,
+                              child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                      color: Colors.black,
+                                      shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                      Icons.play_circle_fill,
+                                      color: adReady
+                                          ? Colors.lightGreenAccent
+                                          : Colors.grey,
+                                      size: 16,
                                   ),
                               ),
-                      ],
-                  ),
+                          ),
+                  ],
               ),
           ),
       );
@@ -1483,6 +1536,8 @@ class _GameScreenState extends State<GameScreen>
           _lockedPaths.clear();
           _colorUndoStack.clear();
           _freeUndoUsed = false;
+          _gestureUndoBaseline = null;
+          _gestureModified = false;
           
           // Reset player numbers
           if (widget.level.gameType == GameType.numberPath || widget.level.gameType == GameType.operationPath) {
@@ -1639,23 +1694,54 @@ class _GameScreenState extends State<GameScreen>
   /// Extra hint earned by watching a rewarded ad (Color island only).
   Future<void> _useExtraHintViaAd() async {
       if (_isHintAnimating || !_isGameActive) return;
+      if (!AdService().isRewardedReady) {
+          _showNoAdSnack();
+          return;
+      }
       _pauseTimerForAd();
       final earned = await AdService().showRewarded(onReward: () {});
       if (!mounted) return;
       _resumeTimerAfterAd();
       if (earned) {
           await _revealHint();
+      } else {
+          _showNoAdSnack();
       }
   }
 
-  void _pushColorSnapshot() {
-      _colorUndoStack.add(_ColorSnapshot(
-          paths: _paths.map((c, pts) => MapEntry(c, List<GridPoint>.from(pts))),
-          lockedPaths: Set<DotColor>.from(_lockedPaths),
-      ));
-      if (_colorUndoStack.length > _maxUndoSnapshots) {
-          _colorUndoStack.removeAt(0);
+  _ColorSnapshot _captureColorSnapshot() => _ColorSnapshot(
+      paths: _paths.map((c, pts) => MapEntry(c, List<GridPoint>.from(pts))),
+      lockedPaths: Set<DotColor>.from(_lockedPaths),
+  );
+
+  void _commitGestureToUndoStack() {
+      if (_gestureModified && _gestureUndoBaseline != null) {
+          final current = _captureColorSnapshot();
+          if (!_colorSnapshotsEqual(_gestureUndoBaseline!, current)) {
+              _colorUndoStack.add(_gestureUndoBaseline!);
+              if (_colorUndoStack.length > _maxUndoSnapshots) {
+                  _colorUndoStack.removeAt(0);
+              }
+          }
       }
+      _gestureUndoBaseline = null;
+      _gestureModified = false;
+  }
+
+  bool _colorSnapshotsEqual(_ColorSnapshot a, _ColorSnapshot b) {
+      if (a.lockedPaths.length != b.lockedPaths.length ||
+          !a.lockedPaths.containsAll(b.lockedPaths)) {
+          return false;
+      }
+      if (a.paths.length != b.paths.length) return false;
+      for (final entry in a.paths.entries) {
+          final other = b.paths[entry.key];
+          if (other == null || other.length != entry.value.length) return false;
+          for (int i = 0; i < entry.value.length; i++) {
+              if (entry.value[i] != other[i]) return false;
+          }
+      }
+      return true;
   }
 
   void _restoreColorSnapshot(_ColorSnapshot snap) {
@@ -1685,6 +1771,11 @@ class _GameScreenState extends State<GameScreen>
           return;
       }
 
+      if (!AdService().isRewardedReady) {
+          _showNoAdSnack();
+          return;
+      }
+
       _pauseTimerForAd();
       final earned = await AdService().showRewarded(onReward: () {});
       if (!mounted) return;
@@ -1692,6 +1783,8 @@ class _GameScreenState extends State<GameScreen>
       if (earned && _colorUndoStack.isNotEmpty) {
           setState(_applyUndo);
           SoundService().playTap();
+      } else if (!earned) {
+          _showNoAdSnack();
       }
   }
   
@@ -1857,7 +1950,10 @@ class _GameScreenState extends State<GameScreen>
   }
   
   // COLOR DOT MODE (original logic)
-  if (_isGameActive) _pushColorSnapshot();
+  if (_isGameActive) {
+      _gestureUndoBaseline = _captureColorSnapshot();
+      _gestureModified = false;
+  }
   // Auto-delete incomplete paths when starting a new interaction
   setState(() {
       _paths.removeWhere((color, path) => !_lockedPaths.contains(color));
@@ -1872,7 +1968,8 @@ class _GameScreenState extends State<GameScreen>
           setState(() {
               _activeColor = color;
               _paths[color] = [p]; 
-              if (widget.level.id == 1) _handController.stop(); 
+              if (widget.level.id == 1) _handController.stop();
+              if (_isGameActive) _gestureModified = true;
           });
       }
   });
@@ -1886,6 +1983,7 @@ class _GameScreenState extends State<GameScreen>
               setState(() {
                   _activeColor = color;
                   if (widget.level.id == 1) _handController.stop();
+                  if (_isGameActive) _gestureModified = true;
               });
           }
       });
@@ -2048,7 +2146,10 @@ class _GameScreenState extends State<GameScreen>
     final endpoints = widget.level.dotPositions[_activeColor!]!;
     if (currentPath.length > 1 && endpoints.contains(last)) {
         if (currentPath[currentPath.length - 2] == p) {
-            setState(() { currentPath.removeLast(); });
+            setState(() {
+                currentPath.removeLast();
+                _gestureModified = true;
+            });
         }
         return;
     }
@@ -2056,12 +2157,18 @@ class _GameScreenState extends State<GameScreen>
     bool isOrthogonal = (p.row == last.row && (p.col - last.col).abs() == 1) || (p.col == last.col && (p.row - last.row).abs() == 1);
     if (!isOrthogonal) return; 
     if (currentPath.length > 1 && currentPath[currentPath.length - 2] == p) {
-        setState(() { currentPath.removeLast(); });
+        setState(() {
+            currentPath.removeLast();
+            _gestureModified = true;
+        });
         return;
     }
     if (currentPath.contains(p)) {
         int idx = currentPath.indexOf(p);
-        setState(() { _paths[_activeColor!] = currentPath.sublist(0, idx + 1); });
+        setState(() {
+            _paths[_activeColor!] = currentPath.sublist(0, idx + 1);
+            _gestureModified = true;
+        });
         return;
     }
     
@@ -2087,10 +2194,17 @@ class _GameScreenState extends State<GameScreen>
             }
         });
         _paths[_activeColor!]!.add(p);
+        _gestureModified = true;
     });
 }
 
-  void _handleInputEnd() { _activeColor = null; _checkWin(); }
+  void _handleInputEnd() {
+      if (widget.level.gameType == GameType.colorDots && _isGameActive) {
+          _commitGestureToUndoStack();
+      }
+      _activeColor = null;
+      _checkWin();
+  }
 
 }
 

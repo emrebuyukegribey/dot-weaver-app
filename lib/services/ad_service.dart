@@ -189,14 +189,22 @@ class AdService {
 
   // --- Rewarded ---
   void _loadRewarded() {
+    if (!_adsAllowed) {
+      rewardedReady.value = false;
+      return;
+    }
     RewardedAd.load(
       adUnitId: _rewardedUnitId,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
-        onAdLoaded: (ad) => _rewarded = ad,
+        onAdLoaded: (ad) {
+          _rewarded = ad;
+          rewardedReady.value = true;
+        },
         onAdFailedToLoad: (error) {
           debugPrint('Rewarded failed: ${error.message}');
           _rewarded = null;
+          rewardedReady.value = false;
         },
       ),
     );
@@ -204,15 +212,20 @@ class AdService {
 
   bool get isRewardedReady => _rewarded != null;
 
+  /// Fires when a rewarded ad becomes loadable (or is consumed / fails).
+  final ValueNotifier<bool> rewardedReady = ValueNotifier(false);
+
   /// Shows a rewarded ad. Calls [onReward] exactly once if the user earns the
   /// reward. Returns true if the reward was granted.
   Future<bool> showRewarded({required void Function() onReward}) async {
     final ad = _rewarded;
     if (ad == null) {
+      rewardedReady.value = false;
       _loadRewarded();
       return false;
     }
     _rewarded = null;
+    rewardedReady.value = false;
     bool earned = false;
     final c = Completer<bool>();
     ad.fullScreenContentCallback = FullScreenContentCallback(
@@ -240,5 +253,6 @@ class AdService {
     _interstitial = null;
     _rewarded?.dispose();
     _rewarded = null;
+    rewardedReady.value = false;
   }
 }
