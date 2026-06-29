@@ -15,6 +15,14 @@ import '../services/sound_service.dart';
 import '../widgets/remove_ads_promo.dart';
 import 'level_selection_screen.dart';
 
+/// Snapshot of color-mode board state for undo (one entry per pan gesture).
+class _ColorSnapshot {
+  final Map<DotColor, List<GridPoint>> paths;
+  final Set<DotColor> lockedPaths;
+
+  const _ColorSnapshot({required this.paths, required this.lockedPaths});
+}
+
 class GameScreen extends StatefulWidget {
   final GameLevel level;
   final String? dotAssetPath;
@@ -77,7 +85,7 @@ class _GameScreenState extends State<GameScreen>
   // Path Locking & Game State
   final Set<DotColor> _lockedPaths = {};
   bool _showLevelAnnouncement = false;
-  bool _showBoardNotFullWarning = false;
+  bool _showAlmostThereUI = false;
   bool _showTimeUpUI = false; // NEW: time-up dialog (watch ad +30s / restart)
   bool _showIslandComplete = false; // NEW: island finished celebration before next island
   String _nextIslandName = "";
@@ -86,6 +94,11 @@ class _GameScreenState extends State<GameScreen>
   // Hint System
   bool _hintUsed = false;
   bool _isHintAnimating = false;
+
+  // Color-mode undo (one free per level, then rewarded ad per undo).
+  static const int _maxUndoSnapshots = 30;
+  final List<_ColorSnapshot> _colorUndoStack = [];
+  bool _freeUndoUsed = false;
 
   // Extra seconds granted per rewarded "continue" ad.
   static const int _rewardExtraSeconds = 30;
@@ -356,7 +369,7 @@ class _GameScreenState extends State<GameScreen>
                         ]
                     ),
                     child: const Center(
-                        child: Icon(Icons.arrow_back_rounded, color: Colors.black, size: 28)
+                        child: Icon(Icons.close_rounded, color: Colors.black, size: 28)
                     ),
                 ),
             ),
@@ -503,6 +516,9 @@ class _GameScreenState extends State<GameScreen>
                                                 ),
                                                 
                                                 if (widget.level.id == 1 && _paths.isEmpty && _numberPath.isEmpty) _buildTutorialOverlay(gridSize / widget.level.cols),
+
+                                                if (widget.level.gameType == GameType.colorDots && _hasStarted)
+                                                    _buildUndoButton(),
                                             ],
                                         ),
                                     ),
@@ -543,8 +559,8 @@ class _GameScreenState extends State<GameScreen>
             // 8. Level Announcement Overlay
             if (_showLevelAnnouncement) _buildLevelAnnouncementOverlay(),
 
-            // 9. Board Not Full Warning (New)
-            if (_showBoardNotFullWarning) _buildBoardNotFullOverlay(),
+            // 9. Almost There overlay (color: all pairs connected, board not full)
+            if (_showAlmostThereUI) _buildAlmostThereOverlay(),
 
             // 10. Failed Overlay (New)
             if (_showFailedUI) _buildFailedOverlay(),
@@ -744,20 +760,12 @@ class _GameScreenState extends State<GameScreen>
         });
         _triggerConfetti();
     } else {
-        // All pairs connected but the board isn't fully covered yet. Show a
-        // gentle nudge without wiping the player's progress so they can keep
-        // adjusting their paths.
-        SoundService().playTap();
+        // All pairs connected but board isn't full — paths are locked and
+        // can't be fixed; end the round instead of letting the timer drain.
+        _stopGame();
+        SoundService().playError();
         setState(() {
-            _showBoardNotFullWarning = true;
-        });
-
-        Future.delayed(const Duration(milliseconds: 1600), () {
-            if (mounted) {
-                setState(() {
-                    _showBoardNotFullWarning = false;
-                });
-            }
+            _showAlmostThereUI = true;
         });
     }
   }
@@ -1239,20 +1247,21 @@ class _GameScreenState extends State<GameScreen>
 
   // Removed legacy _buildGameOverOverlay 
 
-  Widget _buildBoardNotFullOverlay() {
-      const Color accent = Color(0xFF4FC3F7); // soft sky blue
+  Widget _buildAlmostThereOverlay() {
+      const Color accent = Color(0xFF4FC3F7);
+      final t = AppLocalizations.of(context);
       return Center(
           child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.0, end: 1.0),
-              duration: const Duration(milliseconds: 260),
+              duration: const Duration(milliseconds: 280),
               curve: Curves.easeOutBack,
-              builder: (context, t, child) => Transform.scale(
-                  scale: 0.85 + (0.15 * t.clamp(0.0, 1.0)),
-                  child: Opacity(opacity: t.clamp(0.0, 1.0), child: child),
+              builder: (context, scale, child) => Transform.scale(
+                  scale: 0.85 + (0.15 * scale.clamp(0.0, 1.0)),
+                  child: Opacity(opacity: scale.clamp(0.0, 1.0), child: child),
               ),
               child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 40),
-                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 22),
+                  margin: const EdgeInsets.symmetric(horizontal: 36),
+                  padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 26),
                   decoration: BoxDecoration(
                       color: const Color(0xFF1B2330).withValues(alpha: 0.96),
                       borderRadius: BorderRadius.circular(24),
@@ -1262,21 +1271,130 @@ class _GameScreenState extends State<GameScreen>
                           BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20),
                       ],
                   ),
-                  child: const Column(
+                  child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                          Icon(Icons.lightbulb_outline_rounded, color: accent, size: 44),
-                          SizedBox(height: 12),
+                          const Icon(Icons.near_me_rounded, color: accent, size: 48),
+                          const SizedBox(height: 14),
                           Text(
-                              "Az kaldı!",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
-                          ),
-                          SizedBox(height: 6),
-                          Text(
-                              "Kazanmak için tüm kareleri\ndoldurman gerekiyor.",
+                              t.almostThereTitle,
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.35),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 22,
+                              ),
                           ),
+                          const SizedBox(height: 10),
+                          Text(
+                              t.almostThereBody,
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 15,
+                                  height: 1.4,
+                              ),
+                          ),
+                          const SizedBox(height: 24),
+                          _BouncingButton(
+                              onTap: () {
+                                  setState(() => _showAlmostThereUI = false);
+                                  _resetGame();
+                              },
+                              child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                                  decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                          colors: [accent, accent.withValues(alpha: 0.75)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(30),
+                                      boxShadow: [
+                                          BoxShadow(
+                                              color: accent.withValues(alpha: 0.35),
+                                              blurRadius: 16,
+                                              spreadRadius: 1,
+                                          ),
+                                      ],
+                                  ),
+                                  child: Text(
+                                      t.restart,
+                                      style: const TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                          letterSpacing: 1.2,
+                                      ),
+                                  ),
+                              ),
+                          ),
+                      ],
+                  ),
+              ),
+          ),
+      );
+  }
+
+  Widget _buildUndoButton() {
+      final bool canUndo = _isGameActive &&
+          !_isHintAnimating &&
+          _colorUndoStack.isNotEmpty;
+      final bool adUndoMode = _freeUndoUsed && canUndo;
+      final Color accent = canUndo
+          ? (adUndoMode ? Colors.lightGreenAccent : const Color(0xFF4FC3F7))
+          : Colors.grey;
+
+      return Positioned(
+          top: 8,
+          right: 8,
+          child: _BouncingButton(
+              onTap: canUndo ? _useUndo : () {},
+              child: Semantics(
+                  label: AppLocalizations.of(context).undo,
+                  button: true,
+                  enabled: canUndo,
+                  child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                          Container(
+                              width: 46,
+                              height: 46,
+                              decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  border: Border.all(color: accent, width: 2.5),
+                                  boxShadow: canUndo
+                                      ? [
+                                          BoxShadow(
+                                              color: accent.withValues(alpha: 0.35),
+                                              blurRadius: 10,
+                                              spreadRadius: 1,
+                                          ),
+                                        ]
+                                      : null,
+                              ),
+                              child: Icon(
+                                  Icons.undo_rounded,
+                                  color: accent,
+                                  size: 26,
+                              ),
+                          ),
+                          if (adUndoMode)
+                              Positioned(
+                                  right: -2,
+                                  bottom: -2,
+                                  child: Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: const BoxDecoration(
+                                          color: Colors.black,
+                                          shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                          Icons.play_circle_fill,
+                                          color: Colors.lightGreenAccent,
+                                          size: 16,
+                                      ),
+                                  ),
+                              ),
                       ],
                   ),
               ),
@@ -1356,13 +1474,15 @@ class _GameScreenState extends State<GameScreen>
           _showWinUI = false;
           _showFailedUI = false;
           _showTimeUpUI = false;
-          _showBoardNotFullWarning = false;
+          _showAlmostThereUI = false;
           _showLevelAnnouncement = false;
           _showHint = false;
           _earnedStars = 0;
           _hasStarted = false; // SHOW START BUTTON
           _confettiParticles.clear();
           _lockedPaths.clear();
+          _colorUndoStack.clear();
+          _freeUndoUsed = false;
           
           // Reset player numbers
           if (widget.level.gameType == GameType.numberPath || widget.level.gameType == GameType.operationPath) {
@@ -1525,6 +1645,53 @@ class _GameScreenState extends State<GameScreen>
       _resumeTimerAfterAd();
       if (earned) {
           await _revealHint();
+      }
+  }
+
+  void _pushColorSnapshot() {
+      _colorUndoStack.add(_ColorSnapshot(
+          paths: _paths.map((c, pts) => MapEntry(c, List<GridPoint>.from(pts))),
+          lockedPaths: Set<DotColor>.from(_lockedPaths),
+      ));
+      if (_colorUndoStack.length > _maxUndoSnapshots) {
+          _colorUndoStack.removeAt(0);
+      }
+  }
+
+  void _restoreColorSnapshot(_ColorSnapshot snap) {
+      _paths
+        ..clear()
+        ..addAll(snap.paths.map((c, pts) => MapEntry(c, List<GridPoint>.from(pts))));
+      _lockedPaths
+        ..clear()
+        ..addAll(snap.lockedPaths);
+      _activeColor = null;
+  }
+
+  void _applyUndo() {
+      if (_colorUndoStack.isEmpty) return;
+      _restoreColorSnapshot(_colorUndoStack.removeLast());
+  }
+
+  Future<void> _useUndo() async {
+      if (!_isGameActive || _isHintAnimating || _colorUndoStack.isEmpty) return;
+
+      if (!_freeUndoUsed) {
+          setState(() {
+              _freeUndoUsed = true;
+              _applyUndo();
+          });
+          SoundService().playTap();
+          return;
+      }
+
+      _pauseTimerForAd();
+      final earned = await AdService().showRewarded(onReward: () {});
+      if (!mounted) return;
+      _resumeTimerAfterAd();
+      if (earned && _colorUndoStack.isNotEmpty) {
+          setState(_applyUndo);
+          SoundService().playTap();
       }
   }
   
@@ -1690,6 +1857,7 @@ class _GameScreenState extends State<GameScreen>
   }
   
   // COLOR DOT MODE (original logic)
+  if (_isGameActive) _pushColorSnapshot();
   // Auto-delete incomplete paths when starting a new interaction
   setState(() {
       _paths.removeWhere((color, path) => !_lockedPaths.contains(color));

@@ -230,4 +230,14 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Wische, um Zahlen zu verbinden';
+
+  @override
+  String get almostThereTitle => 'Fast geschafft!';
+
+  @override
+  String get almostThereBody =>
+      'Alle Punkte sind verbunden, aber einige Felder sind noch leer. Starte neu und versuche es erneut.';
+
+  @override
+  String get undo => 'Rückgängig';
 }

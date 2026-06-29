@@ -68,5 +68,8 @@
   "failReasonOperation": "Yanlış sonuç veya tablo dolu değil!",
   "failReasonPath": "Yol hatalı!",
   "playAgain": "TEKRAR OYNA",
-  "tutorialSwipe": "Sayıları bağlamak için kaydır"
+  "tutorialSwipe": "Sayıları bağlamak için kaydır",
+  "almostThereTitle": "Neredeyse oldu!",
+  "almostThereBody": "Tüm noktalar bağlandı ama bazı kareler boş kaldı. Yeniden başlayıp tekrar dene.",
+  "undo": "Geri al"
 }

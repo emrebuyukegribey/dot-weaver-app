@@ -68,5 +68,8 @@
   "failReasonOperation": "Resultado errado ou grelha incompleta!",
   "failReasonPath": "O caminho está incorreto!",
   "playAgain": "JOGAR DE NOVO",
-  "tutorialSwipe": "Desliza para ligar os números"
+  "tutorialSwipe": "Desliza para ligar os números",
+  "almostThereTitle": "Quase lá!",
+  "almostThereBody": "Todos os pontos estão ligados mas algumas casas ficaram vazias. Reinicia e tenta de novo.",
+  "undo": "Desfazer"
 }

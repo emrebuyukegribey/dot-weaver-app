@@ -68,5 +68,8 @@
   "failReasonOperation": "Résultat incorrect ou grille incomplète !",
   "failReasonPath": "Le chemin est incorrect !",
   "playAgain": "REJOUER",
-  "tutorialSwipe": "Glisse pour relier les nombres"
+  "tutorialSwipe": "Glisse pour relier les nombres",
+  "almostThereTitle": "Presque réussi !",
+  "almostThereBody": "Tous les points sont reliés mais certaines cases sont encore vides. Recommence et réessaie.",
+  "undo": "Annuler"
 }

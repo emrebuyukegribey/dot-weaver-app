@@ -234,4 +234,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Desliza para conectar los números';
+
+  @override
+  String get almostThereTitle => '¡Casi lo logras!';
+
+  @override
+  String get almostThereBody =>
+      'Todos los puntos están conectados pero quedan casillas vacías. Reinicia e inténtalo de nuevo.';
+
+  @override
+  String get undo => 'Deshacer';
 }

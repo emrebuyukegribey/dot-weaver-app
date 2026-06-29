@@ -228,4 +228,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Swipe to Connect Numbers';
+
+  @override
+  String get almostThereTitle => 'Almost there!';
+
+  @override
+  String get almostThereBody =>
+      'All dots are connected but some cells are still empty. Restart and try again.';
+
+  @override
+  String get undo => 'Undo';
 }

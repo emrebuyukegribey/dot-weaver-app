@@ -232,4 +232,14 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Glisse pour relier les nombres';
+
+  @override
+  String get almostThereTitle => 'Presque réussi !';
+
+  @override
+  String get almostThereBody =>
+      'Tous les points sont reliés mais certaines cases sont encore vides. Recommence et réessaie.';
+
+  @override
+  String get undo => 'Annuler';
 }

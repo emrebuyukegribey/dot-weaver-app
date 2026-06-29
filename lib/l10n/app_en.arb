@@ -83,5 +83,8 @@
   "failReasonOperation": "Wrong result or grid not full!",
   "failReasonPath": "Path is incorrect!",
   "playAgain": "PLAY AGAIN",
-  "tutorialSwipe": "Swipe to Connect Numbers"
+  "tutorialSwipe": "Swipe to Connect Numbers",
+  "almostThereTitle": "Almost there!",
+  "almostThereBody": "All dots are connected but some cells are still empty. Restart and try again.",
+  "undo": "Undo"
 }

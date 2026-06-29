@@ -68,5 +68,8 @@
   "failReasonOperation": "¡Resultado incorrecto o cuadrícula incompleta!",
   "failReasonPath": "¡El camino es incorrecto!",
   "playAgain": "JUGAR DE NUEVO",
-  "tutorialSwipe": "Desliza para conectar los números"
+  "tutorialSwipe": "Desliza para conectar los números",
+  "almostThereTitle": "¡Casi lo logras!",
+  "almostThereBody": "Todos los puntos están conectados pero quedan casillas vacías. Reinicia e inténtalo de nuevo.",
+  "undo": "Deshacer"
 }

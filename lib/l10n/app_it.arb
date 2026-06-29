@@ -68,5 +68,8 @@
   "failReasonOperation": "Risultato errato o griglia non piena!",
   "failReasonPath": "Il percorso non è corretto!",
   "playAgain": "GIOCA ANCORA",
-  "tutorialSwipe": "Scorri per collegare i numeri"
+  "tutorialSwipe": "Scorri per collegare i numeri",
+  "almostThereTitle": "Quasi fatto!",
+  "almostThereBody": "Tutti i punti sono collegati ma alcune caselle sono ancora vuote. Ricomincia e riprova.",
+  "undo": "Annulla"
 }

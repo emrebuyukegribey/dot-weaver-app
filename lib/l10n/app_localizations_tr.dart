@@ -228,4 +228,14 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Sayıları bağlamak için kaydır';
+
+  @override
+  String get almostThereTitle => 'Neredeyse oldu!';
+
+  @override
+  String get almostThereBody =>
+      'Tüm noktalar bağlandı ama bazı kareler boş kaldı. Yeniden başlayıp tekrar dene.';
+
+  @override
+  String get undo => 'Geri al';
 }

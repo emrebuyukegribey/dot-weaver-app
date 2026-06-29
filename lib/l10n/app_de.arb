@@ -68,5 +68,8 @@
   "failReasonOperation": "Falsches Ergebnis oder Gitter nicht voll!",
   "failReasonPath": "Der Pfad ist falsch!",
   "playAgain": "NOCHMAL SPIELEN",
-  "tutorialSwipe": "Wische, um Zahlen zu verbinden"
+  "tutorialSwipe": "Wische, um Zahlen zu verbinden",
+  "almostThereTitle": "Fast geschafft!",
+  "almostThereBody": "Alle Punkte sind verbunden, aber einige Felder sind noch leer. Starte neu und versuche es erneut.",
+  "undo": "Rückgängig"
 }

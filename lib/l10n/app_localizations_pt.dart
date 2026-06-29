@@ -231,4 +231,14 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Desliza para ligar os números';
+
+  @override
+  String get almostThereTitle => 'Quase lá!';
+
+  @override
+  String get almostThereBody =>
+      'Todos os pontos estão ligados mas algumas casas ficaram vazias. Reinicia e tenta de novo.';
+
+  @override
+  String get undo => 'Desfazer';
 }

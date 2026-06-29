@@ -230,4 +230,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tutorialSwipe => 'Scorri per collegare i numeri';
+
+  @override
+  String get almostThereTitle => 'Quasi fatto!';
+
+  @override
+  String get almostThereBody =>
+      'Tutti i punti sono collegati ma alcune caselle sono ancora vuote. Ricomincia e riprova.';
+
+  @override
+  String get undo => 'Annulla';
 }

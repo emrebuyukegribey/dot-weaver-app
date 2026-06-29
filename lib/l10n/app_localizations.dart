@@ -521,6 +521,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Swipe to Connect Numbers'**
   String get tutorialSwipe;
+
+  /// No description provided for @almostThereTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Almost there!'**
+  String get almostThereTitle;
+
+  /// No description provided for @almostThereBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All dots are connected but some cells are still empty. Restart and try again.'**
+  String get almostThereBody;
+
+  /// No description provided for @undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get undo;
 }
 
 class _AppLocalizationsDelegate
