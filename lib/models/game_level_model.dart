@@ -94,6 +94,13 @@ class GameLevel {
   final int timeLimit; // Time in seconds
   final GameType gameType; // NEW: Type of puzzle
   final Map<DotColor, List<GridPoint>> dotPositions; // For color dot puzzles
+  // A known-good full-board solution for colorDots levels: every color's
+  // complete cell-by-cell path, all paths together tiling the whole grid.
+  // Baked in ahead of time (see tool/generate_levels.dart and
+  // test/tools/generate_color_hand_solutions_test.dart) so the in-game hint
+  // can reveal a real solution segment instead of guessing a path live and
+  // risking stranding another color (see _revealHint in game_screen.dart).
+  final Map<DotColor, List<GridPoint>>? solutionPaths;
   final Map<GridPoint, int>? fixedNumbers; // NEW: For number path puzzles (pre-filled cells)
   final GridPoint? startNode; // NEW: Dynamic Start Node coordinate
   final int startValue; // NEW: Value of the start node
@@ -110,6 +117,7 @@ class GameLevel {
     this.timeLimit = 60,
     this.gameType = GameType.colorDots, // Default to original type
     required this.dotPositions,
+    this.solutionPaths,
     this.fixedNumbers,
     this.startNode,
     this.startValue = 1,
@@ -130,6 +138,11 @@ class GameLevel {
               color.name,
               pts.map((p) => [p.row, p.col]).toList(),
             )),
+        if (solutionPaths != null)
+          'solutionPaths': solutionPaths!.map((color, pts) => MapEntry(
+                color.name,
+                pts.map((p) => [p.row, p.col]).toList(),
+              )),
         if (fixedNumbers != null)
           'fixedNumbers': fixedNumbers!.entries
               .map((e) => {'r': e.key.row, 'c': e.key.col, 'v': e.value})
@@ -161,6 +174,16 @@ class GameLevel {
           .toList();
     });
 
+    Map<DotColor, List<GridPoint>>? solution;
+    if (j['solutionPaths'] != null) {
+      solution = {};
+      (j['solutionPaths'] as Map).forEach((key, value) {
+        solution![DotColor.values.byName(key as String)] = (value as List)
+            .map((e) => GridPoint((e[0] as num).toInt(), (e[1] as num).toInt()))
+            .toList();
+      });
+    }
+
     Map<GridPoint, int>? fixed;
     if (j['fixedNumbers'] != null) {
       fixed = {};
@@ -189,6 +212,7 @@ class GameLevel {
       timeLimit: (j['timeLimit'] as num?)?.toInt() ?? 60,
       gameType: GameType.values.byName(j['gameType'] as String),
       dotPositions: dots,
+      solutionPaths: solution,
       fixedNumbers: fixed,
       startNode: point(j['startNode']),
       startValue: (j['startValue'] as num?)?.toInt() ?? 1,

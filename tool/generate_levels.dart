@@ -616,6 +616,12 @@ Map<String, dynamic> _buildColorLevel(int levelId, int size, Random rng) {
     if (cuts == null) continue;
 
     final dotPositions = <String, dynamic>{};
+    // Every color's full cell-by-cell path, in order from one endpoint to the
+    // other. Together these are exactly the Hamiltonian `path` cut into
+    // pieces, so they tile the whole grid by construction. Stored as the
+    // level's baked solution so the in-game hint can reveal a real segment
+    // instead of pathfinding live (see GameLevel.solutionPaths).
+    final solutionPaths = <String, dynamic>{};
     int start = 0;
     bool ok = true;
     for (int s = 0; s < cuts.length; s++) {
@@ -630,6 +636,9 @@ Map<String, dynamic> _buildColorLevel(int levelId, int size, Random rng) {
         [a ~/ size, a % size],
         [b ~/ size, b % size],
       ];
+      solutionPaths[_palette[s]] = [
+        for (int i = start; i < start + len; i++) [path[i] ~/ size, path[i] % size],
+      ];
       start += len;
     }
     if (!ok) continue;
@@ -642,6 +651,7 @@ Map<String, dynamic> _buildColorLevel(int levelId, int size, Random rng) {
       'timeLimit': (total * (2.6 - 0.8 * t)).round(),
       'gameType': 'colorDots',
       'dotPositions': dotPositions,
+      'solutionPaths': solutionPaths,
       'startValue': 1,
     };
   }

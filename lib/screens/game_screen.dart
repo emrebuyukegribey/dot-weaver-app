@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'dart:async'; // For Timer
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:collection';
 import '../l10n/app_localizations.dart';
 import '../models/game_level_model.dart';
 import '../services/ad_service.dart';
@@ -1609,6 +1608,13 @@ class _GameScreenState extends State<GameScreen>
       if (widget.level.gameType == GameType.operationPath) {
           return _revealOperationHint();
       }
+      // The hint reveals a segment of the level's baked full-board solution
+      // (see GameLevel.solutionPaths) rather than pathfinding live: a greedy
+      // shortest path can wall off a cell region and make another color
+      // unsolvable, which used to lock players out of finishing the level.
+      final solution = widget.level.solutionPaths;
+      if (solution == null) return false;
+
       // Find first incomplete color
       DotColor? targetColor;
       widget.level.dotPositions.forEach((color, nodes) {
@@ -1619,22 +1625,40 @@ class _GameScreenState extends State<GameScreen>
 
       if (targetColor == null) return false;
 
-      final nodes = widget.level.dotPositions[targetColor]!;
-      final path = _findPath(nodes[0], nodes[1], targetColor!);
+      // If the player already locked other colors with a different (but
+      // still valid) routing than the baked solution assumes, the baked path
+      // for targetColor could now run through already-occupied cells. Rather
+      // than risk drawing something broken, decline the hint outright.
+      for (final color in _lockedPaths) {
+          final played = _paths[color];
+          final baked = solution[color];
+          if (played == null || baked == null) return false;
+          final matchesForward = _gridPointListEquals(played, baked);
+          final matchesReverse = _gridPointListEquals(played, baked.reversed.toList());
+          if (!matchesForward && !matchesReverse) return false;
+      }
 
+      final path = solution[targetColor];
+      final nodes = widget.level.dotPositions[targetColor]!;
       if (path == null || path.isEmpty) return false;
+      // The baked path always runs from the first endpoint to the second;
+      // flip it if the player's view of the pair is reversed.
+      final orderedPath = path.first == nodes[0]
+          ? path
+          : (path.first == nodes[1] ? path.reversed.toList() : null);
+      if (orderedPath == null) return false;
 
       setState(() {
           _isHintAnimating = true;
       });
 
       // Animate path drawing
-      _paths[targetColor!] = [path.first];
-      for (int i = 1; i < path.length; i++) {
+      _paths[targetColor!] = [orderedPath.first];
+      for (int i = 1; i < orderedPath.length; i++) {
           await Future.delayed(const Duration(milliseconds: 100));
           if (!mounted) return true;
           setState(() {
-              _paths[targetColor!]!.add(path[i]);
+              _paths[targetColor!]!.add(orderedPath[i]);
           });
       }
 
@@ -1825,65 +1849,14 @@ class _GameScreenState extends State<GameScreen>
       }
   }
   
-  List<GridPoint>? _findPath(GridPoint start, GridPoint end, DotColor color) {
-      // BFS pathfinding
-      final queue = Queue<List<GridPoint>>();
-      final visited = <GridPoint>{};
-      
-      queue.add([start]);
-      visited.add(start);
-      
-      while (queue.isNotEmpty) {
-          final path = queue.removeFirst();
-          final current = path.last;
-          
-          if (current == end) {
-              return path;
-          }
-          
-          // Check all 4 orthogonal neighbors
-          final neighbors = [
-              GridPoint(current.row - 1, current.col), // Up
-              GridPoint(current.row + 1, current.col), // Down
-              GridPoint(current.row, current.col - 1), // Left
-              GridPoint(current.row, current.col + 1), // Right
-          ];
-          
-          for (final neighbor in neighbors) {
-              // Check bounds
-              if (neighbor.row < 0 || neighbor.row >= widget.level.rows ||
-                  neighbor.col < 0 || neighbor.col >= widget.level.cols) {
-                  continue;
-              }
-              
-              if (visited.contains(neighbor)) continue;
-              
-              // Check if cell is occupied by another color's node (not our endpoints)
-              bool blockedByNode = false;
-              widget.level.dotPositions.forEach((c, nodes) {
-                  if (c != color && nodes.contains(neighbor)) {
-                      blockedByNode = true;
-                  }
-              });
-              if (blockedByNode) continue;
-              
-              // Check if cell is occupied by a locked path
-              bool blockedByLockedPath = false;
-              _paths.forEach((c, p) {
-                  if (c != color && _lockedPaths.contains(c) && p.contains(neighbor)) {
-                      blockedByLockedPath = true;
-                  }
-              });
-              if (blockedByLockedPath) continue;
-              
-              visited.add(neighbor);
-              queue.add([...path, neighbor]);
-          }
+  bool _gridPointListEquals(List<GridPoint> a, List<GridPoint> b) {
+      if (a.length != b.length) return false;
+      for (int i = 0; i < a.length; i++) {
+          if (a[i] != b[i]) return false;
       }
-      
-      return null; // No path found
+      return true;
   }
-  
+
   // ... Keep Tutorial & Input Logic same as previous artifact ...
    Widget _buildTutorialOverlay(double cellSize) {
       final start = widget.level.startNode ?? const GridPoint(0, 0);

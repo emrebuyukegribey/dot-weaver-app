@@ -8,6 +8,13 @@ class LevelGenerator {
   /// (e.g. Number Nexus 51-100) without bloating the source with literals.
   static final Map<String, Map<int, GameLevel>> _generated = {};
 
+  /// Baked full-board solutions for the hand-authored Color Realm levels
+  /// (1-50), keyed by levelId. Computed offline by
+  /// test/tools/generate_color_hand_solutions_test.dart and attached to the
+  /// level in [generateColorLevel] so the hint can reveal a real solution
+  /// segment instead of pathfinding live.
+  static final Map<int, Map<DotColor, List<GridPoint>>> _handColorSolutions = {};
+
   /// Loads the baked level packs. Call once during app startup (before the
   /// first level can be opened). Safe to call multiple times.
   static Future<void> init() async {
@@ -31,6 +38,23 @@ class LevelGenerator {
       } catch (_) {
         // Missing/!valid pack: fall back to hand-made levels only.
       }
+    }
+
+    try {
+      final raw = await rootBundle.loadString('assets/levels/color_hand_solutions.json');
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      decoded.forEach((levelIdStr, colors) {
+        final solution = <DotColor, List<GridPoint>>{};
+        (colors as Map).forEach((colorName, pts) {
+          solution[DotColor.values.byName(colorName as String)] = (pts as List)
+              .map((e) => GridPoint((e[0] as num).toInt(), (e[1] as num).toInt()))
+              .toList();
+        });
+        _handColorSolutions[int.parse(levelIdStr)] = solution;
+      });
+    } catch (_) {
+      // Missing pack: hand-authored color hints simply won't be offered
+      // (see _revealHint in game_screen.dart, which requires solutionPaths).
     }
   }
 
@@ -1147,6 +1171,7 @@ class LevelGenerator {
       cols: size,
       timeLimit: timeLimit,
       dotPositions: positions,
+      solutionPaths: _handColorSolutions[levelId],
     );
   }
 
