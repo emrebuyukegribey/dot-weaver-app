@@ -43,3 +43,12 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# App secrets — never commit
+google-play-service-account.json
+
+# iCloud Drive sync conflict copies (" 2", " 3", ...) of generated files
+.flutter-plugins-dependencies [0-9]*
+ios/Flutter/Generated [0-9]*.xcconfig
+ios/Flutter/flutter_export_environment [0-9]*.sh
+ios/Flutter/Flutter [0-9]*.podspec

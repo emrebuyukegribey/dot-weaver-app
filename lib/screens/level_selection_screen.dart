@@ -484,23 +484,48 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> with Ticker
                       ),
                   ),
                   
-                  // Content (Level Number)
+                  // Content (Level Number) — shown for both locked and
+                  // unlocked levels so players can see the total level count.
+                  // Locked numbers are dimmed to read as "not yet available".
                   Center(
-                    child: isLocked
-                      ? const Icon(Icons.lock_outline_rounded, color: Colors.white24, size: 28)
-                      : Text(
-                          "${level.id}",
-                          style: const TextStyle(
-                            fontFamily: 'Orbitron',
-                            fontSize: 28,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))
-                            ]
+                    child: Text(
+                      "${level.id}",
+                      style: TextStyle(
+                        fontFamily: 'Orbitron',
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: isLocked
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : Colors.white,
+                        shadows: const [
+                          Shadow(color: Colors.black54, blurRadius: 4, offset: Offset(2, 2))
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Small lock badge in the corner for locked levels.
+                  if (isLocked)
+                    Positioned(
+                      bottom: 2,
+                      right: 2,
+                      child: Container(
+                        padding: const EdgeInsets.all(3),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color(0xFF263238).withValues(alpha: 0.85),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            width: 1,
                           ),
                         ),
-                  ),
+                        child: const Icon(
+                          Icons.lock_rounded,
+                          color: Colors.white70,
+                          size: 14,
+                        ),
+                      ),
+                    ),
               ],
           ),
       );
