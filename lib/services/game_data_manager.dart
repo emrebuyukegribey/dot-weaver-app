@@ -173,6 +173,26 @@ class GameDataManager {
   /// by a remote `false`.
   bool get adFree => removeAds || remotePremium;
 
+  // --- Intro ad-free window ---
+  /// New players see no (involuntary) ads until they have completed this many
+  /// levels. Derived from real progress, so existing players who are already
+  /// past it keep seeing ads normally and no migration is needed.
+  static const int introAdFreeLevels = 10;
+
+  /// Total completed levels (stars > 0) across every playable island.
+  int getTotalCompletedLevels() {
+    int total = 0;
+    islandLevelCounts.forEach((islandId, levelCount) {
+      total += getCompletedCount(islandId, levelCount);
+    });
+    return total;
+  }
+
+  /// True while the player is still inside the intro ad-free window (fewer than
+  /// [introAdFreeLevels] levels completed). Banner and interstitial ads are
+  /// suppressed during this window; opt-in rewarded ads still work.
+  bool get inIntroAdFreeWindow => getTotalCompletedLevels() < introAdFreeLevels;
+
   /// Cadence tracking for the "Remove Ads" upsell modal so it appears only
   /// occasionally. [promoCompletions] counts ad-free level completions since the
   /// modal was last shown; [promoShownCount] is how many times it has been shown.

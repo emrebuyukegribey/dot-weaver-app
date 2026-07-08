@@ -49,6 +49,13 @@ class AdService {
 
   bool get _adsAllowed => !GameDataManager().adFree;
 
+  /// Gate for interstitial ads only. In addition to the "remove ads"
+  /// entitlement, interstitials stay hidden during the intro ad-free window for
+  /// new players. Banner ads and opt-in rewarded ads keep using [_adsAllowed],
+  /// so they show from the start.
+  bool get _interstitialAllowed =>
+      _adsAllowed && !GameDataManager().inIntroAdFreeWindow;
+
   /// Initialises the Mobile Ads SDK after gathering UMP consent. Call only after
   /// [TrackingConsentService.requestIfNeeded] on iOS. Safe to call multiple times.
   Future<void> initialize() async {
@@ -63,8 +70,10 @@ class AdService {
       await MobileAds.instance.initialize();
       _initialized = true;
       ready.value = true;
-      if (_adsAllowed) {
+      if (_interstitialAllowed) {
         _loadInterstitial();
+      }
+      if (_adsAllowed) {
         _loadRewarded();
       }
     } catch (e) {
@@ -135,7 +144,7 @@ class AdService {
 
   // --- Interstitial ---
   void _loadInterstitial() {
-    if (!_adsAllowed) return;
+    if (!_interstitialAllowed) return;
     InterstitialAd.load(
       adUnitId: _interstitialUnitId,
       request: const AdRequest(),
@@ -153,7 +162,7 @@ class AdService {
   /// reached (and ads are allowed). Returns true if an interstitial was actually
   /// shown (so callers can avoid stacking another popup on top of it).
   Future<bool> onLevelCompleted() async {
-    if (!_adsAllowed) return false;
+    if (!_interstitialAllowed) return false;
     _completionsSinceInterstitial++;
     if (_completionsSinceInterstitial < interstitialEveryNCompletions) return false;
     _completionsSinceInterstitial = 0;
