@@ -27,6 +27,8 @@ services:
       PGPASSWORD: ${PGPASSWORD:-dotweaver}
       PGDATABASE: ${PGDATABASE:-dotweaver}
       ADMIN_TOKEN: ${ADMIN_TOKEN:?set ADMIN_TOKEN in .env}
+      # Qovya panel poller key (separate from ADMIN_TOKEN); empty = disabled.
+      PANEL_KEY: ${PANEL_KEY:-}
     # Bind to localhost only; put nginx in front for TLS + public exposure.
     # Host port 8090 (predgo already uses 8080); container still listens on 8080.
     ports:

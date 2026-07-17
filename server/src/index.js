@@ -7,6 +7,9 @@ app.use(express.json({ limit: '64kb' }));
 
 const PORT = parseInt(process.env.PORT || '8080', 10);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || '';
+// Qovya panel poller credential — separate from ADMIN_TOKEN so the panel
+// never holds the admin credential. Empty = panel endpoint disabled.
+const PANEL_KEY = process.env.PANEL_KEY || '';
 
 // ---- helpers ----------------------------------------------------------------
 
@@ -48,6 +51,13 @@ async function getPremium(deviceId) {
 function requireAdmin(req, res, next) {
   const header = req.get('x-admin-token') || (req.get('authorization') || '').replace(/^Bearer\s+/i, '');
   if (!ADMIN_TOKEN || header !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  next();
+}
+
+function requirePanel(req, res, next) {
+  if (!PANEL_KEY || req.get('x-panel-key') !== PANEL_KEY) {
     return res.status(401).json({ error: 'unauthorized' });
   }
   next();
@@ -178,6 +188,42 @@ app.get('/api/v1/admin/stats', requireAdmin, async (_req, res) => {
     });
   } catch (e) {
     console.error('stats error:', e.message);
+    res.status(500).json({ error: 'server error' });
+  }
+});
+
+// ---- Qovya panel summary (X-Panel-Key protected, read-only) ------------------
+
+app.get('/api/v1/panel/summary', requirePanel, async (_req, res) => {
+  try {
+    // "Today" buckets use Istanbul local midnight, same as the other apps.
+    const dayStart =
+      "(date_trunc('day', now() AT TIME ZONE 'Europe/Istanbul') AT TIME ZONE 'Europe/Istanbul')";
+    const [totals, newToday, dau, activeNow, premiumToday, premium, plays] = await Promise.all([
+      pool.query('SELECT count(*)::int AS n FROM devices'),
+      pool.query(`SELECT count(*)::int AS n FROM devices WHERE first_seen >= ${dayStart}`),
+      pool.query(`SELECT count(*)::int AS n FROM devices WHERE last_seen >= ${dayStart}`),
+      pool.query("SELECT count(*)::int AS n FROM devices WHERE last_seen > now() - interval '15 minutes'"),
+      pool.query(`SELECT count(*)::int AS n FROM entitlements WHERE premium AND granted_at >= ${dayStart}`),
+      pool.query('SELECT count(*)::int AS n FROM entitlements WHERE premium'),
+      pool.query('SELECT COALESCE(sum(levels_played), 0)::int AS n FROM devices'),
+    ]);
+    res.json({
+      app: 'dotweaver',
+      users_total: totals.rows[0].n,
+      users_today: newToday.rows[0].n,
+      dau: dau.rows[0].n,
+      active_now: activeNow.rows[0].n,
+      purchases_today: premiumToday.rows[0].n,
+      revenue_today: 0,
+      extras: [
+        { label: 'Premium toplam', value: premium.rows[0].n },
+        { label: 'Toplam oynanış', value: plays.rows[0].n },
+      ],
+      alerts: [],
+    });
+  } catch (e) {
+    console.error('panel summary error:', e.message);
     res.status(500).json({ error: 'server error' });
   }
 });
